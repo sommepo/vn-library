@@ -61,7 +61,7 @@ const menuMusic = new MenuMusic(new Audio(),localStorage);
 let libraryMode=false;
 const menuSuspended=new Set();
 function leaveLibrary(){libraryMode=false;for(const a of menuSuspended)if(!a.ended)play(a);menuSuspended.clear();syncMenuMusic();}
-function syncMenuMusic(){menuMusic.sync((!engine||libraryMode)&&!loadingGame&&!globalPause.paused&&!document.hidden);}
+function syncMenuMusic(){menuMusic.sync((!engine||libraryMode)&&!loadingGame&&currentDialog!=='sound-test'&&!globalPause.paused&&!document.hidden);}
 for(const event of ['pointerdown','keydown'])document.addEventListener(event,syncMenuMusic);
 document.addEventListener('visibilitychange',syncMenuMusic);
 const lineHistory = new LineHistory();
@@ -670,7 +670,6 @@ async function soundTestPanel(context={engine,game,contentBase,active:true}) {
   const body=openPanel('Sound test','sound-test');
   wasPlaying.forEach(a=>a.pause());
   const tracks=engine.soundtrack?.()||Object.entries(engine.content.assets).filter(([,a])=>a.type==='music').map(([asset])=>({asset,label:asset}));
-  body.append(paragraph(`${tracks.length} original BGM tracks from this import. Labels are the game’s internal music names. Listening here does not change story progress or reading statistics.`));
   const now=paragraph('Choose a track.'),player=document.createElement('audio');player.controls=true;player.className='sound-test-player';player.volume=Number(settings.music);player.preload='metadata';
   const loop=document.createElement('input');loop.type='checkbox';loop.checked=true;const label=document.createElement('label');label.append(loop,document.createTextNode(' Loop track'));let current=null;
   loop.onchange=()=>{if(current)configureAudio(player,current,loop.checked,engine);};

@@ -37,6 +37,17 @@ try{
  await page.locator('#libraryButton').click();
  await page.waitForFunction(()=>!window.__testAudio.find(a=>a.src.endsWith('/media/nova-mistero.mp3')).paused);
  assert.equal(await page.locator('.console-wordmark').count(),0);
+ await page.locator('.console-title > summary').click();
+ await page.getByRole('button',{name:'Sound test',exact:true}).click();
+ assert.ok(await page.evaluate(()=>window.__testAudio.find(a=>a.src.endsWith('/media/nova-mistero.mp3')).paused));
+ assert.equal(await page.getByText('original BGM tracks from this import',{exact:false}).count(),0);
+ await page.locator('.sound-track').first().click();
+ await page.waitForFunction(()=>!document.querySelector('.sound-test-player').paused);
+ assert.ok(await page.evaluate(()=>window.__testAudio.find(a=>a.src.endsWith('/media/nova-mistero.mp3')).paused));
+ await page.getByRole('button',{name:'Main menu',exact:true}).click();
+ await page.waitForFunction(()=>!window.__testAudio.find(a=>a.src.endsWith('/media/nova-mistero.mp3')).paused);
+ assert.equal(await page.locator('.sound-test-player').count(),0);
+
  await page.getByRole('button',{name:'Reading settings',exact:true}).click();
  assert.ok(await page.evaluate(()=>!window.__testAudio.find(a=>a.src.endsWith('/media/nova-mistero.mp3')).paused));
  await page.locator('#closePanel').click();
