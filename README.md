@@ -170,6 +170,8 @@ Clearing browser data can remove local saves and stats.
 
 ## Lookups and mining
 
+![Yomitan dictionary lookup over Japanese dialogue](docs/screenshots/dictionary-lookup.jpg)
+
 Use [Yomitan](https://github.com/yomidevs/yomitan) or another browser dictionary
 directly on the Japanese text. Looking up words and selecting text won’t advance
 the story.
@@ -195,6 +197,8 @@ copy the current line with **Alt+C**, or enable automatic copying.
 
 ## Customisation and bonuses
 
+![CLANNAD in fullscreen with an optional CRT filter](docs/screenshots/crt-reading.jpg)
+
 - **CRT filters:** six presets, with adjustable scanlines, phosphor masks, glow,
   curvature and colour.
 - **Text and UI:** adjust textbox colour and opacity, font size, line spacing
@@ -209,6 +213,8 @@ Display and audio preferences stay on each device. CRT filters are optional;
 importing does not upscale the original artwork.
 
 ## Stats
+
+![Reading activity showing daily characters and game statistics](docs/screenshots/reading-stats.jpg)
 
 Reading stats take inspiration from
 [GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner) and
@@ -228,6 +234,8 @@ does not count the current line again. Stats stay separate from saves, so loadin
 an earlier position does not erase later activity.
 
 ## Reader controls
+
+![Fullscreen reader controls](docs/screenshots/reader-controls.jpg)
 
 | Control | What it does |
 | --- | --- |
