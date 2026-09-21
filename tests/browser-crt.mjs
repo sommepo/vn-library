@@ -1,0 +1,51 @@
+// Actual private CLANNAD artwork + original synthetic compositor checks.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';
+import{pollBrowser}from'./browser-poll.mjs';
+const root=path.resolve(import.meta.dirname,'..'),base=process.env.VNKIT_URL||'http://127.0.0.1:8891',game='clannad-slpm66302-1.01';
+const out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/crt'),input=path.resolve(process.env.VNKIT_CHECKPOINTS||'private/clannad/menu-audit/checkpoints-final');await fs.mkdir(out,{recursive:true});
+const{chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));
+const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader']}),report={checks:[],errors:[],presets:{},scope:'Actual CLANNAD portrait/date checkpoint, software WebGL2; physical GPU / 4K monitor comparison unverified'};
+const pass=n=>{report.checks.push(n);console.log('PASS '+n);};let page;
+const get=async(k='autosave')=>page.evaluate(async([g,k])=>{const{Store}=await import('/storage.mjs');const s=new Store();await s.open();const v=await s.get(g+':'+k);s.db.close();return v;},[game,k]);
+const ready=async()=>page.waitForFunction(()=>!document.querySelector('#nextButton').disabled||document.querySelector('#choices button'),null,{timeout:60000});
+async function pixels(){return page.locator('.crt-preview').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let sum=0,hash=2166136261;for(let i=0;i<d.length;i+=4){sum+=d[i]+d[i+1]+d[i+2];hash=Math.imul(hash^d[i],16777619)>>>0;}return{mean:sum/(d.length/4*3),hash,width:c.width,height:c.height};});}
+try{
+ const context=await browser.newContext({viewport:{width:1440,height:1100}});page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base);
+ await page.waitForSelector('#panel.console-library[open]');assert.equal(await page.locator('.game-card').count(),1);assert.match(await page.locator('.game-card h2').innerText(),/CLANNAD/);assert.doesNotMatch(await page.locator('#panelBody').innerText(),/Pia Carrot/i);
+ await page.getByRole('button',{name:'Read / resume',exact:true}).focus();await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Start again');
+ await page.screenshot({path:path.join(out,'library-desktop.png')});pass('Console menu shows only CLANNAD and supports arrow-key selection');
+ await page.getByRole('button',{name:'Read / resume',exact:true}).click();await ready();
+ const file=path.join(input,'source-portrait.json'),portrait=JSON.parse(await fs.readFile(file));await page.locator('#saveFile').setInputFiles(file);await pollBrowser(async()=>(await get())?.state.pending?.id===portrait.state.pending.id,'portrait restore',60000);await ready();
+ const saved=await get(),activity=await get('activity');
+ await page.locator('#crtButton').click();await page.locator('#crt-enabled').check();await page.waitForFunction(()=>document.querySelector('#crt-state').textContent.startsWith('CRT active'));
+ const initial=await pixels();assert.ok(initial.mean>15&&initial.mean<245);assert.equal(await page.locator('#art.crt-active canvas').count(),1);pass('Three WebGL2 passes compile and render actual CLANNAD body, face, background and calendar');
+ for(const name of ['soft','monitor','consumer','shadow','arcade','clean']){
+  await page.locator('#crt-preset').selectOption(name);await page.waitForFunction(()=>document.querySelector('#crt-state').textContent.startsWith('CRT active'));report.presets[name]=await pixels();assert.ok(report.presets[name].mean>15);
+ }
+ assert.ok(new Set(Object.values(report.presets).map(p=>p.hash)).size>=5);pass('All six CRT presets produce nonblack, distinct rendered output');
+ await page.locator('#crt-corners').evaluate(i=>{i.value=0;i.dispatchEvent(new Event('input',{bubbles:true}));});assert.ok((await pixels()).mean>15);assert.equal(await page.locator('#crt-preset').inputValue(),'custom');pass('Custom geometry, including zero-radius corners, renders without black-frame errors');
+ await page.locator('#crt-preset').selectOption('consumer');await page.screenshot({path:path.join(out,'crt-controls.png')});
+ await page.locator('#closePanel').click();await page.screenshot({path:path.join(out,'crt-game.png')});
+ assert.equal((await get()).state.pending.id,saved.state.pending.id);assert.deepEqual((await get('activity')).seen,activity.seen);
+ await page.locator('#sentence').evaluate(e=>{const r=document.createRange();r.selectNodeContents(e);const s=getSelection();s.removeAllRanges();s.addRange(r);});assert.ok(await page.evaluate(()=>getSelection().toString().length>0));await page.locator('#sentence').click();assert.equal((await get()).state.pending.id,saved.state.pending.id);pass('CRT tuning and text selection preserve story position and encountered text');
+ await page.evaluate(()=>getSelection().removeAllRanges());
+ await page.locator('#crtButton').click();await page.locator('#crt-enabled').uncheck();assert.equal(await page.locator('#art.crt-active').count(),0);assert.equal(await page.locator('.crt-screen').count(),0);await page.locator('#closePanel').click();await page.screenshot({path:path.join(out,'original-game.png')});assert.equal(await page.locator('#art.native-active .native-screen').count(),1);pass('Off removes CRT filtering and retains native-resolution portrait composition');
+ await page.locator('#crtButton').click();await page.locator('#crt-enabled').check();await page.locator('#closePanel').click();await page.goto(`${base}/?game=${game}`);await ready();await page.waitForSelector('#art.crt-active');assert.equal(JSON.parse(await page.evaluate(()=>localStorage.getItem('vnkit.crt.v1'))).preset,'consumer');assert.equal((await get()).state.pending.id,saved.state.pending.id);pass('CRT settings persist across reload independently of saves');
+ await page.locator('.crt-screen').evaluate(c=>{const ext=c.getContext('webgl2').getExtension('WEBGL_lose_context');window.__crtLoss=ext;ext.loseContext();});await page.waitForFunction(()=>!document.querySelector('#art').classList.contains('crt-active'));await page.locator('#crtButton').click();assert.match(await page.locator('#crt-state').innerText(),/context lost/);await page.evaluate(()=>window.__crtLoss.restoreContext());await page.waitForSelector('#art.crt-active');pass('GPU context loss visibly falls back to original artwork and recovery reinitializes filtering');
+ await page.locator('#closePanel').click();await page.setViewportSize({width:412,height:915});await page.locator('#crtButton').click();assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));await page.screenshot({path:path.join(out,'crt-mobile.png')});await page.getByRole('button',{name:'Back to main menu',exact:true}).click();await page.screenshot({path:path.join(out,'library-mobile.png')});pass('CRT controls and console menu fit the mobile viewport');
+ // Original synthetic positioned artwork: atlas clipping, source alpha and transforms.
+ const capture=await page.evaluate(async()=>{
+  const{SceneCapture}=await import('/crt.mjs');const host=document.createElement('div');host.style.cssText='position:fixed;left:0;top:0;width:100px;height:100px';document.body.append(host);
+  const image=async(svg,style,parent=host)=>{const img=new Image();img.src='data:image/svg+xml,'+encodeURIComponent(svg);img.style.cssText='position:absolute;'+style;parent.append(img);await img.decode();return img;};
+  await image('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="blue"/></svg>','left:0;top:0;width:100px;height:100px;z-index:0');
+  const crop=document.createElement('div');crop.style.cssText='position:absolute;left:20px;top:20px;width:20px;height:20px;overflow:hidden;z-index:1';host.append(crop);
+  await image('<svg xmlns="http://www.w3.org/2000/svg" width="20" height="40"><path d="M0 0H20V20H0Z" fill="green"/><path d="M0 20H20V40H0Z" fill="red" fill-opacity=".5"/></svg>','width:20px;height:40px;top:-20px;left:0;filter:url(#source-alpha)',crop);
+  await image('<svg xmlns="http://www.w3.org/2000/svg" width="10" height="20"><rect width="10" height="20" fill="lime"/></svg>','width:10px;height:20px;left:70px;top:70px;transform-origin:0 0;transform:rotate(90deg);z-index:2');
+  const c=new SceneCapture().draw(host,[100,100]).getContext('2d'),sample=(x,y)=>Array.from(c.getImageData(x,y,1,1).data);const result={base:sample(5,5),face:sample(25,25),clip:sample(25,45),rotation:sample(55,75)};host.remove();return result;
+ });
+ assert.deepEqual(capture.base,[0,0,255,255]);assert.ok(capture.face[0]>250&&capture.face[2]<5);assert.deepEqual(capture.clip,[0,0,255,255]);assert.deepEqual(capture.rotation,[0,255,0,255]);pass('Original compositor fixture verifies atlas cropping, PS2 alpha scaling, clipping, z-order and rotation');
+ const fallback=await browser.newContext();await fallback.addInitScript(()=>{localStorage.setItem('vnkit.crt.v1',JSON.stringify({enabled:true}));const original=HTMLCanvasElement.prototype.getContext;HTMLCanvasElement.prototype.getContext=function(kind,...args){return kind==='webgl2'?null:original.call(this,kind,...args);};});const fp=await fallback.newPage();fp.on('pageerror',e=>report.errors.push(e.message));await fp.goto(`${base}/?game=${game}`);await fp.waitForFunction(()=>!document.querySelector('#nextButton').disabled,null,{timeout:60000});await fp.locator('#saveFile').setInputFiles(file);await fp.waitForFunction(()=>document.querySelector('#art .calendar'));await fp.locator('#crtButton').click();await fp.waitForFunction(()=>document.querySelector('#crt-state').textContent.includes('WebGL 2 is unavailable'));assert.equal(await fp.locator('#art.crt-active').count(),0);await fallback.close();pass('Unsupported WebGL reports an understandable status and leaves the game usable');
+ assert.deepEqual(report.errors,[]);
+}catch(error){report.failure=error.stack;console.error(error.stack);process.exitCode=1;if(page)await page.screenshot({path:path.join(out,'failure.png')});}
+finally{await fs.writeFile(path.join(out,'results.json'),JSON.stringify(report,null,2),{flag:'wx'});await browser.close();}

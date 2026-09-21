@@ -1,0 +1,12 @@
+*
+!vnkit/
+!vnkit/**
+!web/
+!web/**
+!fixtures/
+!fixtures/**
+!LICENSE
+!Dockerfile
+
+!third_party/
+!third_party/*.txt

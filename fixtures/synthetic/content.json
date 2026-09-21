@@ -1,0 +1,2602 @@
+{
+  "format": "vnkit.content",
+  "version": 1,
+  "id": "original-synthetic",
+  "title": "小さな読書の道 · Original test fixture",
+  "synthetic": true,
+  "adapter": {
+    "id": "original-fixture",
+    "version": "1.0.0"
+  },
+  "entry": "start",
+  "assets": {
+    "dawn": {
+      "type": "image",
+      "url": "dawn.svg",
+      "provenance": "Original geometric SVG, MIT"
+    },
+    "forest": {
+      "type": "image",
+      "url": "forest.svg",
+      "provenance": "Original geometric SVG, MIT"
+    },
+    "shore": {
+      "type": "image",
+      "url": "shore.svg",
+      "provenance": "Original geometric SVG, MIT"
+    },
+    "night": {
+      "type": "image",
+      "url": "night.svg",
+      "provenance": "Original geometric SVG, MIT"
+    },
+    "guide": {
+      "type": "image",
+      "url": "guide.svg",
+      "provenance": "Original geometric SVG figure, MIT"
+    },
+    "music": {
+      "type": "music",
+      "url": "music.wav",
+      "provenance": "Original generated sine tones, MIT; voice-test is a timing signal, not speech"
+    },
+    "chime": {
+      "type": "sound",
+      "url": "chime.wav",
+      "provenance": "Original generated sine tones, MIT; voice-test is a timing signal, not speech"
+    },
+    "voice-test": {
+      "type": "voice",
+      "url": "voice-test.wav",
+      "provenance": "Original generated sine tones, MIT; voice-test is a timing signal, not speech"
+    }
+  },
+  "instructions": [
+    {
+      "id": "start",
+      "op": "background",
+      "asset": "dawn",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 0
+      }
+    },
+    {
+      "id": "music-start",
+      "op": "music",
+      "asset": "music",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 1
+      }
+    },
+    {
+      "id": "guide-on",
+      "op": "sprite",
+      "slot": "guide",
+      "asset": "guide",
+      "x": 72,
+      "y": 100,
+      "scale": 0.8,
+      "z": 2,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 2
+      }
+    },
+    {
+      "id": "counter-init",
+      "op": "set",
+      "name": "pages",
+      "value": 0,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 3
+      }
+    },
+    {
+      "id": "opening",
+      "op": "text",
+      "speaker": "案内人",
+      "text": [
+        "これは",
+        {
+          "base": "読書",
+          "reading": "どくしょ"
+        },
+        "機能を試すための、オリジナルの短い物語です。"
+      ],
+      "voice": "voice-test",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 4
+      }
+    },
+    {
+      "id": "sound-chime",
+      "op": "sound",
+      "asset": "chime",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 5
+      }
+    },
+    {
+      "id": "repeat-a",
+      "op": "text",
+      "text": "風が、静かに吹いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 6
+      }
+    },
+    {
+      "id": "repeat-b",
+      "op": "text",
+      "text": "風が、静かに吹いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 7
+      }
+    },
+    {
+      "id": "route-choice",
+      "op": "choice",
+      "options": [
+        {
+          "id": "forest",
+          "text": [
+            {
+              "base": "森",
+              "reading": "もり"
+            },
+            "の道を歩く"
+          ],
+          "target": "forest-set"
+        },
+        {
+          "id": "shore",
+          "text": "海の道を歩く",
+          "target": "shore-set"
+        }
+      ],
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 8
+      }
+    },
+    {
+      "id": "forest-set",
+      "op": "set",
+      "name": "route",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 9
+      }
+    },
+    {
+      "id": "forest-bg",
+      "op": "background",
+      "asset": "forest",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 10
+      }
+    },
+    {
+      "id": "forest-text",
+      "op": "text",
+      "speaker": "案内人",
+      "text": "木々の間から、やわらかな光が差し込んでいる。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 11
+      }
+    },
+    {
+      "id": "forest-call",
+      "op": "call",
+      "target": "memory",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 12
+      }
+    },
+    {
+      "id": "forest-join",
+      "op": "jump",
+      "target": "route-condition",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 13
+      }
+    },
+    {
+      "id": "shore-set",
+      "op": "set",
+      "name": "route",
+      "value": 2,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 14
+      }
+    },
+    {
+      "id": "shore-bg",
+      "op": "background",
+      "asset": "shore",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 15
+      }
+    },
+    {
+      "id": "shore-text",
+      "op": "text",
+      "speaker": "案内人",
+      "text": "波の音を聞きながら、砂浜に続く道を選んだ。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 16
+      }
+    },
+    {
+      "id": "shore-call",
+      "op": "call",
+      "target": "memory",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 17
+      }
+    },
+    {
+      "id": "shore-join",
+      "op": "jump",
+      "target": "route-condition",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 18
+      }
+    },
+    {
+      "id": "memory",
+      "op": "text",
+      "text": "同じ言葉でも、違う場所で読むと、少し違って感じられる。",
+      "voice": "voice-test",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 19
+      }
+    },
+    {
+      "id": "memory-return",
+      "op": "return",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 20
+      }
+    },
+    {
+      "id": "route-condition",
+      "op": "if",
+      "condition": {
+        "var": "route",
+        "operator": "eq",
+        "value": 1
+      },
+      "then": "forest-result",
+      "else": "shore-result",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 21
+      }
+    },
+    {
+      "id": "forest-result",
+      "op": "text",
+      "text": "森を選んだことを、物語は覚えている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 22
+      }
+    },
+    {
+      "id": "forest-result-join",
+      "op": "jump",
+      "target": "common",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 23
+      }
+    },
+    {
+      "id": "shore-result",
+      "op": "text",
+      "text": "海を選んだことを、物語は覚えている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 24
+      }
+    },
+    {
+      "id": "common",
+      "op": "text",
+      "speaker": "案内人",
+      "text": "ここからは、長く読み進める機能を確かめてみよう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 25
+      }
+    },
+    {
+      "id": "count-001",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 26
+      }
+    },
+    {
+      "id": "page-001",
+      "op": "text",
+      "text": "記録1。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 27
+      }
+    },
+    {
+      "id": "count-002",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 28
+      }
+    },
+    {
+      "id": "page-002",
+      "op": "text",
+      "text": "記録2。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 29
+      }
+    },
+    {
+      "id": "count-003",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 30
+      }
+    },
+    {
+      "id": "page-003",
+      "op": "text",
+      "text": "記録3。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 31
+      }
+    },
+    {
+      "id": "count-004",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 32
+      }
+    },
+    {
+      "id": "page-004",
+      "op": "text",
+      "text": "記録4。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 33
+      }
+    },
+    {
+      "id": "count-005",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 34
+      }
+    },
+    {
+      "id": "page-005",
+      "op": "text",
+      "text": "記録5。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 35
+      }
+    },
+    {
+      "id": "count-006",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 36
+      }
+    },
+    {
+      "id": "page-006",
+      "op": "text",
+      "text": "記録6。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 37
+      }
+    },
+    {
+      "id": "count-007",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 38
+      }
+    },
+    {
+      "id": "page-007",
+      "op": "text",
+      "text": "記録7。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 39
+      }
+    },
+    {
+      "id": "count-008",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 40
+      }
+    },
+    {
+      "id": "page-008",
+      "op": "text",
+      "text": "記録8。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 41
+      }
+    },
+    {
+      "id": "count-009",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 42
+      }
+    },
+    {
+      "id": "page-009",
+      "op": "text",
+      "text": "記録9。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 43
+      }
+    },
+    {
+      "id": "count-010",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 44
+      }
+    },
+    {
+      "id": "page-010",
+      "op": "text",
+      "text": "記録10。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 45
+      }
+    },
+    {
+      "id": "count-011",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 46
+      }
+    },
+    {
+      "id": "page-011",
+      "op": "text",
+      "text": "記録11。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 47
+      }
+    },
+    {
+      "id": "count-012",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 48
+      }
+    },
+    {
+      "id": "page-012",
+      "op": "text",
+      "text": "記録12。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 49
+      }
+    },
+    {
+      "id": "count-013",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 50
+      }
+    },
+    {
+      "id": "page-013",
+      "op": "text",
+      "text": "記録13。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 51
+      }
+    },
+    {
+      "id": "count-014",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 52
+      }
+    },
+    {
+      "id": "page-014",
+      "op": "text",
+      "text": "記録14。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 53
+      }
+    },
+    {
+      "id": "count-015",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 54
+      }
+    },
+    {
+      "id": "page-015",
+      "op": "text",
+      "text": "記録15。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 55
+      }
+    },
+    {
+      "id": "count-016",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 56
+      }
+    },
+    {
+      "id": "page-016",
+      "op": "text",
+      "text": "記録16。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 57
+      }
+    },
+    {
+      "id": "count-017",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 58
+      }
+    },
+    {
+      "id": "page-017",
+      "op": "text",
+      "text": "記録17。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 59
+      }
+    },
+    {
+      "id": "count-018",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 60
+      }
+    },
+    {
+      "id": "page-018",
+      "op": "text",
+      "text": "記録18。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 61
+      }
+    },
+    {
+      "id": "count-019",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 62
+      }
+    },
+    {
+      "id": "page-019",
+      "op": "text",
+      "text": "記録19。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 63
+      }
+    },
+    {
+      "id": "count-020",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 64
+      }
+    },
+    {
+      "id": "page-020",
+      "op": "text",
+      "text": "記録20。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 65
+      }
+    },
+    {
+      "id": "count-021",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 66
+      }
+    },
+    {
+      "id": "page-021",
+      "op": "text",
+      "text": "記録21。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 67
+      }
+    },
+    {
+      "id": "count-022",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 68
+      }
+    },
+    {
+      "id": "page-022",
+      "op": "text",
+      "text": "記録22。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 69
+      }
+    },
+    {
+      "id": "count-023",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 70
+      }
+    },
+    {
+      "id": "page-023",
+      "op": "text",
+      "text": "記録23。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 71
+      }
+    },
+    {
+      "id": "count-024",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 72
+      }
+    },
+    {
+      "id": "page-024",
+      "op": "text",
+      "text": "記録24。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 73
+      }
+    },
+    {
+      "id": "count-025",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 74
+      }
+    },
+    {
+      "id": "page-025",
+      "op": "text",
+      "text": "記録25。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 75
+      }
+    },
+    {
+      "id": "count-026",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 76
+      }
+    },
+    {
+      "id": "page-026",
+      "op": "text",
+      "text": "記録26。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 77
+      }
+    },
+    {
+      "id": "count-027",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 78
+      }
+    },
+    {
+      "id": "page-027",
+      "op": "text",
+      "text": "記録27。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 79
+      }
+    },
+    {
+      "id": "count-028",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 80
+      }
+    },
+    {
+      "id": "page-028",
+      "op": "text",
+      "text": "記録28。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 81
+      }
+    },
+    {
+      "id": "count-029",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 82
+      }
+    },
+    {
+      "id": "page-029",
+      "op": "text",
+      "text": "記録29。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 83
+      }
+    },
+    {
+      "id": "count-030",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 84
+      }
+    },
+    {
+      "id": "page-030",
+      "op": "text",
+      "text": "記録30。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 85
+      }
+    },
+    {
+      "id": "count-031",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 86
+      }
+    },
+    {
+      "id": "page-031",
+      "op": "text",
+      "text": "記録31。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 87
+      }
+    },
+    {
+      "id": "count-032",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 88
+      }
+    },
+    {
+      "id": "page-032",
+      "op": "text",
+      "text": "記録32。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 89
+      }
+    },
+    {
+      "id": "count-033",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 90
+      }
+    },
+    {
+      "id": "page-033",
+      "op": "text",
+      "text": "記録33。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 91
+      }
+    },
+    {
+      "id": "count-034",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 92
+      }
+    },
+    {
+      "id": "page-034",
+      "op": "text",
+      "text": "記録34。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 93
+      }
+    },
+    {
+      "id": "count-035",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 94
+      }
+    },
+    {
+      "id": "page-035",
+      "op": "text",
+      "text": "記録35。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 95
+      }
+    },
+    {
+      "id": "count-036",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 96
+      }
+    },
+    {
+      "id": "page-036",
+      "op": "text",
+      "text": "記録36。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 97
+      }
+    },
+    {
+      "id": "count-037",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 98
+      }
+    },
+    {
+      "id": "page-037",
+      "op": "text",
+      "text": "記録37。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 99
+      }
+    },
+    {
+      "id": "count-038",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 100
+      }
+    },
+    {
+      "id": "page-038",
+      "op": "text",
+      "text": "記録38。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 101
+      }
+    },
+    {
+      "id": "count-039",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 102
+      }
+    },
+    {
+      "id": "page-039",
+      "op": "text",
+      "text": "記録39。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 103
+      }
+    },
+    {
+      "id": "count-040",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 104
+      }
+    },
+    {
+      "id": "page-040",
+      "op": "text",
+      "text": "記録40。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 105
+      }
+    },
+    {
+      "id": "count-041",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 106
+      }
+    },
+    {
+      "id": "page-041",
+      "op": "text",
+      "text": "記録41。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 107
+      }
+    },
+    {
+      "id": "count-042",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 108
+      }
+    },
+    {
+      "id": "page-042",
+      "op": "text",
+      "text": "記録42。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 109
+      }
+    },
+    {
+      "id": "count-043",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 110
+      }
+    },
+    {
+      "id": "page-043",
+      "op": "text",
+      "text": "記録43。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 111
+      }
+    },
+    {
+      "id": "count-044",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 112
+      }
+    },
+    {
+      "id": "page-044",
+      "op": "text",
+      "text": "記録44。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 113
+      }
+    },
+    {
+      "id": "count-045",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 114
+      }
+    },
+    {
+      "id": "page-045",
+      "op": "text",
+      "text": "記録45。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 115
+      }
+    },
+    {
+      "id": "count-046",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 116
+      }
+    },
+    {
+      "id": "page-046",
+      "op": "text",
+      "text": "記録46。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 117
+      }
+    },
+    {
+      "id": "count-047",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 118
+      }
+    },
+    {
+      "id": "page-047",
+      "op": "text",
+      "text": "記録47。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 119
+      }
+    },
+    {
+      "id": "count-048",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 120
+      }
+    },
+    {
+      "id": "page-048",
+      "op": "text",
+      "text": "記録48。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 121
+      }
+    },
+    {
+      "id": "count-049",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 122
+      }
+    },
+    {
+      "id": "page-049",
+      "op": "text",
+      "text": "記録49。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 123
+      }
+    },
+    {
+      "id": "count-050",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 124
+      }
+    },
+    {
+      "id": "page-050",
+      "op": "text",
+      "text": "記録50。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 125
+      }
+    },
+    {
+      "id": "count-051",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 126
+      }
+    },
+    {
+      "id": "page-051",
+      "op": "text",
+      "text": "記録51。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 127
+      }
+    },
+    {
+      "id": "count-052",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 128
+      }
+    },
+    {
+      "id": "page-052",
+      "op": "text",
+      "text": "記録52。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 129
+      }
+    },
+    {
+      "id": "count-053",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 130
+      }
+    },
+    {
+      "id": "page-053",
+      "op": "text",
+      "text": "記録53。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 131
+      }
+    },
+    {
+      "id": "count-054",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 132
+      }
+    },
+    {
+      "id": "page-054",
+      "op": "text",
+      "text": "記録54。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 133
+      }
+    },
+    {
+      "id": "count-055",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 134
+      }
+    },
+    {
+      "id": "page-055",
+      "op": "text",
+      "text": "記録55。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 135
+      }
+    },
+    {
+      "id": "count-056",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 136
+      }
+    },
+    {
+      "id": "page-056",
+      "op": "text",
+      "text": "記録56。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 137
+      }
+    },
+    {
+      "id": "count-057",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 138
+      }
+    },
+    {
+      "id": "page-057",
+      "op": "text",
+      "text": "記録57。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 139
+      }
+    },
+    {
+      "id": "count-058",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 140
+      }
+    },
+    {
+      "id": "page-058",
+      "op": "text",
+      "text": "記録58。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 141
+      }
+    },
+    {
+      "id": "count-059",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 142
+      }
+    },
+    {
+      "id": "page-059",
+      "op": "text",
+      "text": "記録59。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 143
+      }
+    },
+    {
+      "id": "evening-bg",
+      "op": "background",
+      "asset": "night",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 144
+      }
+    },
+    {
+      "id": "guide-off",
+      "op": "sprite",
+      "slot": "guide",
+      "asset": null,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 145
+      }
+    },
+    {
+      "id": "short-pause",
+      "op": "wait",
+      "ms": 200,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 146
+      }
+    },
+    {
+      "id": "count-060",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 147
+      }
+    },
+    {
+      "id": "page-060",
+      "op": "text",
+      "text": "記録60。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 148
+      }
+    },
+    {
+      "id": "count-061",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 149
+      }
+    },
+    {
+      "id": "page-061",
+      "op": "text",
+      "text": "記録61。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 150
+      }
+    },
+    {
+      "id": "count-062",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 151
+      }
+    },
+    {
+      "id": "page-062",
+      "op": "text",
+      "text": "記録62。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 152
+      }
+    },
+    {
+      "id": "count-063",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 153
+      }
+    },
+    {
+      "id": "page-063",
+      "op": "text",
+      "text": "記録63。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 154
+      }
+    },
+    {
+      "id": "count-064",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 155
+      }
+    },
+    {
+      "id": "page-064",
+      "op": "text",
+      "text": "記録64。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 156
+      }
+    },
+    {
+      "id": "count-065",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 157
+      }
+    },
+    {
+      "id": "page-065",
+      "op": "text",
+      "text": "記録65。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 158
+      }
+    },
+    {
+      "id": "count-066",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 159
+      }
+    },
+    {
+      "id": "page-066",
+      "op": "text",
+      "text": "記録66。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 160
+      }
+    },
+    {
+      "id": "count-067",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 161
+      }
+    },
+    {
+      "id": "page-067",
+      "op": "text",
+      "text": "記録67。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 162
+      }
+    },
+    {
+      "id": "count-068",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 163
+      }
+    },
+    {
+      "id": "page-068",
+      "op": "text",
+      "text": "記録68。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 164
+      }
+    },
+    {
+      "id": "count-069",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 165
+      }
+    },
+    {
+      "id": "page-069",
+      "op": "text",
+      "text": "記録69。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 166
+      }
+    },
+    {
+      "id": "count-070",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 167
+      }
+    },
+    {
+      "id": "page-070",
+      "op": "text",
+      "text": "記録70。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 168
+      }
+    },
+    {
+      "id": "count-071",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 169
+      }
+    },
+    {
+      "id": "page-071",
+      "op": "text",
+      "text": "記録71。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 170
+      }
+    },
+    {
+      "id": "count-072",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 171
+      }
+    },
+    {
+      "id": "page-072",
+      "op": "text",
+      "text": "記録72。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 172
+      }
+    },
+    {
+      "id": "count-073",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 173
+      }
+    },
+    {
+      "id": "page-073",
+      "op": "text",
+      "text": "記録73。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 174
+      }
+    },
+    {
+      "id": "count-074",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 175
+      }
+    },
+    {
+      "id": "page-074",
+      "op": "text",
+      "text": "記録74。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 176
+      }
+    },
+    {
+      "id": "count-075",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 177
+      }
+    },
+    {
+      "id": "page-075",
+      "op": "text",
+      "text": "記録75。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 178
+      }
+    },
+    {
+      "id": "count-076",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 179
+      }
+    },
+    {
+      "id": "page-076",
+      "op": "text",
+      "text": "記録76。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 180
+      }
+    },
+    {
+      "id": "count-077",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 181
+      }
+    },
+    {
+      "id": "page-077",
+      "op": "text",
+      "text": "記録77。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 182
+      }
+    },
+    {
+      "id": "count-078",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 183
+      }
+    },
+    {
+      "id": "page-078",
+      "op": "text",
+      "text": "記録78。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 184
+      }
+    },
+    {
+      "id": "count-079",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 185
+      }
+    },
+    {
+      "id": "page-079",
+      "op": "text",
+      "text": "記録79。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 186
+      }
+    },
+    {
+      "id": "count-080",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 187
+      }
+    },
+    {
+      "id": "page-080",
+      "op": "text",
+      "text": "記録80。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 188
+      }
+    },
+    {
+      "id": "count-081",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 189
+      }
+    },
+    {
+      "id": "page-081",
+      "op": "text",
+      "text": "記録81。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 190
+      }
+    },
+    {
+      "id": "count-082",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 191
+      }
+    },
+    {
+      "id": "page-082",
+      "op": "text",
+      "text": "記録82。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 192
+      }
+    },
+    {
+      "id": "count-083",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 193
+      }
+    },
+    {
+      "id": "page-083",
+      "op": "text",
+      "text": "記録83。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 194
+      }
+    },
+    {
+      "id": "count-084",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 195
+      }
+    },
+    {
+      "id": "page-084",
+      "op": "text",
+      "text": "記録84。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 196
+      }
+    },
+    {
+      "id": "count-085",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 197
+      }
+    },
+    {
+      "id": "page-085",
+      "op": "text",
+      "text": "記録85。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 198
+      }
+    },
+    {
+      "id": "count-086",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 199
+      }
+    },
+    {
+      "id": "page-086",
+      "op": "text",
+      "text": "記録86。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 200
+      }
+    },
+    {
+      "id": "count-087",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 201
+      }
+    },
+    {
+      "id": "page-087",
+      "op": "text",
+      "text": "記録87。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 202
+      }
+    },
+    {
+      "id": "count-088",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 203
+      }
+    },
+    {
+      "id": "page-088",
+      "op": "text",
+      "text": "記録88。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 204
+      }
+    },
+    {
+      "id": "count-089",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 205
+      }
+    },
+    {
+      "id": "page-089",
+      "op": "text",
+      "text": "記録89。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 206
+      }
+    },
+    {
+      "id": "count-090",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 207
+      }
+    },
+    {
+      "id": "page-090",
+      "op": "text",
+      "text": "記録90。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 208
+      }
+    },
+    {
+      "id": "count-091",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 209
+      }
+    },
+    {
+      "id": "page-091",
+      "op": "text",
+      "text": "記録91。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 210
+      }
+    },
+    {
+      "id": "count-092",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 211
+      }
+    },
+    {
+      "id": "page-092",
+      "op": "text",
+      "text": "記録92。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 212
+      }
+    },
+    {
+      "id": "count-093",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 213
+      }
+    },
+    {
+      "id": "page-093",
+      "op": "text",
+      "text": "記録93。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 214
+      }
+    },
+    {
+      "id": "count-094",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 215
+      }
+    },
+    {
+      "id": "page-094",
+      "op": "text",
+      "text": "記録94。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 216
+      }
+    },
+    {
+      "id": "count-095",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 217
+      }
+    },
+    {
+      "id": "page-095",
+      "op": "text",
+      "text": "記録95。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 218
+      }
+    },
+    {
+      "id": "count-096",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 219
+      }
+    },
+    {
+      "id": "page-096",
+      "op": "text",
+      "text": "記録96。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 220
+      }
+    },
+    {
+      "id": "count-097",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 221
+      }
+    },
+    {
+      "id": "page-097",
+      "op": "text",
+      "text": "記録97。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 222
+      }
+    },
+    {
+      "id": "count-098",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 223
+      }
+    },
+    {
+      "id": "page-098",
+      "op": "text",
+      "text": "記録98。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 224
+      }
+    },
+    {
+      "id": "count-099",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 225
+      }
+    },
+    {
+      "id": "page-099",
+      "op": "text",
+      "text": "記録99。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 226
+      }
+    },
+    {
+      "id": "count-100",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 227
+      }
+    },
+    {
+      "id": "page-100",
+      "op": "text",
+      "text": "記録100。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 228
+      }
+    },
+    {
+      "id": "count-101",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 229
+      }
+    },
+    {
+      "id": "page-101",
+      "op": "text",
+      "text": "記録101。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 230
+      }
+    },
+    {
+      "id": "count-102",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 231
+      }
+    },
+    {
+      "id": "page-102",
+      "op": "text",
+      "text": "記録102。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 232
+      }
+    },
+    {
+      "id": "count-103",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 233
+      }
+    },
+    {
+      "id": "page-103",
+      "op": "text",
+      "text": "記録103。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 234
+      }
+    },
+    {
+      "id": "count-104",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 235
+      }
+    },
+    {
+      "id": "page-104",
+      "op": "text",
+      "text": "記録104。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 236
+      }
+    },
+    {
+      "id": "count-105",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 237
+      }
+    },
+    {
+      "id": "page-105",
+      "op": "text",
+      "text": "記録105。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 238
+      }
+    },
+    {
+      "id": "count-106",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 239
+      }
+    },
+    {
+      "id": "page-106",
+      "op": "text",
+      "text": "記録106。知らない漢字を調べてから、もう一度読む。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 240
+      }
+    },
+    {
+      "id": "count-107",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 241
+      }
+    },
+    {
+      "id": "page-107",
+      "op": "text",
+      "text": "記録107。急がなくても、道は続いている。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 242
+      }
+    },
+    {
+      "id": "count-108",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 243
+      }
+    },
+    {
+      "id": "page-108",
+      "op": "text",
+      "text": "記録108。足元で、小石がころりと転がった。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 244
+      }
+    },
+    {
+      "id": "count-109",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 245
+      }
+    },
+    {
+      "id": "page-109",
+      "op": "text",
+      "text": "記録109。静かな時間が、ゆっくり流れた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 246
+      }
+    },
+    {
+      "id": "count-110",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 247
+      }
+    },
+    {
+      "id": "page-110",
+      "op": "text",
+      "text": "記録110。次の曲がり角まで、一緒に歩こう。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 248
+      }
+    },
+    {
+      "id": "count-111",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 249
+      }
+    },
+    {
+      "id": "page-111",
+      "op": "text",
+      "text": "記録111。遠くで鳥が鳴いた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 250
+      }
+    },
+    {
+      "id": "count-112",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 251
+      }
+    },
+    {
+      "id": "page-112",
+      "op": "text",
+      "text": "記録112。道の脇に、小さな花が咲いていた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 252
+      }
+    },
+    {
+      "id": "count-113",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 253
+      }
+    },
+    {
+      "id": "page-113",
+      "op": "text",
+      "text": "記録113。立ち止まって、深く息を吸う。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 254
+      }
+    },
+    {
+      "id": "count-114",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 255
+      }
+    },
+    {
+      "id": "page-114",
+      "op": "text",
+      "text": "記録114。空の色が、少しずつ変わっていく。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 256
+      }
+    },
+    {
+      "id": "count-115",
+      "op": "add",
+      "name": "pages",
+      "value": 1,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 257
+      }
+    },
+    {
+      "id": "page-115",
+      "op": "text",
+      "text": "記録115。手帳を開いて、今日の言葉を書き留めた。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 258
+      }
+    },
+    {
+      "id": "finish-choice",
+      "op": "choice",
+      "options": [
+        {
+          "id": "again",
+          "text": "同じ場所をもう一度読む",
+          "target": "repeat-a"
+        },
+        {
+          "id": "finish",
+          "text": "今日はここまで",
+          "target": "closing",
+          "condition": {
+            "var": "pages",
+            "operator": "gte",
+            "value": 100
+          }
+        }
+      ],
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 259
+      }
+    },
+    {
+      "id": "closing",
+      "op": "text",
+      "speaker": "案内人",
+      "text": "お疲れさまでした。これは機能確認用の作品であり、読み込んだ市販ゲームではありません。",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 260
+      }
+    },
+    {
+      "id": "music-stop",
+      "op": "music",
+      "asset": null,
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 261
+      }
+    },
+    {
+      "id": "end",
+      "op": "end",
+      "source": {
+        "file": "original-synthetic",
+        "instruction": 262
+      }
+    }
+  ],
+  "compatibility": {
+    "status": "supported-fixture",
+    "summary": "Original synthetic test only. No evidence of commercial game compatibility."
+  }
+}

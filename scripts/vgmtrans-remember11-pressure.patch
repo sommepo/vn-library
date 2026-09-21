@@ -1,0 +1,16 @@
+--- a/src/main/formats/SonyPS2/SonyPS2Seq.cpp
++++ b/src/main/formats/SonyPS2/SonyPS2Seq.cpp
+@@ -166,6 +166,13 @@
+     }
+       break;
+ 
++    // VNKit Remember11 extension: standard SQ channel-pressure event.
++    case 0xD0 : {
++      u8 pressure = getDataByte(curOffset++);
++      addChannelPressure(beginOffset, curOffset - beginOffset, pressure);
++      break;
++    }
++
+     case 0xE0 : {
+       u8 hi = readByte(curOffset++);
+       u8 lo = getDataByte(curOffset++);

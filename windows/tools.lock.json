@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "architecture": "x64",
+  "tools": {
+    "python": {
+      "url": "https://www.python.org/ftp/python/3.13.12/python-3.13.12-embed-amd64.zip",
+      "sha256": "76f238f606250c87c6beac75dccd35ee99070a13490555936abb6cb64ecce3d0",
+      "file": "python-3.13.12-embed-amd64.zip"
+    },
+    "node": {
+      "url": "https://nodejs.org/dist/v22.22.1/node-v22.22.1-win-x64.zip",
+      "sha256": "877cb93829e14fffbbc7903e7d8037336c9a79f3ea43c5d0b8c2379b79da56de",
+      "file": "node-v22.22.1-win-x64.zip"
+    },
+    "ffmpeg": {
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/8.0.1/ffmpeg-8.0.1-essentials_build.zip",
+      "file": "ffmpeg-8.0.1-essentials_build.zip",
+      "sha256": "e2aaeaa0fdbc397d4794828086424d4aaa2102cef1fb6874f6ffd29c0b88b673"
+    },
+    "vgmstream": {
+      "url": "https://github.com/vgmstream/vgmstream/releases/download/r2117/vgmstream-win64.zip",
+      "sha256": "6c4a8a3813864fefed081bbd337dbc0ad93bf88e0b92f5db98d7ab258b22dc6c",
+      "file": "vgmstream-win64.zip"
+    },
+    "fluidsynth": {
+      "url": "https://github.com/FluidSynth/fluidsynth/releases/download/v2.4.8/fluidsynth-2.4.8-win10-x64.zip",
+      "sha256": "4a0882a942c42ae94e1d22f9f08664056cf53e11fc2eb79380c323c494a6088c",
+      "file": "fluidsynth-2.4.8-win10-x64.zip"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+name: vnkit-local
+services:
+  reader:
+    build: .
+    # Linux only: bind the process itself to loopback, just like the direct CLI.
+    # No reverse proxy, published port, production service or system config is changed.
+    network_mode: host
+    user: "${VN_UID:-1000}:${VN_GID:-1000}"
+    command: ["python", "-m", "vnkit", "serve", "--library", "/library", "--state", "/state", "--port", "8891", "--allow-origin", "https://renji-xd.github.io"]
+    volumes:
+      - ./private/library:/library:ro
+      - ./private/state:/state:rw
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    tmpfs: [/tmp]
+    restart: "no"

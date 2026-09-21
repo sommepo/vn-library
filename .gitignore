@@ -1,0 +1,21 @@
+# Original discs, recovered content, local activity and tools never ship.
+private/
+dist/
+*.iso
+*.ISO
+*.bin
+*.BIN
+*.img
+*.mdf
+*.mds
+*.cue
+*.nrg
+*.zip
+*.7z
+*.tar.gz
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+test-results/
+.env

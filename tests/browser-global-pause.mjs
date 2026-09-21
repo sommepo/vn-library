@@ -1,0 +1,51 @@
+// Real reached CLANNAD save, temporary server/bank, fresh device profiles only.
+import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';import{spawn}from'node:child_process';
+import{pollBrowser}from'./browser-poll.mjs';
+const root=path.resolve(import.meta.dirname,'..'),out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/global-pause'),game='clannad-slpm66302-1.01';
+await fs.mkdir(out,{recursive:true});
+const server=spawn('python3',['-u','-c','import sys\nfrom vnkit.server import ReaderServer\ns=ReaderServer(("127.0.0.1",0),sys.argv[1],sys.argv[2])\nprint(s.server_address[1],flush=True)\ns.serve_forever()',path.join(root,'private/library'),path.join(out,'server-state')],{cwd:root,stdio:['ignore','pipe','pipe']});
+const port=await new Promise((resolve,reject)=>{let text='';server.stdout.on('data',b=>{text+=b;if(text.includes('\n'))resolve(Number(text.trim().split('\n')[0]));});server.on('error',reject);server.on('exit',code=>reject(new Error(`Test server exited ${code}`)));});
+const base=`http://127.0.0.1:${port}`;
+const api=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs'))),browserName=process.env.VNKIT_BROWSER||'chromium';
+const browser=await api[browserName].launch({headless:true}),report={browser:browserName,checks:[],errors:[],scope:'Fresh profiles and isolated save server; source-reached CLANNAD portrait. No user bank writes or new route-coverage claim.'};let a,b;
+const pass=n=>{report.checks.push(n);console.log('PASS '+n);};
+const local=(p,k='autosave')=>p.evaluate(async([g,k])=>{const{Store}=await import('/storage.mjs');const s=new Store();await s.open();const v=await s.get(g+':'+k);s.db.close();return v;},[game,k]);
+const bank=async()=>await(await fetch(`${base}/api/saves/${game}`)).json();
+const ready=p=>p.waitForFunction(()=>!document.querySelector('#nextButton').disabled,null,{timeout:60000});
+const slot=(p,n)=>p.locator('.slot').filter({hasText:new RegExp(`^${n} ·`)});
+const confirm=async(p,action,accept=true)=>{let message;const answered=new Promise(resolve=>p.once('dialog',async d=>{message=d.message();if(accept)await d.accept();else await d.dismiss();resolve();}));await action();await answered;return message;};
+const openLocation=async p=>{await p.locator('#savesButton').click();await p.getByRole('button',{name:'Save location',exact:true}).click();await p.waitForFunction(()=>!document.querySelector('#panelBody').textContent.includes('Checking shared saves'));};
+const advance=async p=>{await p.locator('#nextButton').click();await ready(p);};
+const metrics=['activeMs','characters','uniqueCharacters','rereadCharacters','segments','skippedSegments','choiceCharacters'];
+try{
+ const context=await browser.newContext({viewport:{width:900,height:700},hasTouch:true});
+ await context.addInitScript(()=>{const Original=window.Audio;window.__media=[];window.Audio=function(...args){const a=new Original(...args);window.__media.push(a);return a;};});
+ a=await context.newPage();a.on('pageerror',e=>report.errors.push(e.message));
+ await a.goto(`${base}/?game=${game}`);await ready(a);
+ const file=path.join(root,'private/clannad/menu-audit/checkpoints-final/source-portrait.json');await a.locator('#saveFile').setInputFiles(file);await ready(a);await a.waitForTimeout(500);
+ await a.locator('#pauseButton').click();await a.waitForFunction(()=>document.body.classList.contains('global-paused'));
+ await a.evaluate(()=>dispatchEvent(new Event('pagehide')));await a.waitForTimeout(200);
+ const before=await local(a),history=await local(a,'activity'),text=await a.locator('#sentence').textContent();
+ assert.equal(await a.locator('#nextButton').isDisabled(),true);assert.equal(await a.locator('#choiceButton').isDisabled(),true);
+ assert.ok(await a.evaluate(()=>window.__media.every(a=>a.paused)));
+ const times=await a.evaluate(()=>window.__media.map(a=>a.currentTime));await a.keyboard.press('ArrowRight');await a.waitForTimeout(2200);await a.evaluate(()=>dispatchEvent(new Event('pagehide')));await a.waitForTimeout(200);
+ const after=await local(a,'activity');assert.equal(after.sessions.reduce((n,s)=>n+s.activeMs,0),history.sessions.reduce((n,s)=>n+s.activeMs,0));assert.deepEqual((await local(a)).state,before.state);assert.equal(await a.locator('#sentence').textContent(),text);assert.deepEqual(await a.evaluate(()=>window.__media.map(a=>a.currentTime)),times);
+ pass('Bottom-bar pause freezes media, advancement, source state and active reading time');
+ await a.locator('#pauseButton').click();await ready(a);await a.waitForTimeout(600);assert.equal(await a.locator('#pauseButton').getAttribute('aria-pressed'),'false');
+ assert.ok(await a.evaluate(()=>window.__media.some(a=>!a.paused)));pass('Resume restores previously playing music');
+ await a.locator('#settingsButton').click();await a.locator('#setting-speed').evaluate(e=>{e.value=5;e.dispatchEvent(new Event('input'));});await a.locator('#closePanel').click();await advance(a);await a.waitForTimeout(150);await a.locator('#pauseButton').click();
+ const typed=await a.locator('#sentence').textContent();await a.waitForTimeout(1000);assert.equal(await a.locator('#sentence').textContent(),typed);await a.locator('#pauseButton').click();await a.waitForTimeout(600);assert.notEqual(await a.locator('#sentence').textContent(),typed);pass('Text reveal freezes and resumes without a wall-clock jump');
+ await a.locator('#statsButton').click();await a.getByRole('button',{name:'Pause activity timer',exact:true}).click();await a.locator('#closePanel').click();
+ await a.locator('#fullscreenButton').click();await a.waitForFunction(()=>document.body.classList.contains('reader-fullscreen'));
+ await a.locator('#fullscreenMenu').click();await a.getByRole('button',{name:'Pause playback',exact:true}).click();assert.equal(await a.locator('#pauseButton').getAttribute('aria-pressed'),'true');
+ await a.locator('#fullscreenMenu').click();await a.getByRole('button',{name:'Resume playback',exact:true}).click();assert.equal(await a.locator('#pauseButton').getAttribute('aria-pressed'),'false');
+ await a.locator('#fullscreenMenu').click();await a.getByRole('button',{name:'Activity',exact:true}).click();await a.getByRole('button',{name:'Resume activity timer',exact:true}).waitFor();pass('Fullscreen menu pauses/resumes and preserves independent manual statistics pause');
+ await a.getByRole('button',{name:'Resume activity timer',exact:true}).click();await a.locator('#closePanel').click();await a.evaluate(()=>document.exitFullscreen());
+ await a.locator('#saveFile').setInputFiles(path.join(root,'private/clannad/motion-checkpoint.json'));await a.waitForFunction(()=>{const e=document.querySelector('.scene-layer');if(e&&parseFloat(e.style.marginLeft)>0&&!document.querySelector('#pauseButton').disabled){document.querySelector('#pauseButton').click();return true;}return false;});
+ const motion=await a.locator('.scene-layer').first().getAttribute('style');await a.waitForTimeout(1000);assert.equal(await a.locator('.scene-layer').first().getAttribute('style'),motion);await a.locator('#pauseButton').click();await ready(a);pass('Source animation freezes and resumes to its normal completion');
+ await a.locator('#saveFile').setInputFiles(path.join(root,'private/clannad/basics-audit/browser-checkpoints-v1/feature-MVPL.json'));await a.waitForFunction(()=>{const v=document.querySelector('video.script-media');return v&&!v.paused&&v.currentTime>0&&!document.querySelector('#pauseButton').disabled;},null,{timeout:60000});
+ await a.locator('#pauseButton').click();const movieTime=await a.locator('video.script-media').evaluate(v=>v.currentTime);await a.waitForTimeout(800);assert.equal(await a.locator('video.script-media').evaluate(v=>v.currentTime),movieTime);
+ await a.locator('#pauseButton').click();await a.waitForFunction(t=>document.querySelector('video.script-media').currentTime>t+.1,movieTime);pass('Original movie pauses at its current position and resumes');
+ assert.deepEqual(report.errors,[]);
+}catch(error){report.failure=error.stack;report.status=await a.locator('#status').textContent();report.media=await a.locator('video.script-media').evaluateAll(items=>items.map(v=>({paused:v.paused,time:v.currentTime,error:v.error?.message,ready:v.readyState})));console.error(error.stack,report.status,report.media);process.exitCode=1;}
+finally{await fs.writeFile(path.join(out,'results.json'),JSON.stringify(report,null,2),{flag:'wx'});await browser.close();server.kill('SIGTERM');}

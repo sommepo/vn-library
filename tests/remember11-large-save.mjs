@@ -1,0 +1,10 @@
+// Exercise the real late-game state against the unchanged shared-server limits.
+import fs from 'node:fs/promises';import path from 'node:path';import assert from 'node:assert/strict';import {spawnSync} from 'node:child_process';import {Remember11Engine} from '../web/adapters/remember11-engine.mjs';
+const dir=path.resolve(process.argv[2]),checkpoint=JSON.parse(await fs.readFile(process.argv[3])),out=path.resolve(process.argv[4]);await fs.mkdir(out,{recursive:true});
+const c=JSON.parse(await fs.readFile(path.join(dir,'content.json'))),e=await Remember11Engine.create(c,{loadJSON:async u=>JSON.parse(await fs.readFile(path.join(dir,u)))});await e.restore(checkpoint);
+const old=checkpoint.state.catalog.read,expected=Object.values(old).every(v=>typeof v==='boolean')?Object.values(old).filter(Boolean).length:Object.values(old).reduce((sum,b)=>{for(let n=b>>>0;n;n=(n&(n-1))>>>0)sum++;return sum;},0);
+e.calculate({sub:24,words:[9,0x6007,0]});assert.equal(e.value(0x6007),expected);
+const save=e.save(),progress=e.progressSnapshot(),changes={autosave:save,quicksave:save,'before next choice':save,progress,'progress-before-debug':progress};for(let i=1;i<=15;i++)changes[`slot ${i}`]=save;
+const payload={format:'vnkit.shared-saves',version:1,gameId:c.id,gameSignature:e.signature,baseRevision:0,changes},file=path.join(out,'bank-input.json');await fs.writeFile(file,JSON.stringify(payload));
+const r=spawnSync('python3',['-c','import json,sys\nfrom pathlib import Path\nfrom vnkit.shared_saves import SharedSaves\ns=SharedSaves(Path(sys.argv[2]))\np=json.load(open(sys.argv[1]))\nprint(json.dumps(s.update(p["gameId"],p)))',file,path.join(out,'server.sqlite3')],{encoding:'utf8'});if(r.status)throw Error(r.stderr);const result=JSON.parse(r.stdout);assert.equal(result.revision,1);
+const report={nativeReadCount:expected,saveBytes:Buffer.byteLength(JSON.stringify(save)),progressBytes:Buffer.byteLength(JSON.stringify(progress)),bankBytes:Buffer.byteLength(JSON.stringify(changes)),slots:18,serverRevision:result.revision};await fs.writeFile(path.join(out,'report.json'),JSON.stringify(report,null,2));console.log(report);

@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>VN Library</title><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="classic.css"><link rel="stylesheet" href="console-menu.css"><link rel="stylesheet" href="crt.css"><link rel="stylesheet" href="layout.css"><link rel="stylesheet" href="console-player.css"></head>
+<body class="reader-page reader-idle">
+  <svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><filter id="source-alpha" color-interpolation-filters="sRGB"><feComponentTransfer><feFuncA type="linear" slope="1.9921875"/></feComponentTransfer></filter></defs></svg>
+  <header class="toolbar"><button id="libraryButton" title="Open library">◈ <span>Library</span></button><div class="identity"><strong id="gameTitle"></strong><small id="gameBadge"></small></div><button id="dimButton" title="Darken the surroundings" aria-label="Darken surroundings" aria-pressed="false">☾ <span>Dim</span></button><button id="fullscreenButton" title="Fullscreen" aria-label="Fullscreen"><svg width="14" height="14" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 2H2v4m8-4h4v4M2 10v4h4m8-4v4h-4" fill="none" stroke="currentColor" stroke-width="1.2"/></svg></button><button id="crtButton" title="CRT display settings" aria-pressed="false">CRT</button><button id="settingsButton" title="Reading settings">Aa</button></header>
+  <div id="gameArea" class="game-area">
+  <div class="idle-orbit" role="status" aria-label="Choose a game from the library"><div class="console-orbit" aria-hidden="true"><i style="--n:0"></i><i style="--n:1"></i><i style="--n:2"></i><i style="--n:3"></i><i style="--n:4"></i><i style="--n:5"></i><i style="--n:6"></i><i style="--n:7"></i></div></div>
+  <main id="stage" class="stage" aria-label="Visual novel artwork; click to advance">
+    <div id="art" class="art" aria-hidden="true"></div>
+    <div id="loadNotice" class="load-notice" role="status" aria-label="Loading scene" hidden><span class="load-orbit" aria-hidden="true"><i style="--orb:0"></i><i style="--orb:1"></i><i style="--orb:2"></i><i style="--orb:3"></i><i style="--orb:4"></i><i style="--orb:5"></i><i style="--orb:6"></i><i style="--orb:7"></i></span></div>
+    <div id="seekNotice" class="seek-notice" role="status" hidden><strong>Moving to the next choice…</strong><span id="seekProgress"></span><small>Cancel jump or Esc to return</small></div>
+    <div id="choices" class="choices" aria-label="Story choices"></div>
+    <section id="textbox" class="textbox" aria-label="Japanese game text" lang="ja"><div id="speaker" class="speaker"></div><div id="sentence" class="sentence"></div><div class="text-footer"><span id="position"></span><button id="nextButton" disabled aria-label="Advance dialogue" title="Advance dialogue"> <span aria-hidden="true">▸</span></button></div></section>
+  </main>
+  <button id="fullscreenMenu" class="fullscreen-menu" aria-label="Reader controls" title="Reader controls">☰</button>
+  </div>
+  <nav class="controls" aria-label="Reader controls"><button id="pauseButton" aria-pressed="false" disabled title="Pause all playback and reading activity">⏸ Pause</button><button id="copyButton">Copy <kbd>Alt C</kbd></button><button id="previousButton" disabled title="Go to previous line (Alt ←)">‹ Previous line</button><button id="backlogButton">Backlog</button><button id="autoButton" aria-pressed="false">Auto</button><button id="skipButton" aria-pressed="false">Skip read</button><button id="choiceButton" title="Skip dialogue, including unread text, to the next choice (Alt N)" aria-pressed="false" disabled>Next choice »</button><span class="control-space"></span><button id="savesButton">Saves</button><span id="saveLocationStatus" class="save-location-status" role="status">Local saves</span><button id="statsButton">Activity</button><a href="live.html" target="_blank" rel="noopener">Live text ↗</a></nav>
+  <div id="status" class="status" role="status" aria-live="polite">Local files and browser storage. No account needed.</div>
+  <dialog id="panel"><div class="panel-head"><h1 id="panelTitle"></h1><button id="closePanel" aria-label="Close panel">✕</button></div><div id="panelStatus" role="status" aria-live="polite"></div><div id="panelBody"></div></dialog>
+  <input id="saveFile" type="file" accept="application/json,.json" hidden><input id="activityFile" type="file" accept="application/json,.json" hidden>
+  <script type="module" src="app.mjs"></script>
+<input id="progressFile" type="file" accept="application/json,.json" hidden>
+</body></html>

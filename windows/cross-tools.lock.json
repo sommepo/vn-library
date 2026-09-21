@@ -1,0 +1,44 @@
+[
+  {
+    "package": "binutils-mingw-w64-x86-64",
+    "version": "2.45.90.20260125-1ubuntu1+13.3",
+    "file": "binutils-mingw-w64-x86-64_2.45.90.20260125-1ubuntu1+13.3_amd64.deb",
+    "sha256": "f835050ed5b7fedf8f3242610fda1eb55b5472b72624f9a88de90c610b465552"
+  },
+  {
+    "package": "g++-mingw-w64-x86-64-posix",
+    "version": "13.2.0-6ubuntu1+26.1",
+    "file": "g++-mingw-w64-x86-64-posix_13.2.0-6ubuntu1+26.1_amd64.deb",
+    "sha256": "52c3613f386e462ae71105d1a0b2a48d866ccb048ad253acff629c5a2291252d"
+  },
+  {
+    "package": "gcc-mingw-w64-base",
+    "version": "13.2.0-6ubuntu1+26.1",
+    "file": "gcc-mingw-w64-base_13.2.0-6ubuntu1+26.1_amd64.deb",
+    "sha256": "a30c07e807e9874ea93909448c5d6d37f9569ebe60ad32de8e490aad198538a3"
+  },
+  {
+    "package": "gcc-mingw-w64-x86-64-posix-runtime",
+    "version": "13.2.0-6ubuntu1+26.1",
+    "file": "gcc-mingw-w64-x86-64-posix-runtime_13.2.0-6ubuntu1+26.1_amd64.deb",
+    "sha256": "aca6b438e0b55b11cedcf1170a1ee26e7979e34192e34f6e6389e560908a5bfc"
+  },
+  {
+    "package": "gcc-mingw-w64-x86-64-posix",
+    "version": "13.2.0-6ubuntu1+26.1",
+    "file": "gcc-mingw-w64-x86-64-posix_13.2.0-6ubuntu1+26.1_amd64.deb",
+    "sha256": "0855fa1d4a618550faac3a3e4352aa3226833b28184ad3c3b496a68a22c4eda2"
+  },
+  {
+    "package": "mingw-w64-common",
+    "version": "13.0.0-2ubuntu1",
+    "file": "mingw-w64-common_13.0.0-2ubuntu1_all.deb",
+    "sha256": "da9b2cb14134ca0ef3a31302df50295a2dd6fee7aa4fd888b11c6f72f8ab939e"
+  },
+  {
+    "package": "mingw-w64-x86-64-dev",
+    "version": "13.0.0-2ubuntu1",
+    "file": "mingw-w64-x86-64-dev_13.0.0-2ubuntu1_all.deb",
+    "sha256": "da40b9e2ae89d98d44b547a9e4fd01862858edb176bade9f12ad143e7ae7efe4"
+  }
+]

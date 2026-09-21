@@ -1,0 +1,48 @@
+/* One game frame in every orientation; never move dialogue below the artwork. */
+body.reader-page {height:var(--reader-height,100dvh);min-height:0;overflow:hidden}
+.reader-page > .toolbar,.reader-page > .controls,.reader-page > .status {flex:none}
+.game-area {position:relative;flex:1 1 0;min-height:0;min-width:0;display:grid;place-items:center;padding:9px 10px}
+.reader-page .stage {flex:none;width:var(--fit-width);height:var(--fit-height);min-height:0;max-height:none;max-width:none;aspect-ratio:auto;margin:0}
+.reader-page .stage .art {position:absolute;inset:0;width:100%;height:100%;aspect-ratio:auto}
+.reader-page .stage .textbox {position:absolute;left:2%;right:2%;bottom:1.5%;margin:0;min-height:0;max-height:38%;padding:clamp(5px,calc(11px * var(--text-scale)),11px) clamp(8px,calc(24px * var(--text-scale)),24px) 4px;overflow:visible}
+.reader-page .sentence {flex:0 1 auto;min-height:0;max-height:none;font-size:clamp(12px,calc(var(--font-size) * var(--text-scale)),var(--font-size));line-height:var(--line-height);touch-action:pan-y pinch-zoom}
+.reader-page .speaker {font-size:clamp(11px,calc(19px * var(--text-scale)),19px);padding:3px clamp(9px,calc(21px * var(--text-scale)),21px);bottom:calc(100% + 5px)}
+.reader-page .text-footer {flex:none;min-height:22px;padding-top:0}
+.reader-page .text-footer button {min-height:22px}
+.reader-page .choices {inset:3% 7% 43%;overflow-y:auto;overscroll-behavior:contain;justify-content:safe center;pointer-events:auto}
+.reader-page .choices:empty {pointer-events:none}
+.reader-page .choices button {flex:none;font-size:clamp(13px,calc(20px * var(--text-scale)),20px);padding:6px 12px}
+.reader-page .stage .choices:has(.startup-form) {inset:3% 7%}
+.reader-page dialog {max-height:calc(var(--reader-height,100dvh) - 24px)}
+.fullscreen-menu {display:none}
+.fullscreen-actions {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fullscreen-actions button {min-height:42px}
+/* Fullscreen uses all available height. Letterboxing preserves the source ratio. */
+.reader-page.reader-fullscreen {background:#06070b}
+.reader-fullscreen > .toolbar,.reader-fullscreen > .controls,.reader-fullscreen > .status {display:none}
+.reader-fullscreen .game-area {padding:max(4px,env(safe-area-inset-top)) max(4px,env(safe-area-inset-right)) max(4px,env(safe-area-inset-bottom)) max(4px,env(safe-area-inset-left))}
+.reader-fullscreen .stage {box-shadow:none;outline:none}
+.reader-fullscreen .fullscreen-menu {display:block;position:absolute;right:max(9px,env(safe-area-inset-right));top:max(9px,env(safe-area-inset-top));z-index:101;min-width:40px;min-height:36px;padding:4px 9px;color:#f3ead8;background:transparent;border:0;border-radius:0;text-shadow:0 1px 4px #000,0 0 8px #000;opacity:.65;font-size:19px;box-shadow:none}
+.reader-fullscreen > .status.error {display:block;position:fixed;left:8px;right:8px;bottom:max(8px,env(safe-area-inset-bottom));max-height:25%;overflow:auto;z-index:102;padding:8px 12px;font-size:12px}
+@media(max-width:700px),(max-height:600px){
+  .game-area {padding:6px}
+  .reader-page .controls {gap:4px;padding:5px 6px}
+  .reader-page .controls button,.reader-page .controls a {padding:5px 7px;min-height:30px}
+  .reader-page .status {padding:3px 8px;min-height:18px}
+  .reader-page .stage .textbox {max-height:38%}
+  .reader-page .speaker {bottom:calc(100% + 4px)}
+}
+
+/* Borderless fullscreen on touch devices; safe-area padding still protects controls. */
+@media (pointer:coarse), (max-width:700px), (max-height:600px) {
+  .reader-fullscreen .stage {border:0;outline:0;box-shadow:none}
+  .reader-fullscreen .game-area {padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+}
+.sentence.read-text,.entry-text.read-text {color:var(--read-colour,#ff7979)}
+#nextButton {min-width:36px;font-size:22px}
+
+.global-paused #stage * {animation-play-state:paused!important}
+.global-paused .fullscreen-menu::after {content:' ⏸';font-size:14px}
+#pauseButton[aria-pressed="true"] {color:#ffe5a1;border-color:#ffe5a1}
+
+.reader-fullscreen .fullscreen-menu:hover,.reader-fullscreen .fullscreen-menu:focus-visible {opacity:1;background:#05091755}

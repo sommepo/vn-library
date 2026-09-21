@@ -1,0 +1,27 @@
+diff --git a/src/main/components/matcher/FilenameMatcher.h b/src/main/components/matcher/FilenameMatcher.h
+index 897e646..7f73b7d 100644
+--- a/src/main/components/matcher/FilenameMatcher.h
++++ b/src/main/components/matcher/FilenameMatcher.h
+@@ -18,19 +18,19 @@ public:
+ 
+   bool seqId(VGMSeq *seq, std::string &id) override {
+     RawFile *rawfile = seq->rawFile();
+-    id = pathToUtf8String(rawfile->path());
++    id = pathToUtf8String(rawfile->path().replace_extension());
+     return !id.empty();
+   }
+ 
+   bool instrSetId(VGMInstrSet *instrset, std::string &id) override {
+     RawFile *rawfile = instrset->rawFile();
+-    id = pathToUtf8String(rawfile->path());
++    id = pathToUtf8String(rawfile->path().replace_extension());
+     return !id.empty();
+   }
+ 
+   bool sampCollId(VGMSampColl *sampcoll, std::string &id) override {
+     RawFile *rawfile = sampcoll->rawFile();
+-    id = pathToUtf8String(rawfile->path());
++    id = pathToUtf8String(rawfile->path().replace_extension());
+     return !id.empty();
+   }
+ };

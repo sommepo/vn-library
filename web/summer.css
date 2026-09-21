@@ -1,0 +1,161 @@
+/* Original summer VN theme: pale blue window chrome, inset frames and quiet text. */
+:root {
+  color-scheme: light;
+  --paper: #163557;
+  --muted: #5a7c96;
+  --accent: #277eaf;
+  font-family: Tahoma, Verdana, 'MS PGothic', sans-serif;
+  background: #cdebf6;
+  color: var(--paper);
+}
+body {
+  background:
+    linear-gradient(115deg, #ffffff40 25%, transparent 25%, transparent 75%, #ffffff40 75%) 0 0 / 12px 12px,
+    linear-gradient(#f3fcff, #ccebf8 48%, #b4ddec);
+}
+button, .controls a {
+  color: #285d82;
+  border: 1px solid #6ea5c3;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-radius: 2px;
+  background: linear-gradient(#fff 0%, #f2fbff 47%, #d6edf7 51%, #c5e2f0 100%);
+  box-shadow: 1px 1px 0 #789fb5, inset 0 0 0 1px #ffffff70;
+  text-shadow: 0 1px #fff;
+  font-size: 12px;
+}
+button:hover, .controls a:hover {
+  color: #16547f;
+  background: linear-gradient(#fffdf0, #fff3c8 49%, #ffe5a4 50%, #f6d28d);
+  border-color: #d2a660;
+}
+button:active, button[aria-pressed=true] {
+  background: #c1e1f2;
+  border-color: #4b8cb3 #fff #fff #4b8cb3;
+  box-shadow: inset 1px 1px 2px #6096b660;
+  color: #174f76;
+}
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible {outline: 2px dotted #236e9b; outline-offset: 3px}
+a {color: #236e9b}
+.toolbar {
+  gap: 9px;
+  padding: 8px max(12px, calc((100% - 1100px) / 2));
+  min-height: 46px;
+  border-top: 2px solid #fff;
+  border-bottom: 1px solid #77aac7;
+  background: linear-gradient(#effbff, #d3effa 52%, #bfdfef 53%, #d9eff7);
+  box-shadow: 0 1px #fff, 0 3px 0 #9ec6db;
+}
+.toolbar button {padding: 4px 9px; background: linear-gradient(#fff, #cce7f4); border: 1px solid #91b9cf; border-top-color: white; border-left-color: white}
+.identity {gap: 0; padding-left: 9px; border-left: 1px solid #9bbdd2}
+.identity strong {font-family: 'MS PGothic', 'Meiryo', sans-serif; color: #24628e; font-size: 14px; text-shadow: 1px 1px #fff; letter-spacing: .025em}
+.identity small:empty {display: none}
+.identity small {color: #426d8b}
+.stage {
+  border: 1px solid #6294b5;
+  outline: 3px solid #f8fdff;
+  box-shadow: 0 0 0 4px #86adc5, 3px 5px 0 #80abc240;
+  margin: auto;
+  background: #d5edf8;
+}
+.stage[style*="--game-aspect"] {max-width: min(1100px, calc((100dvh - 134px) * var(--game-ratio, 1.3333333333))); max-height: calc(100dvh - 134px)}
+.textbox, .stage[style*="--game-aspect"] .textbox {
+  left: 2.5%; right: 2.5%; bottom: 2.5%;
+  padding: 14px 23px 9px;
+  border: 2px solid #6fa2c4;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-radius: 3px 14px 3px 3px;
+  background: linear-gradient(105deg, rgb(244 252 255 / var(--textbox-opacity)), rgb(203 233 251 / var(--textbox-opacity)));
+  box-shadow: 0 0 0 1px #426f95, inset 0 0 0 1px #edfaff, 3px 3px 0 #16365155;
+  color: #17314f;
+}
+.speaker {
+  display: table;
+  min-width: 92px;
+  padding: 3px 18px 4px 12px;
+  margin: -4px 0 8px -10px;
+  background: linear-gradient(90deg, #e3f3ff, #f7fcff);
+  border-left: 4px solid #eeaf50;
+  border-bottom: 1px solid #8fbedb;
+  color: #1d5f8d;
+  font: bold 17px/1.35 'MS PGothic', 'Meiryo', 'Yu Gothic', sans-serif;
+  text-shadow: 0 1px #fff;
+}
+.speaker:empty {display: none}
+.sentence {font-family: 'MS PGothic', 'Meiryo', 'Hiragino Kaku Gothic ProN', 'Noto Sans CJK JP', sans-serif; color: #17314f; text-shadow: 0 1px #ffffff65; letter-spacing: .035em}
+.text-footer {justify-content: flex-end; margin-top: 3px; min-height: 18px}
+.text-footer > span:empty {display: none}
+.text-footer > span {margin-right: auto; color: #4f7190; font-size: 10px}
+.text-footer button {color: #1e78b3; font: 11px Tahoma, sans-serif; box-shadow: none; padding: 1px 6px; border: 0; background: none}
+.text-footer button span {color: #e69c37; text-shadow: 1px 1px #fff; font-size: 21px}
+.text-footer button:hover {background: #fff7d5; border: 0}
+.choices {gap: 10px}
+.choices button {
+  background: linear-gradient(100deg, #effafff5, #d4ecfcf5);
+  color: #22517b;
+  border: 2px solid #6499ba;
+  border-top-color: #fff;
+  border-left-color: #fff;
+  border-radius: 2px 10px 2px 2px;
+  box-shadow: 0 0 0 1px #4a7fa1, 3px 3px 0 #315f8844;
+  padding: 10px 20px;
+  font-family: 'MS PGothic', 'Meiryo', 'Noto Sans CJK JP', sans-serif;
+}
+.choices button:hover {background: linear-gradient(90deg, #fff4c3, #fffaf0); color: #765325; border-color: #c8974b}
+.controls {
+  gap: 7px;
+  min-height: 42px;
+  padding: 8px max(12px, calc((100% - 1100px) / 2));
+  background: linear-gradient(#edfaff, #c8e6f4);
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #a2c6da;
+  box-shadow: 0 -1px #78a5be;
+}
+.controls button, .controls a {padding: 5px 10px; border: 1px solid #88b0c8; border-top-color: #fff; border-left-color: #fff; background: linear-gradient(#fff, #d4eaf5); font: 11px Tahoma, Verdana, sans-serif}
+.controls button[aria-pressed=true] {background: #abd6ed; color: #114e78; border-color: #518caf}
+.controls kbd {color: #6c8ca2; font: 9px Tahoma, sans-serif}
+.status {min-height: 21px; padding: 3px 12px 4px; color: #4e738d; font-size: 10px; background: #d5eaf5; border-bottom: 3px solid #f4c16b}
+.status.error {color: #87441b; background: #fff0ce}
+.empty-art {color: #3889b8; background: linear-gradient(140deg, #f9feff, #c5e6f6 65%, #a7d5eb); text-shadow: 2px 2px white}
+.empty-art span {color: #4b7e9f}
+dialog {background: #eef9ff; color: #244b69; border: 2px solid #6895b8; border-top-color: white; border-left-color: white; border-radius: 3px; box-shadow: 0 0 0 1px #46718d, 5px 6px 0 #3b648742}
+dialog::backdrop {background: #568eac55; backdrop-filter: none}
+.panel-head {padding: 12px 17px; background: linear-gradient(90deg, #6ab2da, #c0e6f7); border-bottom: 1px solid #5e9bc4; color: #fff; text-shadow: 1px 1px #4883ab}
+.panel-head h1 {font: bold 15px Tahoma, sans-serif; letter-spacing: .035em}
+.panel-head button {color: #265f88; padding: 4px 8px; background: #d7effa; border: 1px outset white; border-radius: 0; text-shadow: none}
+#panelBody {padding: 18px 22px}
+.muted {color: #5c7b91}
+.notice {background: #fff7db; border-left: 3px solid #e2b25f; color: #66593c}
+.game-card {border-color: #bbd8e9}
+.game-card h2 {font: bold 20px/1.6 'MS PGothic', 'Meiryo', sans-serif; color: #246d9b}
+.row input[type=range] {accent-color: #489ac9}
+.row input[type=checkbox] {accent-color: #3f8cbb}
+.row select, .search, .startup-form input, .startup-form select {color: #234e6e; background: #fff; border: 1px inset #9dc2d9; border-radius: 0}
+.row output {color: #61819a}
+.entry, .slot {border-color: #b5d4e7}
+.entry-head {color: #347da6}
+.entry-head small {color: #6d8b9d}
+.entry-text {font-family: 'MS PGothic', 'Meiryo', 'Noto Sans CJK JP', sans-serif; color: #234862}
+.metric {border: 1px solid #b5d4e7; border-radius: 0; background: #e2f2fb; box-shadow: inset 1px 1px white}
+.metric strong {color: #267ea9}
+.metric small {color: #5c8097}
+td, th {border-color: #b4d4e6}
+.startup-form {background: linear-gradient(#f7fcff, #d9eefb); color: #28567c; border: 2px outset #e6f7ff; border-radius: 2px; box-shadow: 1px 1px #5d94b8, 4px 4px #47799a44}
+.startup-form .muted {margin-top: 0; color: #34769e; font-weight: bold}
+::selection {background: #73b8e480; color: #123659}
+.live-page header {border-color: #9cc3dd}
+@media(max-width:700px) {
+  .toolbar {padding: 6px 9px; min-height: 42px}
+  .identity {padding-left: 4px; border: 0}
+  .identity strong {font-size: 12px}
+  .stage[style*="--game-aspect"] {max-width: calc(100% - 12px); max-height: none; min-height: 490px; margin: 8px auto; flex: 1; border-color: #8db9d0; background: linear-gradient(#d8eff9, #a9d4ec)}
+  .stage[style*="--game-aspect"] .textbox {left: 2%; right: 2%; bottom: 3%; padding: 12px 16px 6px; max-height: 57%}
+  .speaker {font-size: 15px; margin-left: -5px}
+  .controls {justify-content: center; gap: 5px; padding: 7px 5px}
+  .controls button, .controls a {padding: 5px 7px; font-size: 10px}
+  .status {font-size: 9px; min-height: 18px}
+  .choices button {font-size: 17px}
+}
+@media(prefers-reduced-motion:reduce) {.textbox, .choices button {transition: none}}
+.source-glyph{filter:brightness(.25) sepia(.5) saturate(2) hue-rotate(160deg)}

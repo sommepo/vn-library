@@ -1,0 +1,16 @@
+/* Filter only the artwork. Dialogue/choices remain selectable DOM text. */
+.art.crt-active > :not(.crt-screen){visibility:hidden}
+.art .crt-screen{position:absolute;inset:0;width:100%;height:100%;z-index:100;pointer-events:none;visibility:visible}
+.art.native-active > :not(.native-screen){visibility:hidden}
+.art .native-screen{position:absolute;inset:0;width:100%;height:100%;z-index:100;pointer-events:none;visibility:visible}
+#crtButton[aria-pressed=true]{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
+.crt-preview{display:block;width:100%;max-height:280px;object-fit:contain;background:#05060b;border:1px solid #9b927155;border-radius:3px;aspect-ratio:10/7;margin:12px 0}
+.crt-state{font-size:12px;line-height:1.6;padding:10px 14px;background:hsl(var(--ui-hue) var(--ui-saturation) 18% / var(--ui-opacity));border-left:2px solid #d2be94;color:#e5dbcd}
+.crt-options{border:1px solid #b7a48440;border-radius:4px;padding:8px 18px;margin:15px 0}
+.crt-options summary{cursor:pointer;font-size:14px;color:var(--accent)}
+.crt-options .row{margin:17px 0}
+.crt-options .row label{min-width:160px}
+.crt-options input[type=range]{flex:1;min-width:110px}
+.crt-options output{min-width:42px;text-align:right}
+.crt-presets select{max-width:100%}
+@media(max-width:700px){.crt-preview{max-height:210px}.crt-options{padding:7px 12px}.crt-options .row{gap:8px}.crt-options .row label{min-width:100%;font-size:13px}.crt-options .row input[type=range]{width:auto}.crt-presets label{min-width:100%}}

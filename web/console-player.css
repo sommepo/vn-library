@@ -1,0 +1,109 @@
+/* Fixed console chrome around the source frame. User tint belongs to the
+   in-game textbox/choices and fullscreen panels, never the outer console. */
+body.reader-page {
+  color-scheme:dark;
+  --paper:#d5e1ff;--muted:#94a6c9;--accent:#9beeff;
+  --chrome:#0b1329;--chrome-light:#172441;--chrome-shade:#050b1c;
+  --edge:#526b974d;--gold:#6c8cb566;--panel:#080f22;
+  color:var(--paper);
+  background:radial-gradient(ellipse at 18% 70%,#18235280,transparent 52%),radial-gradient(ellipse at 70% 0%,#263a7370,transparent 65%),#030714;
+  font-family:Arial,'MS PGothic','Noto Sans CJK JP',sans-serif;
+}
+body.reader-page.dim-surroundings {background:#02040a}
+.reader-page > .toolbar,.reader-page > .controls {
+  background:#050b17c9;border:0;box-shadow:none;color:#b8cbe9;
+}
+.reader-page > .toolbar {border-bottom:1px solid #5572a630}
+.reader-page > .controls {border-top:1px solid #5572a630}
+.reader-page > .toolbar button,.reader-page > .controls button,.reader-page > .controls a {
+  color:#a9badc;background:transparent;border:1px solid transparent;box-shadow:none;border-radius:0;
+  font-family:Arial,'MS PGothic',sans-serif;text-shadow:0 0 7px #50649b66;
+}
+.reader-page > .toolbar button:hover,.reader-page > .controls button:hover,.reader-page > .controls a:hover,
+.reader-page > .controls button[aria-pressed=true] {
+  color:#b6f8ff;background:#51a7e10d;border-color:#7acaff17;text-shadow:0 0 7px #59c6f7;
+}
+.reader-page .identity {border:0;color:#b7cbee}
+.reader-page .identity strong {font-family:Arial,'MS PGothic',sans-serif;font-weight:400;letter-spacing:.06em}
+.reader-page > .status {background:#050b17c9;border:0;color:#8295b7}
+.reader-page > .status.error {color:#ffb9ac;background:#291521}
+.reader-page:not(.reader-fullscreen) .stage {background:#050914;border:1px solid #536c8f66;outline:0;box-shadow:0 0 0 3px #080e1b,0 15px 50px #0008}
+.reader-page:not(.reader-fullscreen) dialog:not(.console-library) {background:#080f22;border:1px solid #6c8cb566;box-shadow:0 0 0 3px #080e1b,0 15px 60px #000b}
+.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#0b142b;border-bottom:1px solid #5572a640;color:#b7cbee;text-shadow:0 0 10px #7a9bd550}
+.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head h1 {font-family:Arial,'MS PGothic',sans-serif;font-weight:400}
+.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {background:transparent;border:0}
+.reader-page:not(.reader-fullscreen) dialog::backdrop {background:#020714aa}
+.reader-fullscreen #panel:not(.console-library) {
+  --chrome:hsl(var(--ui-hue) var(--ui-saturation) 18% / var(--ui-opacity));
+  --chrome-light:hsl(var(--ui-hue) var(--ui-saturation) 30% / var(--ui-opacity));
+  --chrome-shade:hsl(var(--ui-hue) var(--ui-saturation) 12% / var(--ui-opacity));
+  --panel:hsl(var(--ui-hue) var(--ui-saturation) 18% / var(--ui-opacity));
+  --edge:#c5b69388;--gold:#e4d6b7;--paper:#e5e9f2;--muted:#b6bfd3;
+}
+.console-library details.console-title {margin:0;font:inherit}
+.console-library .console-title > summary {display:flex;align-items:center;gap:12px;width:100%;list-style:none;padding:8px 0}
+.console-title > summary::-webkit-details-marker {display:none}
+.console-title > summary::before {content:'›';color:#8ba3c8;font:23px Arial;transition:transform .15s}
+.console-title[open] > summary::before {transform:rotate(90deg);color:#b6f8ff}
+.console-library .console-title > summary h2 {margin:0;font-size:27px}
+.console-library .console-title > summary:hover h2,.console-library .console-title > summary:focus-visible h2 {color:#b6f8ff;text-shadow:0 0 15px #59c6f788}
+.console-title .console-menu-actions {margin:12px 0}
+.console-footer {justify-content:flex-end}
+@media(max-width:700px){.console-library .console-title > summary h2{font-size:23px}}
+@media(prefers-reduced-motion:reduce){.console-title > summary::before{transition:none}}
+/* Empty reader: quiet BIOS lights, without a pretend game or message window. */
+.idle-orbit {display:none;position:absolute;inset:0;pointer-events:none}
+.idle-orbit .console-orbit {left:50%;top:50%}
+.reader-idle .idle-orbit {display:block}
+.reader-idle #stage {visibility:hidden}
+.reader-idle > .controls {visibility:hidden}
+body.reader-page:not(.dim-surroundings):not(.reader-fullscreen) {
+ color-scheme:light;--paper:#253851;--muted:#536781;--accent:#17608c;
+ --chrome:#dae4f0;--chrome-light:#eef4fa;--chrome-shade:#c5d3e5;--panel:#eef3f9;--edge:#8196b3;--gold:#90a7c4;
+ background:radial-gradient(ellipse at 22% 15%,#fff,transparent 60%),linear-gradient(140deg,#e8f0fa,#b5c9e3);
+}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .toolbar,
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls,
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .status {background:#edf3face;color:#536781}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .toolbar button,
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls button,
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls a,
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) .identity {color:#2d4667;text-shadow:none}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls button[aria-pressed=true] {color:#075785;background:#b1d9ee55}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) dialog:not(.console-library),
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#eef3f9;color:#253851;text-shadow:none}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .status.error {background:#f9e0dc;color:#8c2e29}
+.reader-page:not(.dim-surroundings) .idle-orbit i {background:#fff;box-shadow:0 0 8px #fff,0 0 20px 5px #328ab8aa,0 0 45px 12px #318fa344}
+.import-card {display:grid;gap:8px;padding:16px 0;border-bottom:1px solid var(--edge);overflow-wrap:anywhere}
+.import-card p {margin:0;font-size:13px}
+.import-card .row {margin:2px 0}
+.import-card .import-next {font-weight:700;border:2px solid currentColor}
+.import-badge {font-size:12px;color:var(--accent)}
+.import-hash {font:10px monospace;overflow-wrap:anywhere;color:var(--muted)}
+#panelBody:has(#isoFile) section {margin:18px 0}
+#panelBody:has(#isoFile) h2 {font:16px Arial,sans-serif}
+#isoFile {display:block;width:100%;margin:12px 0}
+#panelBody progress {display:block;width:100%;margin:12px 0;accent-color:#539abd}
+#panelBody progress[hidden] {display:none}
+.reader-page:not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {color:#2d4667}
+.reader-idle #stage * {visibility:hidden!important}
+
+/* Menu audio belongs to the console shell, independent of game colours. */
+.console-library .menu-music-controls { position:absolute;left:24px;bottom:18px;display:flex;align-items:center;gap:10px;color:#91a8c7;font:11px Arial,sans-serif;z-index:6; }
+.console-library .menu-music-controls button { background:none;border:0;box-shadow:none;color:inherit;padding:6px;font-size:20px;min-width:32px; }
+.console-library .menu-music-controls label {display:flex;align-items:center;gap:6px;}
+.console-library .menu-music-controls input {width:78px;accent-color:#91a8c7;height:16px;}
+.console-library .menu-music-controls details {margin:0;font:10px Arial,sans-serif;}
+.console-library .menu-music-controls details p {position:absolute;bottom:26px;left:0;width:245px;padding:12px;background:#0c152b;border:1px solid #405574;line-height:1.7;}
+.console-library .menu-music-controls a {color:inherit;}
+#panel.console-import #panelBody {display:block;padding:28px 36px 90px;}
+.console-import .notice {max-width:none;margin:16px 0;background:#142342;}
+.console-import .import-destination {overflow-wrap:anywhere;color:#b7cbee;}
+.console-import button,.console-import input::file-selector-button {background:transparent;border:1px solid #5d7c9c70;box-shadow:none;color:#bdd7ee;}
+.console-import .import-card {border-color:#5572a644;}
+.console-import .import-badge {color:#9beeff;}
+.console-import code {display:block;overflow-wrap:anywhere;margin-top:6px;}
+.console-import progress {accent-color:#94cae7;}
+.console-import section {margin:24px 0;}
+
+.console-import .notice:empty {display:none;}
