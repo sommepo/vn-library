@@ -5,7 +5,8 @@ mining and reading stats. Import your own game ISO on your computer or home
 server, then read from your desktop, tablet or phone.
 
 Supports the Japanese PS2 releases of **CLANNAD** and **Remember11** listed below.
-No game files are included.
+**Never7** is an unreleased, exact-edition research target, not a public import
+or playable adapter. No game files are included.
 
 **Early beta:** some animations, effects and extras are missing. Not every route
 has been checked against the original games.
@@ -15,12 +16,17 @@ on Linux.
 
 ## Bring your own ISO
 
-Supply your own copy of one of these Japanese PS2 releases:
+Playable imports currently support only these Japanese PS2 releases:
 
 | Game | Disc serial | Version |
 | --- | --- | --- |
 | CLANNAD | SLPM-66302 | 1.01 |
 | Remember11 — the age of infinity | SLPM-65550 | 1.02 |
+
+Never7 — the end of infinity, Japanese PS2 **SLPS-25256 v1.01**, is under
+experimental investigation. It is not included in this public release: neither
+**Add game / Import ISO** nor the public CLI can import or play it yet. Its
+separate script and image formats must not be assumed compatible with Remember11.
 
 Other editions, translations and patched discs are not supported yet. The importer
 checks the disc’s contents.
@@ -94,6 +100,9 @@ not include the conversion tools.
 1. Open **Library → Add game / Import ISO**.
 2. Choose your ISO and click **Add game**.
 3. Wait for **Ready to play**, then click **Open game**.
+
+This flow currently accepts CLANNAD and Remember11 only; it does not advertise
+Never7 as ready to play.
 
 The app copies the ISO to the folder shown on screen, checks the edition and
 prepares the game automatically. Your original file stays unchanged.
@@ -263,13 +272,14 @@ The next PS2 games planned for investigation are:
 - Tomoyo After
 - planetarian
 - Ever17
-- Never7
+- Never7 — active research for Japanese PS2 SLPS-25256 v1.01; not released
 - Memories Off series
 
 Other platforms of interest: **PSP, PS Vita, PC-98 and Dreamcast**.
 
-These games and platforms are not supported yet. Existing import and engine code
-will be reused where compatible.
+These games and platforms are not supported yet. The Never7 investigation is not
+an import or playability promise; existing import and engine code will be reused
+only where measured evidence supports it.
 
 Ongoing work also includes animations, presentation fixes, easier installation
 and broader testing.
