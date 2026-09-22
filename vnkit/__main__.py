@@ -8,13 +8,14 @@ import subprocess
 import sys
 from . import __version__
 from . import disc
+from .adapters.registry import ADAPTERS, adapter_ids, adapter_spec
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 def detected_adapter(source):
-    from .adapters import clannad_ps2, pia_ps2, remember11_ps2
-    for adapter in (clannad_ps2,pia_ps2,remember11_ps2):
+    for spec in ADAPTERS:
+        adapter = spec.load()
         try:
             identification=adapter.detect(source)
             if identification['supported']:return adapter,identification
@@ -78,7 +79,7 @@ def main(argv=None):
     extract.add_argument('--level', choices=['disc', 'archives'], default='disc', help='disc preserves the archive files; archives opens detected game containers')
     imp = commands.add_parser('import', help='Import with a detected/selected edition adapter; incomplete/blocked support exits 3')
     imp.add_argument('source', type=Path)
-    imp.add_argument('--adapter', choices=['auto', 'pia-ps2', 'clannad-ps2', 'remember11-ps2', 'synthetic'], default='auto')
+    imp.add_argument('--adapter', choices=['auto', *adapter_ids(), 'synthetic'], default='auto')
     imp.add_argument('--out', type=Path, required=True)
     imp.add_argument('--work', type=Path, help='Private resumable extraction/media workspace')
     check = commands.add_parser('validate', help='Validate every instruction/reference and reader resource; blocked imports fail')
@@ -125,13 +126,10 @@ def main(argv=None):
                 adapter,identification=detected_adapter(args.source)
                 if not adapter:raise ValueError(identification['reason'])
                 if args.adapter!='auto' and args.adapter!=adapter.ADAPTER_ID:raise ValueError('Selected adapter does not match this disc edition')
-                if adapter.ADAPTER_ID=='clannad-ps2':
-                    from .adapters.clannad_import import import_game
-                    result=import_game(args.source,args.out,args.work)
-                elif adapter.ADAPTER_ID=='remember11-ps2':
-                    from .adapters.remember11_import import import_game
-                    result=import_game(args.source,args.out,args.work)
-                else:result=adapter.import_game(args.source,args.out)
+                spec = adapter_spec(adapter.ADAPTER_ID)
+                if spec is None:
+                    raise ValueError(f'Adapter is not registered: {adapter.ADAPTER_ID}')
+                result = spec.import_game(args.source, args.out, args.work)
                 emit(result)
                 if result.get('status') in ('blocked', 'incomplete-runtime') or result.get('compatibility', {}).get('status') == 'blocked':
                     return 3

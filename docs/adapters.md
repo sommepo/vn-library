@@ -130,9 +130,10 @@ intentional unsuccessful validation, not a playable game.
    existing adapters and check `docs/provenance.md` and upstream licences.
    Prefer a proven extractor/interpreter. Do not download absent game
    assets, execute installers for identification or upload input data.
-3. Add one bounded module under `vnkit/adapters/`; wire explicit detection and
-   selection in `vnkit/__main__.py`. Reuse disc and media helpers when signatures,
-   versions and tests support reuse. Avoid optimistic catch-all detection.
+3. Add one bounded module under `vnkit/adapters/`; register its exact edition in
+   `vnkit/adapters/registry.py`. Reuse disc and media helpers when signatures,
+   versions and tests support reuse. Avoid optimistic catch-all detection. A
+   recovery-only adapter must not receive browser-import eligibility.
 4. Establish true startup/order from script or executable references. Implement
    native gameplay as well as presentation. Preserve signed arithmetic, variable
    scope, interrupts and asynchronous control if the engine uses them. An unknown
@@ -144,8 +145,11 @@ intentional unsuccessful validation, not a playable game.
    command operating on the user's own source. Verify every discoverable script,
    media reference and opcode; explicitly report dynamic unresolved references.
 7. Test 100 real sequential segments and branches, saves before/after choices,
-   media changes and original-engine comparisons. Mark gaps unverified. Update
-   investigation/format notes, support matrix, skill and AGENTS.md together.
+   media changes and original-engine comparisons for a playable adapter. Mark
+   gaps unverified. Update the investigation/format notes, support matrix and
+   provenance. See [adapter contributions](adapter-contributions.md) for the
+   public PR/evidence contract; maintainers handle local handoffs and operational
+   agent instructions separately.
 
 ## Import another tested CLANNAD copy
 

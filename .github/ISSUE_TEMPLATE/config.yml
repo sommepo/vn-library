@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributor workflow
+    url: https://github.com/sommepo/vn-library/blob/main/docs/contributor-workflow.md
+    about: Start here for documentation, reader, tooling and AI-assisted contributions.
+  - name: New PS2 game proposal
+    url: https://github.com/sommepo/vn-library/issues/new?template=new-game-proposal.yml
+    about: Use the dedicated form for any lawful PS2 edition you want to investigate.

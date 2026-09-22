@@ -274,6 +274,25 @@ will be reused where compatible.
 Ongoing work also includes animations, presentation fixes, easier installation
 and broader testing.
 
+## Contributing — people and AI agents
+
+Contributions are welcome for every part of the project: documentation, tests,
+reader features, safety fixes, import tooling and edition-specific adapters. You
+can work by hand or with any coding agent; no particular AI service is required.
+The [contributor workflow](docs/contributor-workflow.md) gives a tool-neutral
+starting point and a copyable agent prompt.
+
+Any lawful PS2 ISO can be proposed for investigation. Each contribution is scoped
+to its exact platform and edition: fingerprint/research and safe static recovery
+are useful outcomes, while browser-playable support requires source-driven
+execution and evidence. An ISO is never assumed supported merely because it is a
+PS2 disc, has familiar filenames or shares a publisher/engine label.
+
+Start with [Contributing](CONTRIBUTING.md). For ISO or adapter work, use the
+[new-game proposal](.github/ISSUE_TEMPLATE/new-game-proposal.yml) and read the
+[adapter contribution guide](docs/adapter-contributions.md). Public checks and
+the pull-request workflow run without a commercial game disc.
+
 ## Development, licence and credits
 
 Original code is released under the [MIT licence](LICENSE). Third-party tools
@@ -281,8 +300,8 @@ and music retain their own licences. Game content is not included or covered by
 the toolkit’s licence.
 
 The project includes import tools, game adapters, an original test game and a
-[reusable Codex skill](.agents/skills/vn-import/SKILL.md). See the
-[developer guide](docs/adapters.md) for adding support for another game.
+[reusable Codex skill](.agents/skills/vn-import/SKILL.md). The skill is optional;
+people and any coding agent can follow the public contributor workflow.
 
 Inspired by [Tsukiweb](https://github.com/requinDr/tsukiweb-public),
 [Renji’s Texthooker UI](https://github.com/Renji-XD/texthooker-ui) and

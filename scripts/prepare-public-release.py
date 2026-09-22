@@ -54,11 +54,39 @@ Browser-local saves belong to the address used. Export them before changing
 addresses, or select shared saves on the same host for cross-device use.
 ''')
  # Do not ship a home-server operational policy as public project instructions.
- agents=a.out/'AGENTS.md';s=agents.read_text();start=s.index('The reader now runs as the isolated');end=s.index('\n## Completed-route',start)
- s=s[:start]+'''For local development use an isolated loopback server and temporary browser
-profile. See docs/remote-access.md for optional private remote access. Never
-change unrelated services or existing Tailscale routes.
-'''+s[end:];agents.write_text(s)
+ (a.out/'AGENTS.md').write_text('''# VN Library development guide
+
+This repository welcomes contributors working by hand or with any coding agent.
+Read `README.md`, `CONTRIBUTING.md`, and `docs/contributor-workflow.md` before
+changing code. For PS2/adapter work also read `docs/adapter-contributions.md` and
+`docs/adapters.md`.
+
+## Contribution boundaries
+
+- Any lawful PS2 ISO may be investigated as an exact edition. It is never
+  presumed importable or playable because of its platform, publisher, filenames
+  or an engine label.
+- Never commit, upload, request or link to game discs, executables, scripts,
+  text, media, saves, screenshots, traces or private reports.
+- Inspect formats with bounded, read-only parsers. Preserve input, reject unsafe
+  paths and out-of-bounds data, use no-clobber writes, and fail closed with a
+  source location on unknown state or control behavior.
+- Do not run an installer or disc executable for identification. Do not use Wine
+  on a shared host; native Windows tests require Windows hardware or a constrained
+  VM.
+
+## Workflow
+
+- Focused documentation, test, accessibility, reader, safety and tooling pull
+  requests are welcome without a game disc.
+- Use the new-game issue form before a playable adapter. Static recovery is
+  useful but must remain outside browser import.
+- Register each exact adapter once in `vnkit/adapters/registry.py`; the registry
+  governs CLI selection and browser eligibility.
+- Add public synthetic regression tests, run the documented Python, Node and
+  fixture checks, and report limitations honestly. Public CI needs no commercial
+  game data.
+''')
  manifest={str(p.relative_to(a.out)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(a.out.rglob('*')) if p.is_file()}
  (a.out/'PACKAGE-MANIFEST.json').write_text(json.dumps(manifest,indent=2)+'\n')
  print(json.dumps({'staged':str(a.out),'files':len(manifest)}))

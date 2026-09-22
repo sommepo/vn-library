@@ -1,7 +1,8 @@
-# Public release readiness
+# Public release readiness (historical pre-release assessment)
 
-Assessment: 2026-09-21. **Close to an early source beta for technical users; not
-yet a verified install-and-play release.** No public release has been made.
+This assessment predates the v0.1.0-beta.1 public release. It remains a record of
+what that early beta did not establish: it is not a claim that the release was
+unpublished or that its installation paths are fully verified.
 
 ## Already built
 
@@ -16,11 +17,12 @@ yet a verified install-and-play release.** No public release has been made.
 This is substantial reusable software, not just two frontends. New titles still
 need evidence that their formats and engine behavior match a supported adapter.
 
-## Before a public beta
+## For a future verified/stable release
 
 Windows test installer: see [Windows setup](windows.md). It includes a tray app,
 app-local runtime/tool setup and configurable port. It still needs installation,
-upgrade/uninstall and complete import tests on the Z13 before a public release.
+upgrade/uninstall and complete import tests on the Z13 before claims of a verified
+Windows install-and-play release.
 
 1. **Prove clean setup and conversion.** Unpack the release on a fresh Linux
    installation. Bootstrap dependencies without the development cache, upload a
@@ -53,7 +55,10 @@ The existing Docker setup only serves already imported games. It has a read-only
 library and lacks Node/media import tools; it must not be advertised as a complete
 GUI-import appliance until that is deliberately implemented and tested.
 
-## README wording decisions
+## Historical README wording decisions
+
+The wording decisions below were recorded before publication. The published
+project name is VN Library; retained points describe scope and evidence limits.
 
 - Keep the current name, VN Import Toolkit, until the owner chooses another.
 - Use “early beta,” not “complete PS2 emulator” or “universal ISO converter.”
@@ -64,8 +69,8 @@ GUI-import appliance until that is deliberately implemented and tested.
   their code was copied.
 - Include planetarian in the PS2 roadmap. Prototype confirms the PS2 release:
   https://www.prot.co.jp/ps2/planetarian/index.html. Engine compatibility is untested.
-- No public repo creation, release upload or publication is authorized by this
-  README-preparation request.
+- The historic wording approval did not establish broad device, route or
+  integration support beyond the published early-beta claims.
 
 External feature descriptions were checked against the official
 [GSM settings](https://docs.gamesentenceminer.com/docs/settings/),

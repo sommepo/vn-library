@@ -13,14 +13,12 @@ import subprocess
 import sys
 import threading
 import time
+from .adapters.registry import gui_adapter
 
 ROOT = Path(__file__).resolve().parent.parent
 CHUNK = 4 * 1024 * 1024
 MAX_ISO = 9 * 1024**3
 ACTIVE = {'inspecting', 'preflight', 'converting', 'validating', 'installing'}
-SUPPORTED = {'clannad-ps2': 'clannad-slpm66302-1.01', 'remember11-ps2': 'remember11-slpm65550-1.02'}
-
-
 class ImportJobs:
     def __init__(self, state, library, catalogue, source_root=None):
         self.root = Path(state) / 'imports'
@@ -225,18 +223,23 @@ class ImportJobs:
             if result.returncode not in allowed:
                 raise ValueError(f'{label} startup check failed (exit {result.returncode}). Conversion has not started. Your ISO is kept. Details: state/imports/{job.get("id","unknown")}/preflight.log')
             return result
+        spec = gui_adapter(job['adapter'])
+        if spec is None:
+            raise ValueError('This adapter is not enabled for browser import')
         required=['node','ffmpeg','ffprobe']
         for tool in required:
-            if not shutil.which(tool,path=env.get('PATH')):raise ValueError(f'Missing {tool}; install the dependencies in docs/{"remember11" if job["adapter"]=="remember11-ps2" else "clannad"}-import.md')
+            if not shutil.which(tool,path=env.get('PATH')):
+                guide = f'docs/{spec.setup_guide}' if spec.setup_guide else 'the adapter documentation'
+                raise ValueError(f'Missing {tool}; install the adapter dependencies in {guide} before retrying')
             probe(tool, [shutil.which(tool,path=env.get('PATH')),'--version' if tool=='node' else '-version'])
-        if job['adapter']=='remember11-ps2':
+        if spec.preflight_profile == 'remember11':
             from .windows_tools import fluidsynth_probe_command
             probe('FluidSynth', fluidsynth_probe_command())
-        if job['adapter']=='clannad-ps2':
+        if spec.preflight_profile == 'clannad':
             from .windows_tools import vgmstream_path
             result=probe('vgmstream', [str(vgmstream_path()),'-V'],allowed=(0,1))
             if b'r2117' not in result.stdout:raise ValueError('Pinned vgmstream r2117 is required')
-        if job['adapter']=='remember11-ps2' and not Path(env.get('VNKIT_VGMTRANS',ROOT/'private/tooling/remember11-vgmtrans-shell')).is_file():
+        if spec.preflight_profile == 'remember11' and not Path(env.get('VNKIT_VGMTRANS',ROOT/'private/tooling/remember11-vgmtrans-shell')).is_file():
             raise ValueError('Remember11 needs the pinned VGMTrans tool; see docs/remember11-import.md')
         if shutil.disk_usage(self.root).free<24*1024**3:
             raise ValueError('Allow at least 24 GiB of free server space for conversion workspace and assets')
@@ -249,12 +252,13 @@ class ImportJobs:
             if action in ('inspect','prepare'):
                 from .__main__ import detected_adapter
                 adapter,identity=detected_adapter(p)
-                if not adapter or adapter.ADAPTER_ID not in SUPPORTED:
+                spec = gui_adapter(adapter.ADAPTER_ID) if adapter else None
+                if spec is None:
                     self.update(job,status='unsupported',message='No playable adapter for this edition. ISO retained; nothing imported.',sha256=sha)
                     return
                 if hasattr(adapter, 'verify_import_source'):
                     adapter.verify_import_source(p)
-                self.update(job,status='ready',sha256=sha,adapter=adapter.ADAPTER_ID,gameId=SUPPORTED[adapter.ADAPTER_ID],title=identity['title'],
+                self.update(job,status='ready',sha256=sha,adapter=adapter.ADAPTER_ID,gameId=spec.gui_game_id,title=identity['title'],
                             message='Disc identified. Next: click Import game to convert it into a playable library. Basic support has documented fidelity limits.')
                 if action=='inspect':return
                 if job['gameId'] in self.catalogue()[1]:
@@ -274,8 +278,11 @@ class ImportJobs:
             from .__main__ import validate
             report=validate(output)
             (directory/'validation.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
-            # Compatibility exit 3 is acceptable only for the known explicit notices.
-            unexpected=[e for e in report['errors'] if not e.startswith(('CLANNAD import is incomplete:', 'Remember11 basic runtime remains incomplete:'))]
+            # Compatibility exit 3 is acceptable only for the adapter's explicit notices.
+            spec = gui_adapter(job['adapter'])
+            if spec is None:
+                raise ValueError('This adapter is not enabled for browser import')
+            unexpected=[e for e in report['errors'] if not e.startswith(spec.validation_notice_prefixes)]
             if unexpected or report.get('scriptValidation',{}).get('unresolvedReferences',0):
                 raise ValueError('Validation failed. Output stays private; see validation.json before retrying.')
             if report.get('gameId')!=job['gameId'] or job['gameId'] in self.catalogue()[1]:

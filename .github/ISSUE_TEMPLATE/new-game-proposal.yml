@@ -1,0 +1,58 @@
+name: New-game proposal
+description: Propose a bounded, edition-specific investigation or adapter.
+title: "New game: "
+labels: ["new-game"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Do not attach or link to game content, extracted text, media, saves,
+        screenshots, private reports, patches or downloads. Start with the exact
+        lawful edition and a bounded contribution scope.
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Proposed scope
+      options:
+        - Fingerprint or shared-engine research
+        - Safe static recovery only
+        - Playable browser adapter
+    validations:
+      required: true
+  - type: textarea
+    id: edition
+    attributes:
+      label: Exact edition
+      description: Platform, region, serial, version and public-safe hashes/signatures.
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence and reuse hypothesis
+      description: Describe containers, script/VM evidence, compared adapters and confirmed/probable/unknown layers. Do not paste recovered content.
+    validations:
+      required: true
+  - type: textarea
+    id: plan
+    attributes:
+      label: Bounded plan
+      description: List the parser/runtime boundary, public synthetic tests and private audit evidence you expect to produce.
+    validations:
+      required: true
+  - type: textarea
+    id: provenance
+    attributes:
+      label: Upstream references and licences
+      description: Give URLs, revisions and licence status for any code or format references.
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Contribution safeguards
+      options:
+        - label: I will not submit, attach, link to, or request game content or private user data.
+          required: true
+        - label: I will use only media I am authorised to inspect and will not run an installer or game executable to identify it.
+          required: true
+        - label: I understand static recovery is not a claim of playable support or GUI eligibility.
+          required: true

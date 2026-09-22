@@ -8,13 +8,14 @@ import tarfile
 from .disc import write_bytes
 
 ROOT = Path(__file__).resolve().parent.parent
-TOP = ['README.md', 'AGENTS.md', 'LICENSE', '.gitignore', '.dockerignore', 'Dockerfile', 'compose.yaml']
+TOP = ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'LICENSE', '.gitignore', '.dockerignore', 'Dockerfile', 'compose.yaml']
 EXACT = ['docs/screenshots/crt-reading.jpg', 'docs/screenshots/reading-stats.jpg', 'docs/screenshots/dictionary-lookup.jpg', 'docs/screenshots/reader-controls.jpg', 'web/media/nova-mistero.mp3', 'scripts/windows-reader.pyw', 'scripts/vgmtrans-remember11-pressure.patch', 'scripts/audio-tools.lock.json', 'third_party/vgmtrans-filename-match.patch']
 TREES = {
     'vnkit': {'.py'}, 'web': {'.mjs', '.js', '.html', '.css', '.md'},
     'scripts': {'.py', '.mjs', '.js', '.sh'}, 'tests': {'.py', '.mjs', '.js'},
     'docs': {'.md'}, 'third_party': {'.txt', '.md'}, '.agents/skills/vn-import': {'.md'},
     'windows': {'.cs', '.ps1', '.cmd', '.json', '.md'},
+    '.github': {'.md', '.yml', '.yaml'},
 }
 FIXTURE_FILES = {'README.md', 'build.py', 'content.json', 'chime.wav', 'music.wav', 'voice-test.wav',
                  'dawn.svg', 'forest.svg', 'guide.svg', 'night.svg', 'shore.svg'}

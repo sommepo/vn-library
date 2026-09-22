@@ -1,0 +1,28 @@
+name: Public checks
+
+on:
+  pull_request:
+  push:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Python tests
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+      - name: Reader and adapter tests
+        run: node --test tests/reader*.mjs tests/clannad-vm.test.mjs tests/remember11-vm.test.mjs
+      - name: Validate the public fixture
+        run: python3 -m vnkit validate fixtures/synthetic
+      - name: Stage public source
+        run: python3 scripts/prepare-public-release.py --out "$RUNNER_TEMP/vn-library-public"
