@@ -23,19 +23,22 @@ class ToolTests(unittest.TestCase):
                 load_fluidsynth()
                 dll.assert_called_once_with('/test/tools/synth.dll')
 
-    def test_remember_preflight_does_not_require_vgmstream(self):
+    def test_sony_bank_preflight_does_not_require_vgmstream(self):
         with tempfile.TemporaryDirectory() as tmp:
             root=Path(tmp);tool=root/'converter.exe';tool.touch()
             jobs=ImportJobs(root/'state',root/'library',lambda:([],{}),root)
             with patch('vnkit.import_jobs.shutil.which',return_value='/tool'),patch('vnkit.import_jobs.subprocess.run') as run,patch('vnkit.import_jobs.shutil.disk_usage') as disk:
                 run.return_value=subprocess.CompletedProcess([],0,b'ok',b'')
                 disk.return_value.free=30*1024**3
-                jobs.preflight({'adapter':'remember11-ps2'},{'VNKIT_VGMTRANS':str(tool)})
-                calls=[str(c.args[0]) for c in run.call_args_list]
-                for call in run.call_args_list:
-                    self.assertEqual(call.kwargs['stdin'], subprocess.DEVNULL)
-                self.assertFalse(any('vgmstream' in command for command in calls))
-                self.assertTrue(any('--probe-fluidsynth' in command for command in calls))
+                for adapter in ('remember11-ps2', 'never7-ps2'):
+                    with self.subTest(adapter=adapter):
+                        run.reset_mock()
+                        jobs.preflight({'adapter':adapter},{'VNKIT_VGMTRANS':str(tool)})
+                        calls=[str(c.args[0]) for c in run.call_args_list]
+                        for call in run.call_args_list:
+                            self.assertEqual(call.kwargs['stdin'], subprocess.DEVNULL)
+                        self.assertFalse(any('vgmstream' in command for command in calls))
+                        self.assertTrue(any('--probe-fluidsynth' in command for command in calls))
 
     def test_fluidsynth_probe_reports_stages_and_rejects_wrong_version(self):
         with patch('vnkit.windows_tools.configure'), patch('vnkit.windows_tools.load_fluidsynth') as load:

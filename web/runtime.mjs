@@ -2,6 +2,10 @@
 import { Engine, validateContent } from './engine.mjs';
 export async function createEngine(content, options = {}) {
   if (!content.runtime) return new Engine(content, options);
+  if (content.runtime.id === 'never7-ps2-oscr') {
+    const {Never7Engine} = await import('./adapters/never7-engine.mjs');
+    return Never7Engine.create(content, options);
+  }
   if (content.runtime.id === 'remember11-ps2-kid') {
     const {Remember11Engine} = await import('./adapters/remember11-engine.mjs');
     return Remember11Engine.create(content, options);
@@ -16,6 +20,10 @@ export async function createEngine(content, options = {}) {
 }
 export async function validateReaderContent(content) {
   if (!content.runtime) return validateContent(content);
+  if (content.runtime.id === 'never7-ps2-oscr') {
+    const {validateNever7Content} = await import('./adapters/never7-engine.mjs');
+    return validateNever7Content(content);
+  }
   if (content.runtime.id === 'remember11-ps2-kid') {
     const {validateRemember11Content} = await import('./adapters/remember11-engine.mjs');
     return validateRemember11Content(content);

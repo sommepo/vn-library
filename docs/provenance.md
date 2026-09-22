@@ -1,5 +1,33 @@
 # Upstream research and code provenance
 
+## Never7 route and credits work (2026-09-22)
+
+The new menu and credits parsers are original code based on the supplied ELF's
+`appendStrExe`, `append_dat_t`, `mendInit`, `mendScrCommand` and their handlers.
+Route predicates remain the user's private source bytes. No third-party code
+or game assets were added to the distributable toolkit.
+
+Walkthroughs were consulted as test-path leads:
+[GhostieEyes' PSP guide](https://gamefaqs.gamespot.com/psp/955291-never7-the-end-of-infinity/faqs/81581)
+and [GameLine's Never7 guides](https://gameline.jp/never7/). Numeric guide choices
+did not always match this edition/progress state. The final private recipes use
+source-bound displayed choices and fresh VM replay; the runtime contains no
+walkthrough-derived route shortcuts. See [measured results](never7-routes.md).
+
+## Never7 recovery trial (2026-09-22)
+
+The CPS/OGDT recovery code is original MIT code checked against named functions
+in the owner's SLPS-25256 v1.01 executable. No executable code or source game data
+is distributed. [kidfile](https://github.com/malucard/kidfile/tree/5e8d31ce89a42f5ae6f4007840dfd8620061359b)
+was consulted privately as format research; its repository and Cargo manifests
+declare no licence at that revision. No code from it was copied or bundled.
+The later runtime uses original word-command parsing and a bounded read-only
+condition evaluator. Recovered executable bytes remain private. Existing AFS/ADX,
+Sony/VGMTrans/FluidSynth and PSS tools are reused with edition-specific bank and
+resource mappings; retain their licences below. Song zero selection is traced
+through the native engine and EZMIDI module; SPU2 sound parity is unverified. See
+[the evidence and fingerprint](never7-investigation.md).
+
 ## Remember11 runtime additions (2026-09-21)
 
 The KID bytecode decoder/interpreter, image tile reconstruction and private import

@@ -19,12 +19,13 @@ test('saved disc has one Continue action for automatic preparation',async()=>{
  globalThis.location={host:'localhost:8891'};
  globalThis.fetch=async(path,options)=>{
   if(options){submitted=JSON.parse(options.body);job.status='preflight';job.message='Checking node…';}
-  return {ok:true,json:async()=>({token:'test',sources:[],jobs:[job],busy:job.status==='preflight'})};
+  return {ok:true,json:async()=>({token:'test',sources:[],jobs:[job],busy:job.status==='preflight',editions:[{adapter:'never7-ps2',label:'PS2 Never7 SLPS-25256 v1.01'}]})};
  };
  let close;
  try {
   const body=new Element('body');close=await importPanel(body,{openGame:()=>{},refreshLibrary:()=>{}});
   assert.match(body.text,/Choose an ISO and click Add game/);
+  assert.match(body.text,/PS2 Never7 SLPS-25256 v1.01/);
   assert.match(body.text,/Choose Continue to prepare this saved ISO/);
   const button=body.all('button').find(b=>b.textContent==='Continue');assert.ok(button);
   assert.equal(body.all('button').some(b=>b.textContent==='Inspect disc'),false);

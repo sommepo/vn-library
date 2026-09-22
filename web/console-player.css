@@ -107,3 +107,6 @@ body.reader-page:not(.dim-surroundings):not(.reader-fullscreen) {
 .console-import section {margin:24px 0;}
 
 .console-import .notice:empty {display:none;}
+.console-extra-stories {flex-basis:100%;margin:12px 0;}
+.console-extra-stories summary {cursor:pointer;padding:8px 0;}
+.console-extra-stories[open] button {display:block;text-align:left;max-width:100%;}

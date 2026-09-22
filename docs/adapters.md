@@ -4,6 +4,7 @@
 | --- | --- | --- |
 | clannad-ps2 | SLPM-66302 v1.01 / HuneX | Incomplete playable runtime; see CLANNAD reports |
 | remember11-ps2 | SLPM-65550 v1.02 / KID | Incomplete playable script runtime with original media; import/validation exit 3 |
+| never7-ps2 | SLPS-25256 v1.01 / KID oscr/MWo3 | Add game and CLI; main routes/Cure/Append endings tested; optional completed-route read paths; animations incomplete; validation exits 3 |
 | pia-ps2 | SLPS-25222 v1.04 | Paused incomplete runtime |
 | synthetic | Original bundled fixture | Public tests only |
 
@@ -15,6 +16,12 @@ CLANNAD SLPM-66302 v1.01 remains supported: see [its import guide](clannad-impor
 [format notes](formats-clannad-ps2.md) and [runtime limits](clannad-runtime.md).
 `clannad-ps2` supports only this tested executable; other HuneX games are untested.
 The shared `vnkit/source.py` provides bounded ISO/directory reads for new adapters.
+
+[Never7's measured fingerprint](never7-investigation.md) records the next reuse
+trial. Disc access, AFS/ADX, Sony bank rendering and PSS tools transfer; CPS/OGDT
+graphics and MWo3 word-table scripts require different implementations. The
+[experimental reader](never7-runtime.md) now executes those scripts. Its measured
+coverage and remaining gaps are separate from asset recovery success.
 
 The reader's [Next choice traversal](reader-interface.md) repeatedly calls the
 normal `advance` contract; it does not inspect future script text. Adapters must
@@ -243,6 +250,9 @@ activity, preserves it during ordinary restores and offers explicit backup/impor
 Entry IDs and unlock rules belong to the adapter; hidden future entries must not
 be exposed by generic UI. The pure VM `restore` still restores a standalone save;
 the browser then applies its persistent progress before further execution.
+Entries may include a `group` label; the reader puts grouped entries in a closed
+disclosure. Never7 uses this for its 33 source-unlocked Append stories. Titles and
+entry addresses are private imported data, not game-specific reader code.
 
 Generic scene layers accept optional `opacity` in [0,1]. A choice may carry an
 original `promptAsset` image alongside selectable DOM options. A wait can use

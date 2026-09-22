@@ -8,8 +8,9 @@ description: Inspect authorised Japanese visual-novel discs, run the local VN Im
 Locate the repository containing `vnkit/__main__.py` and read `AGENTS.md` and
 [the current handoff](../../../docs/next-session.md). The skill references runnable
 code; it does not replace the toolkit or depend on information from prior chats.
-Respect the user's active game. Remember11 is the active adapter project; preserve
-CLANNAD and its saves. Work on the Pia ISO/runtime remains paused. Preserve the configurable
+Respect the user's active game. The latest target is the Never7 PS2 experimental reader;
+read [its runtime guide](../../../docs/never7-runtime.md) and
+[measured fingerprint](../../../docs/never7-investigation.md). Preserve Remember11, CLANNAD and their saves. Work on the Pia ISO/runtime remains paused. Preserve the configurable
 in-game lavender/gold surfaces, fixed blue console player chrome and Dim toggle.
 Library actions collapse by title; inactive-title sound/progress menus must not
 start a story or write its autosave. Previous line uses bounded session-only
@@ -76,6 +77,40 @@ python3 -m vnkit extract '/path/to/game.iso' --level archives --out private/new-
 ```
 
 Current commercial adapters are edition-specific and **incomplete**:
+
+- `never7-ps2`: SLPS-25256 v1.01, experimental source-word reader. Read
+  [runtime/commands](../../../docs/never7-runtime.md) and the disc fingerprint.
+  MWo3/oscr and CPS/OGDT differ from Remember11; AFS/ADX voices, Sony BGM banks
+  and PSS movies reuse proven tools. Native predicates are bounded read-only ELF
+  data; never execute the disc binary. All 188 story and 39 mend credits tables
+  now parse. Credits animation is omitted; validation still exits 3 for incomplete
+  presentation. Read [route/menu evidence](../../../docs/never7-routes.md): ten main
+  good outcomes and all 33 extra Append stories have source-entry replay evidence.
+  Native flags 21–24 earn the Cure gate; row zero requires 21, other Append rows 70.
+  Do not replace conditions with guide recipes or treat credits as story opcodes.
+  Run `tests/never7-route-suite.mjs`, `tests/never7-append-smoke.mjs` and isolated
+  `tests/browser-never7-routes.mjs` for route changes. Keep the anomalous native
+  read-index entry in validation and preserve save-signature compatibility.
+  Completed-route assumptions use ten replayed main-outcome paths; read
+  [Never7 read status](../../../docs/never7-read-status.md). Rebuild with
+  `scripts/build-never7-read-paths.mjs` from private source-choice recipes and
+  earned dependencies. Only the newly completed target receives its path; never
+  add later-route text to prerequisite clears or study history. Missing sidecars
+  leave ordinary reading usable. Test the read modes with
+  `tests/browser-never7-read-status.mjs`; shared-save tests need a stable text
+  checkpoint and `VNKIT_CLEAR_FLAG=21` for Yuka. Keep all generated paths private.
+  CLI and Add game use `never7_import.py`; the installer supplies the same media
+  tools as Remember11. GUI admission requires a zero-unsupported/zero-unresolved
+  script census, not just its allowed presentation notice. Recovery 0.4/import 0.6
+  escape trailing dots in cache paths; retain original source names and IDs.
+  `tests/browser-never7-clean-import.mjs ISO NEW_PRIVATE_OUTPUT` exercises the real
+  upload/conversion flow; its optional `--verify-finished` only checks an already
+  completed import after interruption. Native Windows execution still needs a
+  device test. Use `scripts/validate-never7.mjs`, `tests/never7-real-smoke.mjs` and
+  `tests/browser-never7.mjs` with private reports and isolated saves. Both SQ
+  streams are retained; native BGM selects Song zero. Stale AFS filename-row sizes
+  require the explicit Never7 opt-in, never relaxed extent/path validation.
+  kidfile has no declared reuse licence. Do not claim exhaustive choices or PS2/SPU2 parity.
 
 - `remember11-ps2`: Japanese PS2 SLPM-65550 v1.02, KID. **Incomplete playable
   runtime**, newly authorized and implemented after the failed generality trial.
@@ -322,3 +357,12 @@ Native Windows installation and complete imports require device evidence.
 Do not run Wine on the home server: the attempted tests were associated with a
 runaway process/OOM incident. Use the user's Windows device or a dedicated VM
 with enforced memory/process limits for execution tests.
+
+## Task usage tracking
+
+The user requests a model/token CSV for roadmap work. Follow
+[the counting policy](../../../docs/task-usage.md) and run
+`scripts/record-task-usage.py` to update local `task-usage.csv`. Use actual model
+metadata and counter deltas; distinguish cached input and output subsets. Keep
+measurement timestamps and partial outcomes. Never infer an exact missing count,
+include subsequent tasks in an earlier total, or publish the raw session logs.

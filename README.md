@@ -4,9 +4,8 @@ Play Japanese visual novels in your browser, with dictionary lookups, sentence
 mining and reading stats. Import your own game ISO on your computer or home
 server, then read from your desktop, tablet or phone.
 
-Supports the Japanese PS2 releases of **CLANNAD** and **Remember11** listed below.
-**Never7** is an unreleased, exact-edition research target, not a public import
-or playable adapter. No game files are included.
+Supports the Japanese PS2 releases of **CLANNAD**, **Remember11** and **Never7**
+listed below. No game files are included.
 
 **Early beta:** some animations, effects and extras are missing. Not every route
 has been checked against the original games.
@@ -16,17 +15,20 @@ on Linux.
 
 ## Bring your own ISO
 
-Playable imports currently support only these Japanese PS2 releases:
+Supply your own copy of one of these Japanese PS2 releases:
 
-| Game | Disc serial | Version |
-| --- | --- | --- |
-| CLANNAD | SLPM-66302 | 1.01 |
-| Remember11 — the age of infinity | SLPM-65550 | 1.02 |
+| Game | Disc serial | Version | Import method |
+| --- | --- | --- | --- |
+| CLANNAD | SLPM-66302 | 1.01 | App or command line |
+| Remember11 — the age of infinity | SLPM-65550 | 1.02 | App or command line |
+| Never7 — the end of infinity | SLPS-25256 | 1.01 | App or command line |
 
-Never7 — the end of infinity, Japanese PS2 **SLPS-25256 v1.01**, is under
-experimental investigation. It is not included in this public release: neither
-**Add game / Import ISO** nor the public CLI can import or play it yet. Its
-separate script and image formats must not be assumed compatible with Remember11.
+Never7 is included in the Windows installer and Add game screen. Its ten main good-ending outcomes and
+33 extra Append stories have been tested from their starting points to their
+endings, including choices, flags and save restoration. This is not a check of
+every possible choice sequence or a comparison with original PS2 execution.
+Animations, credits and some presentation details remain unfinished.
+See [Never7's setup and limits](docs/never7-runtime.md).
 
 Other editions, translations and patched discs are not supported yet. The importer
 checks the disc’s contents.
@@ -45,6 +47,9 @@ CLANNAD
 
 Remember11
 5cfad772a6d320f2c96c5692e7813a971a045a451e49ba81e3a4402557bd612b
+
+Never7
+52759964e8437da516827dc5ca28dc92a15c98940f5b9453131ca028a3b78c8b
 ```
 
 </details>
@@ -82,6 +87,7 @@ distributions may need manual setup.
 Download or clone the project, open a terminal in its folder, then follow the
 [CLANNAD setup guide](docs/clannad-import.md) or
 [Remember11 setup guide](docs/remember11-import.md).
+Never7 uses the same media tools as Remember11; see its [setup guide](docs/never7-runtime.md).
 
 Start the reader:
 
@@ -97,12 +103,11 @@ not include the conversion tools.
 
 ### Importing your game
 
+The Add game screen supports all three editions listed above.
+
 1. Open **Library → Add game / Import ISO**.
 2. Choose your ISO and click **Add game**.
 3. Wait for **Ready to play**, then click **Open game**.
-
-This flow currently accepts CLANNAD and Remember11 only; it does not advertise
-Never7 as ready to play.
 
 The app copies the ISO to the folder shown on screen, checks the edition and
 prepares the game automatically. Your original file stays unchanged.
@@ -139,6 +144,30 @@ uses exit code **2**.
 
 [GUI import and recovery](docs/import-gui.md) ·
 [CLI and adapter guide](docs/adapters.md)
+
+### Never7
+
+In the Windows app, use **Add game** as above. There are no extra tools to install
+for Never7. On Linux, install the media tools described in the
+[Never7 guide](docs/never7-runtime.md), then use Add game or the command line:
+
+```sh
+python3 -m vnkit import '/path/to/Never7.iso' \
+  --adapter never7-ps2 --work private/never7 \
+  --out private/library/never7
+```
+
+Once prepared, Never7 appears in the same browser library and uses the shared
+reader controls, 15 save slots, local/shared saves, stats, text output and display
+settings. The clean ISO-to-reader flow is tested on Linux. The updated Windows
+installer still needs a full conversion check on a Windows device.
+
+Finishing a route returns to the menu and keeps its unlocks. The original flags
+control access to Cure and the Append stories. **Route progress / debug** also
+lets you mark main routes complete if you finished them elsewhere.
+
+[Route test results](docs/never7-routes.md) ·
+[Read status and shared-save tests](docs/never7-read-status.md)
 
 ### Browsers and remote play
 
@@ -264,6 +293,10 @@ Manually marking a route complete does not add reading stats. Where a verified
 route path is available, its text is also marked as read. Alternate branches are
 not all assumed read.
 
+Never7's optional completed-route read paths must be built locally; they are not
+bundled with the code. Ordinary Skip read works without them. See the
+[read-path guide](docs/never7-read-status.md).
+
 ## Roadmap
 
 The next PS2 games planned for investigation are:
@@ -272,17 +305,60 @@ The next PS2 games planned for investigation are:
 - Tomoyo After
 - planetarian
 - Ever17
-- Never7 — active research for Japanese PS2 SLPS-25256 v1.01; not released
 - Memories Off series
 
 Other platforms of interest: **PSP, PS Vita, PC-98 and Dreamcast**.
 
-These games and platforms are not supported yet. The Never7 investigation is not
-an import or playability promise; existing import and engine code will be reused
-only where measured evidence supports it.
+These games and platforms are not supported yet. Existing import and engine code
+will be reused where compatible.
 
 Ongoing work also includes animations, presentation fixes, easier installation
-and broader testing.
+and broader testing. Never7's remaining work includes presentation details and
+native Windows testing.
+
+## Architecture
+
+VN Library has two parts: a local importer that prepares the game, and a browser
+reader that runs its story. The Windows tray app starts the same local server
+used on Linux.
+
+```mermaid
+flowchart LR
+    ISO[Your ISO] --> Import[Local importer]
+    Import --> Files[Private game library]
+    Files --> Adapter[Game script interpreter]
+    Adapter --> Reader[Browser reader]
+    Reader --> Local[Browser saves and activity]
+    Reader <--> Shared[Optional shared saves on your host]
+```
+
+The importer checks the edition, extracts resources and converts media where
+needed. It records source locations and fingerprints so a failed import can be
+checked and resumed. Finished games no longer need the ISO to run.
+
+The browser's game adapter follows the original script instructions: choices,
+conditions, variables, calls and endings. It sends text, scenes and media to the
+shared reader. Each game keeps its own instruction handling; a matching archive
+format does not mean two games run the same scripts. Unknown state-changing
+instructions stop with an error.
+
+| Location | What it does |
+| --- | --- |
+| `vnkit/disc.py`, `vnkit/source.py` | Read discs and extract files safely |
+| `vnkit/adapters/` | Identify exact editions and prepare their scripts and media |
+| `web/adapters/` | Execute each game's story and keep its state |
+| `web/` | Reader controls, graphics, text, audio, saves and reading activity |
+| `vnkit/server.py`, `vnkit/import_jobs.py` | Serve the library and run import jobs |
+| `windows/` | Installer, tray app and pinned tool setup |
+| `fixtures/synthetic/`, `tests/` | Original test game and automated checks |
+
+Game data, saves and reading history stay outside the distributed code. Activity
+history is separate from story saves, so loading an old position does not undo
+later reading. New games reuse the reader and any proven compatible extraction
+tools; they still need their own edition checks and execution tests.
+
+For the interfaces and format details, see the [adapter guide](docs/adapters.md),
+[content format](docs/adapters.md#current-content-contract) and [testing guide](docs/testing.md).
 
 ## Contributing — people and AI agents
 

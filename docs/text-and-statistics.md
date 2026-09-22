@@ -227,3 +227,9 @@ rejected-run diagnostics; timing/media completion are simulated. Existing output
 are never overwritten. The deployed sidecar is under the private import; it is
 not part of the distributable code package. No user save/progress is changed by
 building it. Only this fixed sidecar filename was added to the server allowlist.
+
+Never7 now uses the same policy for all ten main good outcomes, with its own
+source-entry replay builder and signature-bound private sidecar. See
+[Never7 read status](never7-read-status.md) for the exact paths, browser evidence
+and commands. Shared completion flags enable the same assumptions on another
+device; activity remains local. Append extras have ordinary read tracking only.

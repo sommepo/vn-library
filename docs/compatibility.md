@@ -1,5 +1,11 @@
 # Compatibility and evidence
 
+**Never7 SLPS-25256 v1.01 has an experimental source-script reader.**
+[Runtime and tests](never7-runtime.md) distinguish real browser coverage, seeded
+headless endings and incomplete effects/extras. Its story VM differs from
+Remember11, while the audio and movie pipelines reuse measured shared formats.
+Full validation retains 39 unparsed auxiliary/ending table sites and exits 3.
+
 **Remember11 SLPM-65550 v1.02 now has an incomplete playable adapter**, with all
 167 script resources parsed and original artwork/audio/video converted. See
 [its coverage report](remember11-runtime.md) for separate browser, headless and

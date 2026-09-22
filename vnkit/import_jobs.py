@@ -13,7 +13,7 @@ import subprocess
 import sys
 import threading
 import time
-from .adapters.registry import gui_adapter
+from .adapters.registry import ADAPTERS, gui_adapter
 
 ROOT = Path(__file__).resolve().parent.parent
 CHUNK = 4 * 1024 * 1024
@@ -84,6 +84,7 @@ class ImportJobs:
         with self.lock:
             return {'uploadDirectory':str(self.root.resolve()), 'sources': [{'id':k,'name':p.name,'size':p.stat().st_size,'status':'On server'} for k,p in self.sources().items()],
                     'jobs':[self.public(j) for j in self.jobs.values()], 'chunkSize':CHUNK, 'maxSize':MAX_ISO,
+                    'editions':[{'adapter':s.adapter_id,'label':s.edition_label} for s in ADAPTERS if s.gui_playable],
                     'busy': bool(self.worker and self.worker.is_alive())}
 
     def get(self, ident):
@@ -232,15 +233,15 @@ class ImportJobs:
                 guide = f'docs/{spec.setup_guide}' if spec.setup_guide else 'the adapter documentation'
                 raise ValueError(f'Missing {tool}; install the adapter dependencies in {guide} before retrying')
             probe(tool, [shutil.which(tool,path=env.get('PATH')),'--version' if tool=='node' else '-version'])
-        if spec.preflight_profile == 'remember11':
+        if spec.preflight_profile == 'sony-banks':
             from .windows_tools import fluidsynth_probe_command
             probe('FluidSynth', fluidsynth_probe_command())
         if spec.preflight_profile == 'clannad':
             from .windows_tools import vgmstream_path
             result=probe('vgmstream', [str(vgmstream_path()),'-V'],allowed=(0,1))
             if b'r2117' not in result.stdout:raise ValueError('Pinned vgmstream r2117 is required')
-        if spec.preflight_profile == 'remember11' and not Path(env.get('VNKIT_VGMTRANS',ROOT/'private/tooling/remember11-vgmtrans-shell')).is_file():
-            raise ValueError('Remember11 needs the pinned VGMTrans tool; see docs/remember11-import.md')
+        if spec.preflight_profile == 'sony-banks' and not Path(env.get('VNKIT_VGMTRANS',ROOT/'private/tooling/remember11-vgmtrans-shell')).is_file():
+            raise ValueError(f'This game needs the pinned VGMTrans tool; see docs/{spec.setup_guide}')
         if shutil.disk_usage(self.root).free<24*1024**3:
             raise ValueError('Allow at least 24 GiB of free server space for conversion workspace and assets')
 
@@ -283,6 +284,11 @@ class ImportJobs:
             if spec is None:
                 raise ValueError('This adapter is not enabled for browser import')
             unexpected=[e for e in report['errors'] if not e.startswith(spec.validation_notice_prefixes)]
+            if spec.max_unsupported_sites is not None:
+                census=report.get('scriptValidation',{})
+                count=census.get('unsupported')
+                if type(count) is not int or not 0 <= count <= spec.max_unsupported_sites or census.get('unresolvedReferences') != 0:
+                    unexpected.append('Script validation is missing or contains unsupported instructions/references')
             if unexpected or report.get('scriptValidation',{}).get('unresolvedReferences',0):
                 raise ValueError('Validation failed. Output stays private; see validation.json before retrying.')
             if report.get('gameId')!=job['gameId'] or job['gameId'] in self.catalogue()[1]:

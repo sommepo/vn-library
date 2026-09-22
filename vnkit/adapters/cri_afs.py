@@ -1,4 +1,7 @@
-"""Bounded AFS indexing and KID LZSS, for the tested Remember11 PS2 disc.
+"""Bounded AFS indexing and KID LZSS.
+
+Remember11 uses strict filename sizes; Never7 explicitly opts into preserving
+stale filename-row sizes. Both use the same checked AFS member extents.
 
 AFS end-name-table layout and LZSS ring conventions adapted from GARbro
 (ArcAFS.cs / LzssStream.cs), Copyright (c) 2014-2020 morkt, MIT.
@@ -8,7 +11,7 @@ import struct
 from ..disc import FormatError, safe_name
 
 
-def index_afs(source, archive):
+def index_afs(source, archive, *, allow_stale_name_sizes=False):
     size = source.entries[archive].size
     head = source.read_at(archive, 0, 8)
     if head[:4] != b'AFS\0':
@@ -30,10 +33,15 @@ def index_afs(source, archive):
     for i, (offset, length) in enumerate(pairs):
         record = names[i*48:(i+1)*48]
         name = safe_name(record[:32].split(b'\0')[0].decode('cp932'))
-        if '/' in name or struct.unpack_from('<I', record, 44)[0] != length:
+        named_size = struct.unpack_from('<I', record, 44)[0]
+        if '/' in name or named_size != length and not allow_stale_name_sizes:
             raise FormatError(f'{archive}: invalid filename/size record {i}')
         # Keep ordinal identity even where two original names are equal.
-        members.append({'index': i, 'name': name, 'offset': offset, 'size': length})
+        item = {'index': i, 'name': name, 'offset': offset, 'size': length}
+        # Never7 has stale exporter size fields in otherwise valid name rows.
+        # Retain the disagreement; only the checked AFS extent table is used.
+        if named_size != length:item['name_record_size'] = named_size
+        members.append(item)
     return members
 
 

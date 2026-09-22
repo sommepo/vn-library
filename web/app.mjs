@@ -248,6 +248,10 @@ function schedule() {
   sceneCleanup?.resume?.();
   if (pausedVoiceCue) {pausedVoiceCue = false; if (engine.current?.voiceUntilMs != null || engine.current?.presentation?.voice || engine.state.immediateVoice) play(voice);}
   if (engine.current?.kind === 'wait') {
+    const soundWait=engine.current.soundWait;
+    if(soundWait&&[...effects].some(a=>a.vnAsset===soundWait.asset&&a.vnChannel===soundWait.channel&&!a.ended&&!a.error)){
+      clearTimeout(waitTimer);waitDeadline=null;waitTimer=setTimeout(schedule,100);return;
+    }
     if(engine.current.voiceWait&&voiceAsset===engine.state.immediateVoice?.asset&&!voice.error){
       if(voice.ended)engine.current.remainingMs=0;
       else{clearTimeout(waitTimer);waitDeadline=null;waitTimer=setTimeout(schedule,100);return;}
@@ -564,7 +568,7 @@ async function libraryPanel(ending = false) {
     const actions=document.createElement('div');actions.className='console-menu-actions';disclosure.append(actions);
     if (!blocked) { actions.append(button('Read / resume', () => loadGame(item)), button('Start again', () => loadGame(item, false))); }
     if(!blocked&&item.id===game?.id){
-      for(const entry of engine.newGameEntries?.()||[])if(entry.id!=='start')actions.append(button(entry.label,()=>loadGame(item,false,entry.id)));
+      appendNewGameEntries(actions,engine,item);
       const completed=engine.routeProgress?.().filter(r=>r.complete&&!r.extra)||[];
       if(completed.length){const details=document.createElement('details');details.className='console-progress';const summary=document.createElement('summary');summary.textContent=`${completed.length} completed · Progress saved`;details.append(summary,paragraph('Completed: '+completed.map(r=>r.label+(r.manual?' (manual)':'')).join(' · ')));disclosure.append(details);}
       else if(ending)card.append(paragraph('This ending did not award a route-completion flag. Try different choices in a new playthrough.'));
@@ -647,7 +651,7 @@ async function progressPanel(context={engine,game,contentBase,active:true}) {
   body.append(paragraph(engine.isInheritedRead?'Completed routes with a verified path use that fixed path for red text and Skip read. Alternate branches remain unread; study counts stay unchanged.':'Read status follows text encountered on this device. Completed-route read paths are not available for this game yet.')); 
   if(engine.readPathWarning)body.append(paragraph(engine.readPathWarning,'notice'));
   if(engine.progressNotice)body.append(paragraph(engine.progressNotice()));
-  for(const entry of engine.newGameEntries().filter(e=>e.id!=='start'))body.append(button(entry.label,()=>loadGame(game,false,entry.id)));
+  appendNewGameEntries(body,engine,game);
   body.append(row(button('Export global progress',()=>download(`${game.id}-progress.json`,engine.progressSnapshot())),button('Back to main menu',()=>libraryPanel())));
   for(const route of engine.routeProgress()){
     const line=document.createElement('div');line.className='slot route-progress';line.dataset.route=route.id;
@@ -662,6 +666,21 @@ async function progressPanel(context={engine,game,contentBase,active:true}) {
     });mark.disabled=route.complete;line.append(mark);body.append(line);
   }
   if(await store.get(key('progress-before-debug')))body.append(row(button('Export progress before last manual change',async()=>download(`${game.id}-before-debug.json`,await store.get(key('progress-before-debug'))))));
+}
+function appendNewGameEntries(parent,engine,item){
+  const groups=new Map();
+  for(const entry of engine.newGameEntries?.()||[]){
+    if(entry.id==='start')continue;
+    let container=parent;
+    if(entry.group){
+      if(!groups.has(entry.group)){
+        const details=document.createElement('details'),summary=document.createElement('summary');
+        details.className='console-extra-stories';summary.textContent=entry.group;details.append(summary);parent.append(details);groups.set(entry.group,details);
+      }
+      container=groups.get(entry.group);
+    }
+    container.append(button(entry.label,()=>loadGame(item,false,entry.id)));
+  }
 }
 async function soundTestPanel(context={engine,game,contentBase,active:true}) {
   const {engine,contentBase}=context;

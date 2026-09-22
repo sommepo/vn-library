@@ -5,6 +5,12 @@ try {
   const content = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
   const errors = await validateReaderContent(content);
   let scriptValidation;
+  if(content.runtime?.id==='never7-ps2-oscr'){
+    const {validateDirectory}=await import('./validate-never7.mjs');
+    scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));
+    errors.push(...scriptValidation.errors);
+    errors.push(`Never7 experimental runtime remains incomplete: ${scriptValidation.unsupported.length} unparsed table sites; ${scriptValidation.unresolved.length} unresolved references. See its runtime report.`);
+  }
   if(content.runtime?.id==='clannad-ps2-hunex'){
     const {validateDirectory}=await import('./validate-clannad.mjs');
     scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));

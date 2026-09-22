@@ -1,13 +1,13 @@
 # Windows test installer
 
 The Windows package installs a small tray app, its own Python runtime, and the
-conversion tools for CLANNAD and Remember11. You do not need to install Python,
+conversion tools for CLANNAD, Remember11 and Never7. You do not need to install Python,
 Node or FFmpeg yourself. It is a test build for Windows 10/11 x64; testing on a
-real Windows device is still required before calling it a public release.
+real Windows device is still required for the newly added Never7 import.
 
 ## Install
 
-1. Extract `VN-Import-Toolkit-Windows-test.zip` completely.
+1. Extract the latest `VN-Library-Windows-*.zip` completely.
 2. Double-click **Install.cmd**. Keep the setup window open while it downloads
    and checks the tools. Internet access is needed for about 165 MB of downloads.
 3. Open **VN Library** from Start or its desktop shortcut.

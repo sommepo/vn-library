@@ -112,4 +112,27 @@ class ImportJobsTests(unittest.TestCase):
             run.return_value.returncode=3;self.jobs.run(job,'import')
         self.assertEqual(job['status'],'failed');self.assertTrue(output.exists());self.assertFalse((self.root/'library').exists())
 
+    def test_never7_only_installs_with_a_complete_story_census(self):
+        for census, accepted in [({'unsupported':0,'unresolvedReferences':0},True),
+                                 ({'unsupported':1,'unresolvedReferences':0},False),
+                                 ({'unsupported':0,'unresolvedReferences':1},False),
+                                 ({},False), ({'unsupported':False,'unresolvedReferences':0},False)]:
+            with self.subTest(census=census):
+                data=bytes([len(self.jobs.jobs)+1])*32768
+                created=self.jobs.create('never7-test.iso',len(data),hashlib.sha256(data).hexdigest())
+                self.jobs.chunk(created['id'],0,data)
+                job=self.jobs.get(created['id'])
+                self.jobs.update(job,adapter='never7-ps2',sha256=self.jobs.fingerprint(self.jobs.path(job)),gameId='never7-slps25256-1.01')
+                output=self.jobs.root/job['id']/'content';output.mkdir();(output/'content.json').write_text('{}')
+                report={'gameId':job['gameId'],'errors':['Never7 experimental runtime remains incomplete: native presentation'], 'scriptValidation':census}
+                with patch.object(self.jobs,'preflight'),patch('vnkit.import_jobs.subprocess.run',return_value=subprocess.CompletedProcess([],3)),patch('vnkit.__main__.validate',return_value=report):
+                    self.jobs.run(job,'import')
+                self.assertEqual(job['status'],'complete' if accepted else 'failed')
+                self.assertEqual((self.root/'library'/('import-'+job['id'])).exists(),accepted)
+                self.assertEqual(output.exists(),not accepted)
+
+    def test_supported_editions_are_exposed_for_the_add_game_screen(self):
+        labels=[row['label'] for row in self.jobs.listing()['editions']]
+        self.assertEqual(labels,['PS2 CLANNAD SLPM-66302 v1.01','PS2 Remember11 SLPM-65550 v1.02','PS2 Never7 SLPS-25256 v1.01'])
+
 if __name__=='__main__':unittest.main()

@@ -11,7 +11,7 @@ export async function importPanel(body,{openGame,refreshLibrary}) {
  upload.append(label,file,send,pause,progress);
  const sources=el('details'),jobs=el('section');sources.append(el('summary','Use an ISO already on the host'));jobs.append(el('h2','Your games'));
  const destination=el('p','Checking copy destination…','import-destination');
- const editions=el('div','','muted');editions.append(el('p','Supported editions:'),el('div','PS2 CLANNAD SLPM-66302 v1.01'),el('div','PS2 Remember11 SLPM-65550 v1.02'));
+ const editions=el('div','','muted');editions.append(el('p','Checking supported editions…'));
  body.append(el('p','Choose an ISO and click Add game.'),destination,editions,upload,message,sources,jobs);
 
  const show=text=>{if(alive)message.textContent=text;};
@@ -28,6 +28,7 @@ export async function importPanel(body,{openGame,refreshLibrary}) {
    const data=await response.json();token=data.token;destination.textContent=data.uploadDirectory?`A copy of the game will be made in ${data.uploadDirectory}`:'Copy destination unavailable. Reload the reader after updating the app.';serverBusy=data.busy;send.disabled=uploading||serverBusy;
    const current=data.jobs.find(j=>j.id===activeJob);if(current&&!uploading)show(current.status==='complete'?'Your game is ready. Choose Open game below.':current.status==='failed'?'Preparation stopped. Your ISO is saved; try again below.':current.message);
    const fingerprint=JSON.stringify(data);if(fingerprint===last)return;last=fingerprint;
+   editions.replaceChildren(el('p','Supported editions:'),...(data.editions||[]).map(e=>el('div',e.label)));
    sources.replaceChildren(el('summary','Use an ISO already on the host'));
    if(!data.sources.length)sources.append(el('p','No ISOs in the configured server import folder.','muted'));
    for(const source of data.sources){const r=el('div','','import-card');r.append(el('strong',source.name),el('span',`${size(source.size)} · On server`,'muted'),control('Add game',async()=>{const job=await request('/api/imports/action',{action:'register',sourceId:source.id});await action({action:'prepare',id:job.id});},data.busy));sources.append(r);}

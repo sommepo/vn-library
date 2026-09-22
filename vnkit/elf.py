@@ -30,7 +30,7 @@ class Elf32:
                 if end<0:raise FormatError('ELF symbol name unterminated')
                 label=string_data[name:end].decode('ascii','strict')
                 self.symbol_count+=1
-                if label and length:self.symbols[label]={'address':value,'size':length,'type':info&15}
+                if label and length:self.symbols[label]={'address':value,'size':length,'type':info&15,'section':shndx}
 
     def read(self,offset,size):
         if offset<0 or size<0 or offset+size>len(self.data):raise FormatError('ELF file range out of bounds')

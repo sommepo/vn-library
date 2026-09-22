@@ -48,7 +48,7 @@ Every adapter PR needs original, public synthetic tests for its detection, corru
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_*.py' -v
-node --test tests/reader*.mjs tests/clannad-vm.test.mjs tests/remember11-vm.test.mjs
+node --test tests/reader*.mjs tests/clannad-vm.test.mjs tests/remember11-vm.test.mjs tests/never7-vm.test.mjs
 python3 -m vnkit validate fixtures/synthetic
 ```
 
