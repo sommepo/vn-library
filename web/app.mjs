@@ -153,13 +153,19 @@ function seek(audio, time) {
 // HTML media seeking approximates the recovered source loop; it is not sample-exact.
 function configureAudio(audio, assetId, loop = false, sourceEngine=engine) {
   const asset = sourceEngine.content.assets[assetId];
-  audio.loop = loop;
   audio.playbackRate = asset.playbackRate || 1;
   audio.ontimeupdate = null;
+  audio.onended = null;
   if (loop && Number.isFinite(asset.loopStart) && Number.isFinite(asset.loopEnd) && asset.loopEnd > asset.loopStart) {
+    // Native loop restarts the whole file including the intro; the seek owns looping instead.
+    audio.loop = false;
     audio.ontimeupdate = () => {
       if (audio.currentTime >= asset.loopEnd) audio.currentTime = asset.loopStart + (audio.currentTime - asset.loopEnd) % (asset.loopEnd - asset.loopStart);
     };
+    // timeupdate can miss the narrow loopEnd..end window; ended is the fallback.
+    audio.onended = () => { audio.currentTime = asset.loopStart; play(audio); };
+  } else {
+    audio.loop = loop;
   }
 }
 async function renderScene(effectsToPlay = [], restoring = false) {
@@ -190,7 +196,7 @@ async function renderScene(effectsToPlay = [], restoring = false) {
   } catch(error){nextCleanup?.();throw error;}
   finally{clearTimeout(notice);if(!loadingGame)$('loadNotice').hidden=true;}
   }
-  if (scene.music?.asset !== musicAsset) { music.pause(); musicAsset = scene.music?.asset || null; if (musicAsset) { music.src = mediaURL(musicAsset); configureAudio(music, musicAsset, scene.music.loop); play(music); } else {music.ontimeupdate = null; music.removeAttribute('src');} }
+  if (scene.music?.asset !== musicAsset) { music.pause(); musicAsset = scene.music?.asset || null; if (musicAsset) { music.src = mediaURL(musicAsset); configureAudio(music, musicAsset, scene.music.loop); play(music); } else {music.ontimeupdate = null; music.onended = null; music.removeAttribute('src');} }
   if (restoring && restoredMedia?.music?.asset === musicAsset) { seek(music, restoredMedia.music.time); if (restoredMedia.music.paused) music.pause(); else if (musicAsset) play(music); }
   if (restoring) {
     for (const audio of effects) audio.pause(); effects.clear();
