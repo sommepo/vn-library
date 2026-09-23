@@ -15,6 +15,7 @@ import { CRTDisplay } from './crt.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
 import { ReaderLayout } from './layout.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
+import { applyLoop, snapshotLoop, isOneShot, releaseLoop } from './audio-loop.mjs';
 
 const $ = id => document.getElementById(id);
 const defaults = { readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
@@ -143,30 +144,15 @@ function play(audio) { if(!globalPause.request(audio))return;const promise = aud
 function volumes() { music.volume = Number(settings.music) * (engine?.state.scene.musicGain ?? 1); voice.volume = Number(settings.voice); for (const sound of effects) sound.volume = Number(settings.sound); }
 function mediaSnapshot() {
   if (waitDeadline !== null && engine.current?.kind === 'wait') engine.current.remainingMs = Math.max(0, waitDeadline - performance.now());
-  return { music: { asset: musicAsset, time: music.currentTime || 0, paused: (!menuSuspended.has(music)&&globalPause.savedPaused(music)) }, voice: { asset: voiceAsset, time: voice.currentTime || 0, paused: (!menuSuspended.has(voice)&&globalPause.savedPaused(voice)) }, scriptMedia: scriptMedia ? {asset: engine.current.asset, time: scriptMedia.currentTime || 0, paused: (!menuSuspended.has(scriptMedia)&&globalPause.savedPaused(scriptMedia))} : null, effects: [...effects].filter(audio => !audio.ended).map(audio => ({ asset: audio.vnAsset, ...(audio.vnChannel?{channel:audio.vnChannel}:{}), time: audio.currentTime || 0, paused: (!menuSuspended.has(audio)&&globalPause.savedPaused(audio)), loop: audio.loop })) };
+  return { music: { asset: musicAsset, time: music.currentTime || 0, paused: (!menuSuspended.has(music)&&globalPause.savedPaused(music)) }, voice: { asset: voiceAsset, time: voice.currentTime || 0, paused: (!menuSuspended.has(voice)&&globalPause.savedPaused(voice)) }, scriptMedia: scriptMedia ? {asset: engine.current.asset, time: scriptMedia.currentTime || 0, paused: (!menuSuspended.has(scriptMedia)&&globalPause.savedPaused(scriptMedia))} : null, effects: [...effects].filter(audio => !audio.ended).map(audio => ({ asset: audio.vnAsset, ...(audio.vnChannel?{channel:audio.vnChannel}:{}), time: audio.currentTime || 0, paused: (!menuSuspended.has(audio)&&globalPause.savedPaused(audio)), loop: snapshotLoop(audio) })) };
 }
 function seek(audio, time) {
   if (!Number.isFinite(time) || time <= 0) return;
   const apply = () => { try { audio.currentTime = Math.min(time, Number.isFinite(audio.duration) ? audio.duration : time); } catch {} };
   if (audio.readyState) apply(); else audio.addEventListener('loadedmetadata', apply, { once: true });
 }
-// HTML media seeking approximates the recovered source loop; it is not sample-exact.
 function configureAudio(audio, assetId, loop = false, sourceEngine=engine) {
-  const asset = sourceEngine.content.assets[assetId];
-  audio.playbackRate = asset.playbackRate || 1;
-  audio.ontimeupdate = null;
-  audio.onended = null;
-  if (loop && Number.isFinite(asset.loopStart) && Number.isFinite(asset.loopEnd) && asset.loopEnd > asset.loopStart) {
-    // Native loop restarts the whole file including the intro; the seek owns looping instead.
-    audio.loop = false;
-    audio.ontimeupdate = () => {
-      if (audio.currentTime >= asset.loopEnd) audio.currentTime = asset.loopStart + (audio.currentTime - asset.loopEnd) % (asset.loopEnd - asset.loopStart);
-    };
-    // timeupdate can miss the narrow loopEnd..end window; ended is the fallback.
-    audio.onended = () => { audio.currentTime = asset.loopStart; play(audio); };
-  } else {
-    audio.loop = loop;
-  }
+  applyLoop(audio, sourceEngine.content.assets[assetId], loop, play);
 }
 async function renderScene(effectsToPlay = [], restoring = false) {
   const scene = engine.state.scene, visibleArt = $('art'), overlays=engine.sceneOverlays?.()||[];
@@ -196,13 +182,13 @@ async function renderScene(effectsToPlay = [], restoring = false) {
   } catch(error){nextCleanup?.();throw error;}
   finally{clearTimeout(notice);if(!loadingGame)$('loadNotice').hidden=true;}
   }
-  if (scene.music?.asset !== musicAsset) { music.pause(); musicAsset = scene.music?.asset || null; if (musicAsset) { music.src = mediaURL(musicAsset); configureAudio(music, musicAsset, scene.music.loop); play(music); } else {music.ontimeupdate = null; music.onended = null; music.removeAttribute('src');} }
+  if (scene.music?.asset !== musicAsset) { music.pause(); musicAsset = scene.music?.asset || null; if (musicAsset) { music.src = mediaURL(musicAsset); configureAudio(music, musicAsset, scene.music.loop); play(music); } else {releaseLoop(music); music.removeAttribute('src');} }
   if (restoring && restoredMedia?.music?.asset === musicAsset) { seek(music, restoredMedia.music.time); if (restoredMedia.music.paused) music.pause(); else if (musicAsset) play(music); }
   if (restoring) {
-    for (const audio of effects) audio.pause(); effects.clear();
+    for (const audio of effects) { audio.pause(); releaseLoop(audio); } effects.clear();
     for (const saved of restoredMedia?.effects || []) {
       if (!engine.content.assets[saved.asset]) throw new Error(`Saved effect unavailable: ${saved.asset}`);
-      const audio = new Audio(mediaURL(saved.asset)); audio.vnAsset = saved.asset; audio.vnChannel = saved.channel; configureAudio(audio, saved.asset, saved.loop); audio.volume = settings.sound; effects.add(audio); seek(audio, saved.time); audio.addEventListener('ended', () => effects.delete(audio), { once: true }); if (!saved.paused) play(audio);
+      const audio = new Audio(mediaURL(saved.asset)); audio.vnAsset = saved.asset; audio.vnChannel = saved.channel; configureAudio(audio, saved.asset, saved.loop); audio.volume = settings.sound; effects.add(audio); seek(audio, saved.time); if (isOneShot(saved.loop)) audio.addEventListener('ended', () => effects.delete(audio), { once: true }); if (!saved.paused) play(audio);
     }
   }
   if(restoring&&engine.state.immediateVoice&&restoredMedia?.voice?.asset===engine.state.immediateVoice.asset){voiceAsset=restoredMedia.voice.asset;voice.src=mediaURL(voiceAsset);configureAudio(voice,voiceAsset);seek(voice,restoredMedia.voice.time);if(!restoredMedia.voice.paused)play(voice);}
@@ -212,9 +198,9 @@ async function renderScene(effectsToPlay = [], restoring = false) {
 function playSceneEffect(effect) {
    if (effect.op === 'voice') {voice.pause();voiceAsset=effect.asset;voice.src=mediaURL(effect.asset);configureAudio(voice,effect.asset);voice.volume=Number(settings.voice);play(voice);}
    if (effect.op === 'sound') {
-    const audio = new Audio(mediaURL(effect.asset)); audio.vnAsset = effect.asset; audio.vnChannel = effect.channel; configureAudio(audio, effect.asset, effect.loop === true); audio.volume = settings.sound; effects.add(audio); audio.addEventListener('ended', () => effects.delete(audio), { once: true }); play(audio);
+    const audio = new Audio(mediaURL(effect.asset)); audio.vnAsset = effect.asset; audio.vnChannel = effect.channel; configureAudio(audio, effect.asset, effect.loop === true); audio.volume = settings.sound; effects.add(audio); if (isOneShot(effect.loop)) audio.addEventListener('ended', () => effects.delete(audio), { once: true }); play(audio);
    }
-   if (effect.op === 'stopSound') for (const audio of effects) if (effect.channel === 'effects' || (effect.channel && audio.vnChannel === effect.channel) || audio.vnAsset === effect.asset) {audio.pause(); effects.delete(audio);}
+   if (effect.op === 'stopSound') for (const audio of effects) if (effect.channel === 'effects' || (effect.channel && audio.vnChannel === effect.channel) || audio.vnAsset === effect.asset) {audio.pause(); releaseLoop(audio); effects.delete(audio);}
 }
 function pauseWait() { if (waitDeadline !== null && engine?.current?.kind === 'wait') engine.current.remainingMs = Math.max(0, waitDeadline - performance.now()); sceneCleanup?.pause?.(); clearTimeout(waitTimer); waitDeadline = null;
   if ((engine?.current?.voiceUntilMs != null || engine?.current?.presentation?.voice || engine?.state.immediateVoice) && !voice.paused && !voice.ended) {voice.pause(); pausedVoiceCue = true;}
