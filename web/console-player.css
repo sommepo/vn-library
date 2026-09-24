@@ -1,6 +1,6 @@
 /* Fixed console chrome around the source frame. User tint belongs to the
    in-game textbox/choices and fullscreen panels, never the outer console. */
-body.reader-page {
+body.reader-page:not([data-platform=pc98]) {
   color-scheme:dark;
   --paper:#d5e1ff;--muted:#94a6c9;--accent:#9beeff;
   --chrome:#0b1329;--chrome-light:#172441;--chrome-shade:#050b1c;
@@ -9,31 +9,31 @@ body.reader-page {
   background:radial-gradient(ellipse at 18% 70%,#18235280,transparent 52%),radial-gradient(ellipse at 70% 0%,#263a7370,transparent 65%),#030714;
   font-family:Arial,'MS PGothic','Noto Sans CJK JP',sans-serif;
 }
-body.reader-page.dim-surroundings {background:#02040a}
-.reader-page > .toolbar,.reader-page > .controls {
+body.reader-page:not([data-platform=pc98]).dim-surroundings {background:#02040a}
+.reader-page:not([data-platform=pc98]) > .toolbar,.reader-page:not([data-platform=pc98]) > .controls {
   background:#050b17c9;border:0;box-shadow:none;color:#b8cbe9;
 }
-.reader-page > .toolbar {border-bottom:1px solid #5572a630}
-.reader-page > .controls {border-top:1px solid #5572a630}
-.reader-page > .toolbar button,.reader-page > .controls button,.reader-page > .controls a {
+.reader-page:not([data-platform=pc98]) > .toolbar {border-bottom:1px solid #5572a630}
+.reader-page:not([data-platform=pc98]) > .controls {border-top:1px solid #5572a630}
+.reader-page:not([data-platform=pc98]) > .toolbar button,.reader-page:not([data-platform=pc98]) > .controls button,.reader-page:not([data-platform=pc98]) > .controls a {
   color:#a9badc;background:transparent;border:1px solid transparent;box-shadow:none;border-radius:0;
   font-family:Arial,'MS PGothic',sans-serif;text-shadow:0 0 7px #50649b66;
 }
-.reader-page > .toolbar button:hover,.reader-page > .controls button:hover,.reader-page > .controls a:hover,
-.reader-page > .controls button[aria-pressed=true] {
+.reader-page:not([data-platform=pc98]) > .toolbar button:hover,.reader-page:not([data-platform=pc98]) > .controls button:hover,.reader-page:not([data-platform=pc98]) > .controls a:hover,
+.reader-page:not([data-platform=pc98]) > .controls button[aria-pressed=true] {
   color:#b6f8ff;background:#51a7e10d;border-color:#7acaff17;text-shadow:0 0 7px #59c6f7;
 }
-.reader-page .identity {border:0;color:#b7cbee}
-.reader-page .identity strong {font-family:Arial,'MS PGothic',sans-serif;font-weight:400;letter-spacing:.06em}
-.reader-page > .status {background:#050b17c9;border:0;color:#8295b7}
-.reader-page > .status.error {color:#ffb9ac;background:#291521}
-.reader-page:not(.reader-fullscreen) .stage {background:#050914;border:1px solid #536c8f66;outline:0;box-shadow:0 0 0 3px #080e1b,0 15px 50px #0008}
-.reader-page:not(.reader-fullscreen) dialog:not(.console-library) {background:#080f22;border:1px solid #6c8cb566;box-shadow:0 0 0 3px #080e1b,0 15px 60px #000b}
-.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#0b142b;border-bottom:1px solid #5572a640;color:#b7cbee;text-shadow:0 0 10px #7a9bd550}
-.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head h1 {font-family:Arial,'MS PGothic',sans-serif;font-weight:400}
-.reader-page:not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {background:transparent;border:0}
-.reader-page:not(.reader-fullscreen) dialog::backdrop {background:#020714aa}
-.reader-fullscreen #panel:not(.console-library) {
+.reader-page:not([data-platform=pc98]) .identity {border:0;color:#b7cbee}
+.reader-page:not([data-platform=pc98]) .identity strong {font-family:Arial,'MS PGothic',sans-serif;font-weight:400;letter-spacing:.06em}
+.reader-page:not([data-platform=pc98]) > .status {background:#050b17c9;border:0;color:#8295b7}
+.reader-page:not([data-platform=pc98]) > .status.error {color:#ffb9ac;background:#291521}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) .stage {background:#050914;border:1px solid #536c8f66;outline:0;box-shadow:0 0 0 3px #080e1b,0 15px 50px #0008}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) dialog:not(.console-library) {background:#080f22;border:1px solid #6c8cb566;box-shadow:0 0 0 3px #080e1b,0 15px 60px #000b}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#0b142b;border-bottom:1px solid #5572a640;color:#b7cbee;text-shadow:0 0 10px #7a9bd550}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) #panel:not(.console-library) .panel-head h1 {font-family:Arial,'MS PGothic',sans-serif;font-weight:400}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {background:transparent;border:0}
+.reader-page:not([data-platform=pc98]):not(.reader-fullscreen) dialog::backdrop {background:#020714aa}
+.reader-fullscreen:not([data-platform=pc98]) #panel:not(.console-library) {
   --chrome:hsl(var(--ui-hue) var(--ui-saturation) 18% / var(--ui-opacity));
   --chrome-light:hsl(var(--ui-hue) var(--ui-saturation) 30% / var(--ui-opacity));
   --chrome-shade:hsl(var(--ui-hue) var(--ui-saturation) 12% / var(--ui-opacity));
@@ -57,23 +57,23 @@ body.reader-page.dim-surroundings {background:#02040a}
 .reader-idle .idle-orbit {display:block}
 .reader-idle #stage {visibility:hidden}
 .reader-idle > .controls {visibility:hidden}
-body.reader-page:not(.dim-surroundings):not(.reader-fullscreen) {
+body.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) {
  color-scheme:light;--paper:#253851;--muted:#536781;--accent:#17608c;
  --chrome:#dae4f0;--chrome-light:#eef4fa;--chrome-shade:#c5d3e5;--panel:#eef3f9;--edge:#8196b3;--gold:#90a7c4;
  background:radial-gradient(ellipse at 22% 15%,#fff,transparent 60%),linear-gradient(140deg,#e8f0fa,#b5c9e3);
 }
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .toolbar,
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls,
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .status {background:#edf3face;color:#536781}
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .toolbar button,
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls button,
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls a,
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) .identity {color:#2d4667;text-shadow:none}
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .controls button[aria-pressed=true] {color:#075785;background:#b1d9ee55}
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) dialog:not(.console-library),
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#eef3f9;color:#253851;text-shadow:none}
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) > .status.error {background:#f9e0dc;color:#8c2e29}
-.reader-page:not(.dim-surroundings) .idle-orbit i {background:#fff;box-shadow:0 0 8px #fff,0 0 20px 5px #328ab8aa,0 0 45px 12px #318fa344}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .toolbar,
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .controls,
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .status {background:#edf3face;color:#536781}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .toolbar button,
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .controls button,
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .controls a,
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) .identity {color:#2d4667;text-shadow:none}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .controls button[aria-pressed=true] {color:#075785;background:#b1d9ee55}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) dialog:not(.console-library),
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head {background:#eef3f9;color:#253851;text-shadow:none}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) > .status.error {background:#f9e0dc;color:#8c2e29}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings) .idle-orbit i {background:#fff;box-shadow:0 0 8px #fff,0 0 20px 5px #328ab8aa,0 0 45px 12px #318fa344}
 .import-card {display:grid;gap:8px;padding:16px 0;border-bottom:1px solid var(--edge);overflow-wrap:anywhere}
 .import-card p {margin:0;font-size:13px}
 .import-card .row {margin:2px 0}
@@ -85,7 +85,7 @@ body.reader-page:not(.dim-surroundings):not(.reader-fullscreen) {
 #isoFile {display:block;width:100%;margin:12px 0}
 #panelBody progress {display:block;width:100%;margin:12px 0;accent-color:#539abd}
 #panelBody progress[hidden] {display:none}
-.reader-page:not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {color:#2d4667}
+.reader-page:not([data-platform=pc98]):not(.dim-surroundings):not(.reader-fullscreen) #panel:not(.console-library) .panel-head button {color:#2d4667}
 .reader-idle #stage * {visibility:hidden!important}
 
 /* Menu audio belongs to the console shell, independent of game colours. */
@@ -110,3 +110,49 @@ body.reader-page:not(.dim-surroundings):not(.reader-fullscreen) {
 .console-extra-stories {flex-basis:100%;margin:12px 0;}
 .console-extra-stories summary {cursor:pointer;padding:8px 0;}
 .console-extra-stories[open] button {display:block;text-align:left;max-width:100%;}
+
+/* Compact BIOS library. Disc numbers share the title row; focus supplies the
+   cyan glow instead of permanent cards or heavy dividers. */
+#panel.console-library {border-color:#45506355;border-radius:2px;background:radial-gradient(ellipse at 20% 60%,#111b2b55,transparent 50%),#030509;box-shadow:0 0 70px #000c;}
+.console-library .panel-head {padding:22px 30px 16px;border-bottom-color:#46536925;}
+.console-library .panel-head h1 {color:#c7cdcf;letter-spacing:.1em;}
+.console-library #panelBody {padding:26px 38px 84px;}
+.console-library .console-catalogue {width:73%;max-width:740px;}
+.console-library .console-orbit {left:12%;top:44%;width:100px;height:100px;margin:-50px;transform:rotate(-28deg) scaleX(.65);animation-name:bios-orbit;}
+.console-library .console-orbit i {width:8px;height:8px;margin:-4px;transform:rotate(calc(var(--n)*45deg)) translateX(48px);}
+.console-library .console-towers {opacity:.06;}
+.console-library .game-card {padding:1px 0;}
+.console-library .console-title > summary {gap:12px;min-height:48px;padding:7px 0;outline:none;}
+.console-library .console-title > summary::before {font-size:18px;color:#778895;}
+.console-library .console-title > summary .console-disc {flex:0 0 20px;margin:0;color:#77828e;font:11px/1.4 Arial,sans-serif;letter-spacing:.04em;font-variant-numeric:tabular-nums;}
+.console-library .console-title > summary h2 {font:20px/1.4 Arial,'MS PGothic','Noto Sans CJK JP',sans-serif;letter-spacing:.025em;color:#b7bdc7;text-shadow:0 0 3px #8797b033;}
+.console-library .console-title > summary:hover h2,.console-library .console-title > summary:focus-visible h2 {color:#79e9ff;text-shadow:0 0 7px #4ccef770,0 0 18px #359dd655;}
+.console-library .console-title > summary:focus-visible::before {color:#b7f4ff;text-shadow:0 0 8px #65dbff;}
+.console-library .console-title[open] > summary h2 {color:#d5e8f0;}
+.console-title-content {display:flow-root;}
+.console-title.is-transitioning {overflow:hidden;box-sizing:border-box;will-change:height;}
+.console-library .console-title > summary h2 {transition:color .18s ease,text-shadow .18s ease;}
+.console-library .console-title > summary::before {transition:transform .24s cubic-bezier(.22,1,.36,1),color .18s ease;}
+@media(prefers-reduced-motion:reduce){
+ .console-library .console-title > summary h2,.console-library .console-title > summary::before {transition:none;}
+}
+.console-title .console-menu-actions {margin:0 0 10px 34px;gap:0;}
+.console-library .console-menu-actions button {font-size:15px;min-height:40px;padding-top:8px;padding-bottom:8px;}
+.console-library .console-system {margin:20px 0 0 34px;gap:14px;padding-top:14px;}
+.console-library .console-system button {min-height:36px;}
+@keyframes bios-orbit {to{transform:rotate(332deg) scaleX(.65)}}
+@media(max-width:700px){
+ .console-library #panelBody {padding:74px 20px 86px;}
+ .console-library .console-catalogue {width:100%;max-width:none;}
+ .console-library .console-orbit {left:50%;top:34px;width:50px;height:50px;margin:-25px;}
+ .console-library .console-orbit i {width:5px;height:5px;margin:-2.5px;transform:rotate(calc(var(--n)*45deg)) translateX(25px);}
+ .console-library .console-title > summary {gap:9px;}
+ .console-library .console-title > summary h2 {font-size:18px;}
+ .console-library .console-title > summary .console-disc {flex-basis:17px;font-size:10px;}
+ .console-library .console-system {margin-left:0;gap:10px 16px;}
+ .console-library .panel-head {padding:16px 20px 12px;}
+}
+@media(max-height:500px) and (min-width:701px){
+ .console-library #panelBody {padding-top:12px;}
+ .console-library .console-title > summary {min-height:44px;}
+}

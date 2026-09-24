@@ -7,13 +7,14 @@ import {CRT_KEY,CRT_DEFAULTS,CRT_RANGES,normalizeCRT,crtOutputSize} from './crt-
 export class SceneCapture {
  constructor(){this.canvas=document.createElement('canvas');this.ctx=this.canvas.getContext('2d',{alpha:false});this.alphaImages=new Map();this.alphaBytes=0;}
  image(node,style){
-  if(!style.filter.includes('source-alpha'))return node;
-  const key=`${node.currentSrc}:${node.naturalWidth}:${node.naturalHeight}`,cached=this.alphaImages.get(key);
+  const tint=node.dataset.tint?JSON.parse(node.dataset.tint):null,alpha=style.filter.includes('source-alpha');
+  if(!alpha&&!tint)return node;
+  const key=`${node.currentSrc}:${node.naturalWidth}:${node.naturalHeight}:${alpha}:${node.dataset.tint||''}`,cached=this.alphaImages.get(key);
   if(cached){this.alphaImages.delete(key);this.alphaImages.set(key,cached);return cached;}
   const adjusted=document.createElement('canvas');adjusted.width=node.naturalWidth;adjusted.height=node.naturalHeight;
   const c=adjusted.getContext('2d');c.drawImage(node,0,0);
   const pixels=c.getImageData(0,0,adjusted.width,adjusted.height);
-  for(let i=3;i<pixels.data.length;i+=4)pixels.data[i]=Math.min(255,pixels.data[i]*1.9921875);
+  for(let i=0;i<pixels.data.length;i+=4){if(alpha)pixels.data[i+3]=Math.min(255,pixels.data[i+3]*1.9921875);if(tint)for(let j=0;j<3;j++)pixels.data[i+j]*=tint[j];}
   c.putImageData(pixels,0,0);
   const bytes=adjusted.width*adjusted.height*4,limit=32*1024*1024;
   if(bytes<=limit){
@@ -71,6 +72,7 @@ export class SceneCapture {
 }
 export class CRTDisplay {
  constructor(root,viewport=()=>[640,448]){
+  this.platform='ps2';this.storageKey=CRT_KEY;
   this.root=root;this.viewport=viewport;this.capture=new SceneCapture();this.settings={...CRT_DEFAULTS};this.preview=null;this.listener=null;this.message='CRT is off · original artwork';this.frame=0;
   try{this.settings=normalizeCRT(JSON.parse(localStorage.getItem(CRT_KEY)||'{}'));}catch{}
   this.observer=new MutationObserver(records=>{
@@ -82,9 +84,16 @@ export class CRTDisplay {
   window.addEventListener('resize',()=>this.invalidate());
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)this.invalidate();});
  }
+ setPlatform(id){
+  if(this.platform===id)return;
+  this.platform=id;this.storageKey=id==='ps2'?CRT_KEY:`vnkit.crt.${id}.v1`;
+  const defaults=id==='pc98'?{...CRT_DEFAULTS,rows:400,curvature:0,corners:0,overscan:0,convergence:0,maskStrength:0,bloom:0,halation:0,enabled:false}:CRT_DEFAULTS;
+  try{this.settings=normalizeCRT({...defaults,...JSON.parse(localStorage.getItem(this.storageKey)||'{}')});}catch{this.settings=normalizeCRT(defaults);}
+  this.refresh();
+ }
  set(values){
   this.settings=normalizeCRT({...this.settings,...values});
-  try{localStorage.setItem(CRT_KEY,JSON.stringify(this.settings));}catch{this.persistWarning=' Preferences could not be saved in this browser.';}
+  try{localStorage.setItem(this.storageKey,JSON.stringify(this.settings));}catch{this.persistWarning=' Preferences could not be saved in this browser.';}
   this.refresh();
  }
  subscribe(listener){this.listener=listener;this.notify(this.message);return()=>{this.listener=null;};}

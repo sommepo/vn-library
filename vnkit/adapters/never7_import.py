@@ -90,7 +90,7 @@ def import_game(source, out, work=None, prepared=False):
               'Append entries and persistent unlocks follow the source menu. Native credits use a separate presentation VM and are omitted.',
               'Static parse counts do not establish full-route playability. See private smoke reports.',*media_warnings]
     content={'format':'vnkit.content','version':1,'id':'never7-slps25256-1.01','title':'Never7 — the end of infinity',
-             'adapter':{'id':'never7-ps2','version':VERSION},'viewport':{'width':640,'height':480},'assets':assets,
+             'adapter':{'id':'never7-ps2','version':VERSION},'platform':{'id':'ps2','name':'PlayStation 2'},'viewport':{'width':640,'height':480},'assets':assets,
              'runtime':{'id':'never7-ps2-oscr','version':1,'entry':'init_intdat','scripts':parsed['scripts'],'predicate':'predicate.json'},
              'compatibility':{'status':'incomplete-runtime','summary':warnings[0]}}
     report={'status':'incomplete-runtime','scripts':len(parsed['scripts']),'instructions':sum(parsed['census'].values()),

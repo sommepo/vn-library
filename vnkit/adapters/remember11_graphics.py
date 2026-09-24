@@ -8,16 +8,19 @@ from ..disc import FormatError
 from ..png import encode
 
 
-def decode(data):
+def decode(data, *, tile_size=14, gutter=1, frame=0, section_counts=(5,10)):
+    if tile_size not in (14,16) or gutter not in (0,1) or tile_size+2*gutter!=16:
+        raise FormatError('Unsupported BIP tile geometry')
     if len(data)<128:raise FormatError('Truncated Remember11 BIP')
     count=struct.unpack_from('<I',data)[0]
-    if count not in (5,10):raise FormatError('Unsupported Remember11 BIP section count')
+    if count not in section_counts:raise FormatError('Unsupported Remember11 BIP section count')
     offsets=struct.unpack_from('<'+'I'*count,data,4)
     if list(offsets)!=sorted(offsets) or offsets[-1]!=len(data):raise FormatError('Invalid BIP section bounds')
-    index=offsets[0]
+    if type(frame) is not int or not 0<=frame<count-4:raise FormatError('BIP frame outside directory')
+    index=offsets[frame]
     if index<4+count*4 or index+12>len(data):raise FormatError('BIP index outside bounds')
     n,flag,zero,w,h=struct.unpack_from('<HHIHH',data,index)
-    if flag or zero or not 0<w<=4096 or not 0<h<=4096 or index+12+n*8!=offsets[1]:
+    if flag or zero or not 0<w<=4096 or not 0<h<=4096 or index+12+n*8!=offsets[frame+1]:
         raise FormatError('Unsupported BIP tile directory')
     rgba=bytearray(w*h*4); pixels=offsets[-2]
     for k in range(n):
@@ -25,10 +28,10 @@ def decode(data):
         if kind!=2:raise FormatError(f'Unsupported BIP pixel kind {kind} at tile {k}')
         for row in range(th):
             for col in range(tw):
-                block=tile+row*tw+col;sx=(block%32)*16+1;sy=(block//32)*16+1
-                dx=(x+col)*14;dy=(y+row)*14
-                for py in range(min(14,h-dy)):
-                    width=min(14,w-dx)
+                block=tile+row*tw+col;sx=(block%32)*16+gutter;sy=(block//32)*16+gutter
+                dx=(x+col)*tile_size;dy=(y+row)*tile_size
+                for py in range(min(tile_size,h-dy)):
+                    width=min(tile_size,w-dx)
                     if width<=0:continue
                     start=pixels+((sy+py)*512+sx)*4;end=start+width*4
                     if start<pixels or end>offsets[-1]:raise FormatError('BIP atlas tile outside pixels')

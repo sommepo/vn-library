@@ -1,0 +1,27 @@
+--- a/statsave.tbl
++++ b/statsave.tbl
+@@ -6,7 +6,14 @@
+ 						"create by NP2.EXE",
+ 						NP2STATUS_VERSION};
+ 
++#if defined(SUPPORT_HRTIMER)
++extern void upd4990_hrtimer_proc(NEVENTITEM item);
++#endif
++
+ static const PROCTBL evtproc[] = {
++#if defined(SUPPORT_HRTIMER)
++			{PROCID('e','h','r','t'), upd4990_hrtimer_proc},
++#endif
+ 			{PROCID('e','s','c','0'), screendisp},
+ 			{PROCID('e','s','c','1'), screenvsync},
+ 			{PROCID('e','p','i','t'), systimer},
+@@ -44,6 +51,9 @@
+ };
+ 
+ static const ENUMTBL evtnum[] = {
++#if defined(SUPPORT_HRTIMER)
++			{PROCID('h','r','t','m'), NEVENT_HRTIMER},
++#endif
+ 			{PROCID('m','a','i','n'), NEVENT_FLAMES},
+ 			{PROCID('p','i','t',' '), NEVENT_ITIMER},
+ 			{PROCID('b','e','e','p'), NEVENT_BEEP},

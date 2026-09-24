@@ -30,7 +30,7 @@ class ToolTests(unittest.TestCase):
             with patch('vnkit.import_jobs.shutil.which',return_value='/tool'),patch('vnkit.import_jobs.subprocess.run') as run,patch('vnkit.import_jobs.shutil.disk_usage') as disk:
                 run.return_value=subprocess.CompletedProcess([],0,b'ok',b'')
                 disk.return_value.free=30*1024**3
-                for adapter in ('remember11-ps2', 'never7-ps2'):
+                for adapter in ('remember11-ps2', 'never7-ps2', 'ever17-ps2'):
                     with self.subTest(adapter=adapter):
                         run.reset_mock()
                         jobs.preflight({'adapter':adapter},{'VNKIT_VGMTRANS':str(tool)})

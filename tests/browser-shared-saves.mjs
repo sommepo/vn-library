@@ -10,7 +10,8 @@ const base=`http://127.0.0.1:${port}`;
 const{chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));const browser=await chromium.launch({headless:true});
 const report={checks:[],errors:[],scope:'Two isolated device profiles and an actual source-reached game checkpoint. No live shared saves or user profiles modified.'};let a,b;
 const route=process.env.VNKIT_ROUTE_ID||'misae';
-const clearFlag=p=>Boolean(game.startsWith('remember11-')?p?.globals?.globalBits?.[Number(process.env.VNKIT_CLEAR_FLAG||84)]:p?.globals?.[Number(process.env.VNKIT_CLEAR_FLAG||13)]);
+const kidMac=['remember11-','ever17-'].some(prefix=>game.startsWith(prefix));
+const clearFlag=p=>Boolean(kidMac?p?.globals?.globalBits?.[Number(process.env.VNKIT_CLEAR_FLAG||84)]:p?.globals?.[Number(process.env.VNKIT_CLEAR_FLAG||13)]);
 const item=(await(await fetch(`${base}/api/library`)).json()).games.find(item=>item.id===game);
 assert.ok(item,'Requested import is installed in the isolated test library');
 const gameCard=p=>p.locator('.game-card').filter({has:p.getByRole('heading',{name:item.title,exact:true})});
@@ -30,7 +31,7 @@ try{
  const localSlot=await local(a,'slot 15'),localProgress=await local(a,'progress');assert.equal((await bank()).revision,0);pass('Local reading, slot 15 and progress cause no server save writes');
  await openLocation(a);await navigate(a,'Copy local saves to server & use shared');await a.waitForURL(url=>url.searchParams.get('game')===game);await ready(a);await a.waitForFunction(()=>document.querySelector('#saveLocationStatus').textContent.includes('Shared saves'));
  await pollBrowser(async()=>(await bank()).records?.['slot 15']?.state.pending.id===localSlot.state.pending.id,'seeded shared slots');assert.deepEqual(await local(a,'slot 15'),localSlot);assert.deepEqual((await bank()).records.progress,localProgress);pass('Opt-in migration copies local slots and route unlocks; local originals remain intact');
- if(game.startsWith('remember11-')){await a.locator('#pauseButton').click();await a.waitForFunction(()=>document.querySelector('#pauseButton').getAttribute('aria-pressed')==='true');}
+ if(kidMac){await a.locator('#pauseButton').click();await a.waitForFunction(()=>document.querySelector('#pauseButton').getAttribute('aria-pressed')==='true');}
  await a.locator('#savesButton').click();
  await b.goto(`${base}/?game=${game}`);await ready(b);const bLocal=await local(b),bHistory=await local(b,'activity');await openLocation(b);await navigate(b,'Use shared saves');await b.waitForFunction(()=>document.querySelector('#saveLocationStatus').textContent.includes('Shared saves'));await ready(b);
  await pollBrowser(async()=>(await local(b,'shared-cache'))?.records?.autosave?.state.pending.id===portrait.state.pending.id,'other-device resume');assert.deepEqual((await local(b,'activity')).seen,bHistory.seen);assert.equal((await local(b)).state.pending.id,bLocal.state.pending.id);assert.equal(clearFlag((await local(b,'shared-cache')).records.progress),true);if(game.startsWith('never7-'))assert.equal(await b.locator('#sentence').evaluate(e=>e.classList.contains('read-text')),true);pass('Second profile resumes the exact shared occurrence and unlock flags without importing history or recounting restored text');

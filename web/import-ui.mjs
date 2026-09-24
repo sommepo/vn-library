@@ -2,7 +2,7 @@
 const el=(tag,text,cls)=>{const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;};
 const size=n=>`${(n/1024**3).toFixed(2)} GiB`;
 const digest=async blob=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',await blob.arrayBuffer()))].map(b=>b.toString(16).padStart(2,'0')).join('');
-export async function importPanel(body,{openGame,refreshLibrary}) {
+export async function importPanel(body,{openGame,refreshLibrary,platform='ps2'}) {
  let alive=true,token,timer,uploading=false,paused=false,last='',activeJob,serverBusy=false;
  const message=el('p','','notice');message.setAttribute('role','status');
  const upload=el('section'),label=el('label','Choose your game ISO'),file=el('input');

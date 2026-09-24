@@ -78,7 +78,7 @@ def build():
     emit("closing", "text", speaker="案内人", text="お疲れさまでした。これは機能確認用の作品であり、読み込んだ市販ゲームではありません。")
     emit("music-stop", "music", asset=None)
     emit("end", "end")
-    content = {"format": "vnkit.content", "version": 1, "id": "original-synthetic", "title": "小さな読書の道 · Original test fixture", "synthetic": True, "adapter": {"id": "original-fixture", "version": "1.0.0"}, "entry": "start", "assets": assets, "instructions": instructions, "compatibility": {"status": "supported-fixture", "summary": "Original synthetic test only. No evidence of commercial game compatibility."}}
+    content = {"format": "vnkit.content", "version": 1, "id": "original-synthetic", "title": "小さな読書の道 · Original test fixture", "synthetic": True, "platform": {"id": "ps2", "name": "PlayStation 2"}, "adapter": {"id": "original-fixture", "version": "1.0.0"}, "entry": "start", "assets": assets, "instructions": instructions, "compatibility": {"status": "supported-fixture", "summary": "Original synthetic test only. No evidence of commercial game compatibility."}}
     (ROOT / "content.json").write_text(json.dumps(content, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 

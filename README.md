@@ -4,7 +4,7 @@ Play Japanese visual novels in your browser, with dictionary lookups, sentence
 mining and reading stats. Import your own game ISO on your computer or home
 server, then read from your desktop, tablet or phone.
 
-Supports the Japanese PS2 releases of **CLANNAD**, **Remember11** and **Never7**
+Supports the Japanese PS2 releases of **CLANNAD**, **Remember11**, **Never7**, **Ever17**, **Cartagra** and **Higurashi Matsuri: Kakera Asobi**
 listed below. No game files are included.
 
 **Early beta:** some animations, effects and extras are missing. Not every route
@@ -22,6 +22,23 @@ Supply your own copy of one of these Japanese PS2 releases:
 | CLANNAD | SLPM-66302 | 1.01 | App or command line |
 | Remember11 — the age of infinity | SLPM-65550 | 1.02 | App or command line |
 | Never7 — the end of infinity | SLPS-25256 | 1.01 | App or command line |
+| Ever17 — the out of infinity — Premium Edition | SLPM-65421 | 1.01 | App or command line |
+| Cartagra — 魂ノ苦悩 | SLPM-66231 | 1.01 | App or command line |
+| Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
+
+**New in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
+on Windows or Linux. The library has a compact, animated PS2-style menu, and
+save banks can be copied between local and shared storage.
+
+Higurashi's ten main chapter endings and five bad-ending variants have passed
+source-script replays. TIPS and the six after-party stories are supported.
+Native animations, some timing and gallery screens remain incomplete. This is
+the standalone Kakera Asobi disc, not the Append disc.
+See [Higurashi's setup and limits](docs/higurashi-runtime.md).
+
+Ever17's five main routes, earned final-route unlock, extra epilogues and bad
+endings have passed source-script replays. Animations and native credits remain
+unfinished. See [Ever17's setup and test results](docs/ever17-runtime.md).
 
 Never7 is included in the Windows installer and Add game screen. Its ten main good-ending outcomes and
 33 extra Append stories have been tested from their starting points to their
@@ -29,6 +46,12 @@ endings, including choices, flags and save restoration. This is not a check of
 every possible choice sequence or a comparison with original PS2 execution.
 Animations, credits and some presentation details remain unfinished.
 See [Never7's setup and limits](docs/never7-runtime.md).
+
+Cartagra's sixteen source ending flags have passed route replays. The importer
+includes a reviewed character mapping for Japanese text, bound to this edition's
+font. It has not had an independent proofread. One framebuffer-capture command
+and some native menus remain unsupported; none blocked the tested ending paths.
+See [Cartagra's setup and limits](docs/cartagra-runtime.md).
 
 Other editions, translations and patched discs are not supported yet. The importer
 checks the disc’s contents.
@@ -50,6 +73,15 @@ Remember11
 
 Never7
 52759964e8437da516827dc5ca28dc92a15c98940f5b9453131ca028a3b78c8b
+
+Ever17 Premium Edition
+45b7e194a205e761f1550dc5b728811f82dc91d72af95a14f5ab085e08c1ac4c
+
+Cartagra
+6534fc86c45780aadb58dc6013d47bbf9a87bf305d8742e230cba9004f0946d1
+
+Higurashi Matsuri: Kakera Asobi (standalone)
+0d7ff9509035cce07a9b06c8d2c813cadcf2c07adb97e4fa9da3041851f8f859
 ```
 
 </details>
@@ -58,7 +90,8 @@ Never7
 
 ### Windows setup
 
-1. Download and extract the Windows installer ZIP from Releases.
+1. Download and extract **VN-Library-Windows-v0.1.0-beta.3.zip** from
+   [Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3).
 2. Run **Install.cmd**. Internet access is needed to download the required tools.
 3. Open **VN Library** from the Start menu or desktop shortcut. The reader
    opens in your browser.
@@ -74,7 +107,9 @@ Games and shared saves are stored in `%LOCALAPPDATA%\VN Import Toolkit`. Updatin
 or uninstalling the app keeps this folder. Local browser saves and reading stats
 stay in your browser.
 
-The Windows installer is currently a test build.
+Quit the tray app before updating, then run the new installer. This is an
+unsigned beta build. The newer Ever17, Cartagra and Higurashi imports still need full
+conversion tests on Windows hardware.
 
 ### Linux setup
 
@@ -84,10 +119,18 @@ You’ll need Python 3.11+, Node.js 22+, FFmpeg/ffprobe and the game’s convers
 tools. The automatic tool setup currently targets Ubuntu 26.04 on x86-64; other
 distributions may need manual setup.
 
-Download or clone the project, open a terminal in its folder, then follow the
+Download **VN-Library-Linux-source-v0.1.0-beta.3.tar.gz** from
+[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3), or clone
+the repository. The Linux download is source code, not a desktop installer.
+Extract it, open a terminal in the `vnkit` folder, then follow the
 [CLANNAD setup guide](docs/clannad-import.md) or
 [Remember11 setup guide](docs/remember11-import.md).
-Never7 uses the same media tools as Remember11; see its [setup guide](docs/never7-runtime.md).
+Cartagra uses FFmpeg/ffprobe and the standard media tool setup; see the
+[Cartagra guide](docs/cartagra-runtime.md).
+Never7 and Ever17 use the same media tools as Remember11; see the
+[Never7 guide](docs/never7-runtime.md) or [Ever17 guide](docs/ever17-runtime.md).
+Higurashi uses the CLANNAD media tools; follow its
+[import guide](docs/higurashi-runtime.md#import-from-your-own-disc).
 
 Start the reader:
 
@@ -103,9 +146,9 @@ not include the conversion tools.
 
 ### Importing your game
 
-The Add game screen supports all three editions listed above.
+The Windows installer and Linux source version support all six editions in the table above.
 
-1. Open **Library → Add game / Import ISO**.
+1. Open **Library → Add game / Import media**.
 2. Choose your ISO and click **Add game**.
 3. Wait for **Ready to play**, then click **Open game**.
 
@@ -195,7 +238,9 @@ Choose **Saves → Save location** for each game:
   reader, so you can continue on another device.
 
 To share saves, use the same server address and select **Shared** on each device.
-Local and shared saves stay separate.
+Local and shared saves stay separate. **Save location → Copy saves** can replace
+either bank with the other, including route progress. Copying asks for confirmation
+and keeps a backup of the destination; reading activity stays on each device.
 
 There are **15 manual save slots**, plus autosave. Saves can be deleted, exported
 and imported. A backup is also made before skipping to the next choice.
@@ -304,7 +349,6 @@ The next PS2 games planned for investigation are:
 - AIR
 - Tomoyo After
 - planetarian
-- Ever17
 - Memories Off series
 
 Other platforms of interest: **PSP, PS Vita, PC-98 and Dreamcast**.

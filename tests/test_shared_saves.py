@@ -15,6 +15,26 @@ def update(revision=0, changes=None, game='test', signature='sig'):
 
 
 class SharedSavesTest(unittest.TestCase):
+    def test_explicit_bank_replacement_keeps_history_and_cas(self):
+        with tempfile.TemporaryDirectory() as folder:
+            store=SharedSaves(folder)
+            progress=dict(format='vnkit.progress',version=1,gameId='test',gameSignature='sig',globals={'13':1})
+            previous={'slot 1':save(),'progress':progress}
+            store.update('test',update(changes=previous))
+            body={**update(1,{'slot 2':save(position=2)}),'replace':True,'operationId':'replace-operation-1234'}
+            result=store.update('test',body)
+            self.assertEqual(store.read('test')['records'],{'slot 2':save(position=2)})
+            self.assertEqual(store.update('test',body),result)
+            self.assertEqual(json.loads(store.db.execute('SELECT records FROM save_history WHERE revision=1').fetchone()[0]),previous)
+            with self.assertRaises(SaveConflict):store.update('test',{**body,'operationId':'replace-operation-2345'})
+            for value in [None,1,'yes']:
+                with self.assertRaises(ValueError):store.update('test',{**update(2),'replace':value})
+            with self.assertRaises(ValueError):store.update('test',{**update(2,{'slot 1':None}),'replace':True})
+            store.update('test',{**update(2),'replace':True,'changes':{}})
+            self.assertEqual(store.read('test')['records'],{})
+            with self.assertRaises(SaveConflict):store.update('test',body)
+            store.db.close()
+
     def test_delete_tombstone_is_atomic_idempotent_and_keeps_progress(self):
         with tempfile.TemporaryDirectory() as folder:
             store=SharedSaves(folder)

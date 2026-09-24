@@ -1,11 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import{SaveStore,validateBank}from'../web/save-storage.mjs';
-class Memory{constructor(){this.data=new Map();}async open(){}async get(k){return structuredClone(this.data.get(k));}async put(k,v){this.data.set(k,structuredClone(v));}async delete(k){this.data.delete(k);}getItem(k){return this.data.get(k)||null;}setItem(k,v){this.data.set(k,v);}}
+class Memory{constructor(){this.data=new Map();}async open(){}async get(k){return structuredClone(this.data.get(k));}async put(k,v){this.data.set(k,structuredClone(v));}async delete(k){this.data.delete(k);}async replaceRecords(keys,expected,records,backupKey,backup){for(const k of keys)if(JSON.stringify(this.data.get(k))!==JSON.stringify(expected[k]))throw Error('Local saves changed');this.data.set(backupKey,structuredClone(backup));for(const k of keys){if(Object.hasOwn(records,k))this.data.set(k,structuredClone(records[k]));else this.data.delete(k);}}getItem(k){return this.data.get(k)||null;}setItem(k,v){this.data.set(k,v);}}
 const save=n=>({format:'vnkit.save',version:1,gameId:'test',gameSignature:'sig',state:{n}});
 function server(){let bank={format:'vnkit.shared-saves',version:1,gameId:'test',gameSignature:null,revision:0,records:{}},offline=false;const receipts=new Map();
  const fetcher=async(url,options={})=>{if(offline)throw Error('offline');let data=structuredClone(bank),status=200;
- if(url.endsWith('/session'))data={token:'secret'};
- else if(options.method==='POST'){const b=JSON.parse(options.body);const receipt=receipts.get(b.operationId);if(receipt&&receipt.body===options.body&&receipt.data.revision===bank.revision){data=structuredClone(receipt.data);}else if(b.baseRevision!==bank.revision){status=409;data={error:'Shared saves changed on another device.'};}else{const records={...bank.records,...b.changes};for(const[k,v]of Object.entries(records))if(v===null)delete records[k];bank={...bank,gameSignature:'sig',revision:bank.revision+1,records};data=structuredClone(bank);if(b.operationId)receipts.set(b.operationId,{body:options.body,data:structuredClone(data)});}}
+ if(url.endsWith('/session'))data={token:'secret',bankReplacement:1};
+ else if(options.method==='POST'){const b=JSON.parse(options.body);const receipt=receipts.get(b.operationId);if(receipt&&receipt.body===options.body&&receipt.data.revision===bank.revision){data=structuredClone(receipt.data);}else if(b.baseRevision!==bank.revision){status=409;data={error:'Shared saves changed on another device.'};}else{const records={...(b.replace?{}:bank.records),...b.changes};for(const[k,v]of Object.entries(records))if(v===null)delete records[k];bank={...bank,gameSignature:'sig',revision:bank.revision+1,records};data=structuredClone(bank);if(b.operationId)receipts.set(b.operationId,{body:options.body,data:structuredClone(data)});}}
  return{ok:status===200,status,json:async()=>data};};return{fetcher,bank:()=>structuredClone(bank),offline:v=>offline=v};}
 function client(api){const local=new Memory(),preferences=new Memory(),store=new SaveStore(local,{fetcher:api.fetcher,preferences,sleep:async()=>{}});return{store,local,preferences};}
 test('A read-only shared join caches the acknowledged bank without a new revision or local overwrite',async()=>{
@@ -126,4 +126,52 @@ test('Deleting a slot queued behind the first shared save uses its committed sig
  store.setMode('test','shared');await store.prepare('test','sig');
  await Promise.all([store.put('test:slot 1',save(1)),store.delete('test:slot 1')]);
  assert.deepEqual(sent.map(b=>b.gameSignature),['sig','sig']);assert.deepEqual(sent.map(b=>b.baseRevision),[0,1]);assert.equal(api.bank().records['slot 1'],undefined);
+});
+
+const progress={format:'vnkit.progress',version:1,gameId:'test',gameSignature:'sig',globals:{13:1}};
+test('Whole-bank shared replacement removes absent slots and progress, backs up destination, and preserves local activity',async()=>{
+ const api=server(),a=client(api);await a.local.put('test:slot 2',save(2));await a.local.put('test:activity',{characters:500});
+ await a.store.writeBank('test','sig',0,{'slot 1':save(1),progress});
+ const old=await a.store.fetchBank('test','sig'),source=await a.store.localBank('test','sig');
+ await a.store.replaceBank('test','sig','shared',source,old);
+ assert.deepEqual(api.bank().records,{'slot 2':save(2)});assert.deepEqual((await a.local.get('test:before-copy-shared')).records,old.records);
+ assert.deepEqual((await a.store.localBank('test','sig')).records,source.records);assert.equal((await a.local.get('test:activity')).characters,500);
+ assert.equal(await a.store.recovery('test'),null);
+});
+test('Whole-bank local replacement keeps server unchanged and detects stale local snapshots',async()=>{
+ const api=server(),a=client(api);await a.local.put('test:slot 2',save(2));await a.local.put('test:progress',progress);
+ await a.store.writeBank('test','sig',0,{'slot 1':save(1)});
+ const old=await a.store.localBank('test','sig'),source=await a.store.fetchBank('test','sig');
+ await a.local.put('test:slot 3',save(3));await assert.rejects(()=>a.store.replaceBank('test','sig','local',source,old),/changed/);
+ assert.equal(await a.local.get('test:before-copy-local'),undefined);
+ const fresh=await a.store.localBank('test','sig');await a.store.replaceBank('test','sig','local',source,fresh);
+ assert.deepEqual((await a.store.localBank('test','sig')).records,source.records);assert.deepEqual(api.bank(),source);
+ assert.deepEqual((await a.local.get('test:before-copy-local')).records,fresh.records);
+});
+test('A replacement with a lost acknowledgement is retried identically and never reverts a newer server revision',async()=>{
+ const api=server(),a=client(api);await a.store.writeBank('test','sig',0,{'slot 1':save(1),progress});
+ const old=await a.store.fetchBank('test','sig'),source=await a.store.localBank('test','sig');
+ const bodies=[];a.store.fetcher=async(url,options)=>{if(options?.method==='POST'){bodies.push(options.body);const r=await api.fetcher(url,options);if(bodies.length===1)throw Error('lost reply');return r;}return api.fetcher(url,options);};
+ await a.store.replaceBank('test','sig','shared',source,old);
+ assert.equal(bodies.length,2);assert.equal(bodies[0],bodies[1]);assert.deepEqual(api.bank().records,{});
+ await a.store.writeBank('test','sig',2,{'slot 4':save(4)});
+ await assert.rejects(()=>a.store.replaceBank('test','sig','shared',source,old),/changed/);
+ assert.deepEqual(api.bank().records,{'slot 4':save(4)});
+});
+test('Interrupted replacement recovery remembers replace mode and refuses a new copy until resolved',async()=>{
+ const api=server(),a=client(api);await a.store.writeBank('test','sig',0,{'slot 1':save(1),progress});
+ const old=await a.store.fetchBank('test','sig'),source=await a.store.localBank('test','sig');
+ api.offline(true);await assert.rejects(()=>a.store.replaceBank('test','sig','shared',source,old),/Cannot reach/);
+ assert.equal((await a.store.recovery('test')).pending.replace,true);
+ await assert.rejects(()=>a.store.replaceBank('test','sig','local',old,source),/unsynced/);
+ api.offline(false);await a.store.recover('test','sig');assert.deepEqual(api.bank().records,{});
+ assert.equal(await a.store.recovery('test'),null);
+});
+
+test('An older server cannot silently merge a requested replacement',async()=>{
+ const api=server(),a=client(api);await a.store.writeBank('test','sig',0,{'slot 1':save(1)});
+ const source=await a.store.localBank('test','sig'),old=await a.store.fetchBank('test','sig');
+ a.store.fetcher=async(url,options)=>url.endsWith('/session')?{ok:true,json:async()=>({token:'secret'})}:api.fetcher(url,options);
+ await assert.rejects(()=>a.store.replaceBank('test','sig','shared',source,old),/Update and restart/);
+ assert.deepEqual(api.bank(),old);
 });

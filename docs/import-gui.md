@@ -95,6 +95,20 @@ The GUI is not a universal ISO converter and does not establish another engine's
 compatibility. Direct-ISO playback and a full clean-install distribution audit
 remain separate tasks in [the distribution plan](bring-your-own-iso-plan.md).
 
+## Ever17 cached-resume import (2026-09-23)
+
+Add game now admits PS2 Premium Edition SLPM-65421 v1.01. Its registry uses the
+shared Sony-bank tool preflight and requires zero unsupported story sites and
+unresolved direct resources before installation. Native presentation limits are
+reported separately. Only the supplied exact executable has playable support.
+
+`tests/browser-ever17-import.mjs` passed real Linux Chromium GUI preparation,
+panel-close/reload persistence, CLI conversion resume, validation, atomic install
+and Open game. It used the original server-local ISO and an already verified
+media cache. This does not claim a new upload, clean-cache conversion or native
+Windows test. Full media conversion and route evidence are in the
+[Ever17 guide](ever17-runtime.md).
+
 ## Clean Never7 import (2026-09-22)
 
 The actual 3,587,014,656-byte Never7 ISO was uploaded through Chromium's Add game

@@ -44,10 +44,14 @@ export class SaveStore {
   await this.local.put(`${game}:shared-cache`,clone(bank));
   this.onStatus(game,'Shared saves · connected');
  }
- async writeBank(game,signature,revision,changes,{operationId=randomId(),onRetry=()=>{}}={}){
-  const body=JSON.stringify({format:'vnkit.shared-saves',version:1,gameId:game,gameSignature:signature,baseRevision:revision,operationId,changes});
+ async writeBank(game,signature,revision,changes,{operationId=randomId(),onRetry=()=>{},replace=false}={}){
+  const body=JSON.stringify({format:'vnkit.shared-saves',version:1,gameId:game,gameSignature:signature,baseRevision:revision,operationId,changes,...(replace?{replace:true}:{})});
   const send=async()=>{
-   if(!this.token)this.token=(await this.request('/api/saves/session')).token;
+   if(!this.token||replace){
+    const session=await this.request('/api/saves/session');
+    if(replace&&session.bankReplacement!==1)throw new Error('Update and restart VN Library on the server before replacing a save bank. No replacement was sent.');
+    this.token=session.token;
+   }
    return this.request(`/api/saves/${encodeURIComponent(game)}`,{method:'POST',headers:{'Content-Type':'application/json','X-VNKit-Save-Token':this.token},body});
   };
   let refreshed=false;
@@ -81,7 +85,7 @@ export class SaveStore {
   if(!Number.isSafeInteger(pending.baseRevision)||pending.baseRevision!==recovery.revision)throw new Error('Invalid recovery revision. Export the recovery instead.');
   const candidate={...recovery,pending};await this.local.put(`${game}:shared-pending`,candidate);
   try{
-   await this.writeBank(game,signature,pending.baseRevision,pending.changes,{operationId:pending.operationId,onRetry:n=>this.onStatus(game,`Shared saves · retrying (${n}/2)`)});
+   await this.writeBank(game,signature,pending.baseRevision,pending.changes,{operationId:pending.operationId,replace:pending.replace===true,onRetry:n=>this.onStatus(game,`Shared saves · retrying (${n}/2)`)});
    await this.dismissRecovery(game,'retried-successfully');
    this.onStatus(game,'Shared saves · saved');
   }catch(error){this.onStatus(game,'Shared saves · paused',error);throw error;}
@@ -91,6 +95,35 @@ export class SaveStore {
   if(Object.keys(bank.records).length)throw new Error('Shared saves already exist. Use them or export/import individual slots; nothing was overwritten.');
   const local=await this.localBank(game,signature);
   if(Object.keys(local.records).length)await this.writeBank(game,signature,bank.revision,local.records);
+ }
+ async replaceBank(game,signature,destination,source,previous){
+  if(!['local','shared'].includes(destination))throw new Error('Unknown save location');
+  validateBank(source,game,signature);validateBank(previous,game,signature);
+  await this.flush(game);
+  if(await this.recovery(game))throw new Error('Resolve the unsynced save before copying banks: retry it or choose the server position.');
+  const backup={...clone(previous),copiedAt:new Date().toISOString(),destination};
+  const backupKey=`${game}:before-copy-${destination}`;
+  if(destination==='local'){
+   const prefix=records=>Object.fromEntries(Object.entries(records).map(([name,value])=>[`${game}:${name}`,value]));
+   await this.local.replaceRecords(SHARED_KEYS.map(name=>`${game}:${name}`),prefix(previous.records),prefix(source.records),backupKey,backup);
+   return;
+  }
+  // This is an explicit replacement, not a patch. Persist its operation before
+  // transport so a dropped acknowledgement/restart retains that distinction.
+  await this.local.put(backupKey,backup);
+  const pending={operationId:randomId(),baseRevision:previous.revision,changes:clone(source.records),replace:true};
+  const candidate={...clone(previous),gameSignature:signature,records:clone(source.records),pending,recoveryAt:new Date().toISOString()};
+  await this.local.put(`${game}:shared-pending`,candidate);
+  try{
+   const result=await this.writeBank(game,signature,previous.revision,pending.changes,{operationId:pending.operationId,replace:true});
+   if(result.gameId!==game||(result.gameSignature!==signature&&!(result.gameSignature===null&&!Object.keys(source.records).length))||!Number.isSafeInteger(result.revision)||result.revision<previous.revision)throw new Error('Server did not acknowledge the copied bank.');
+   const bank={...result,records:candidate.records};this.sessions.set(game,bank);
+   await this.local.put(`${game}:shared-cache`,clone(bank));
+   await this.dismissRecovery(game,'bank-copied');
+  }catch(error){
+   const session=this.sessions.get(game);if(session)session.error=error;
+   this.onStatus(game,'Shared saves · paused',error);throw error;
+  }
  }
  async get(key){
   const[game,name]=this.split(key);

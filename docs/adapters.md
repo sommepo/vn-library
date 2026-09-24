@@ -5,6 +5,10 @@
 | clannad-ps2 | SLPM-66302 v1.01 / HuneX | Incomplete playable runtime; see CLANNAD reports |
 | remember11-ps2 | SLPM-65550 v1.02 / KID | Incomplete playable script runtime with original media; import/validation exit 3 |
 | never7-ps2 | SLPS-25256 v1.01 / KID oscr/MWo3 | Add game and CLI; main routes/Cure/Append endings tested; optional completed-route read paths; animations incomplete; validation exits 3 |
+| ever17-ps2 | Premium Edition SLPM-65421 v1.01 / KID MAC variant | Add game and CLI; all five main routes, final unlock, extra epilogues and bad endings replayed; native presentation incomplete; validation exits 3 |
+| cartagra-ps2 | SLPM-66231 v1.01 / KID SC3 variant | Reviewed-Unicode experimental reader; sixteen earned ending flags; unresolved macro/native menus; Add game and Windows from beta.3; one exact capture site remains fail-closed |
+| higurashi-matsuri-ps2 | Matsuri Kakera Asobi standalone SLPM-66913 v1.01 / Shin PS2 ROM/SNR | Source-driven reader; all 15 ending variants replayed; native presentation incomplete; see higurashi-runtime.md |
+| YU-NO PC-98 research | Original Japanese CD; exact AI5X SHA in investigation | CUE/BIN and resource recovery; complete MES/GP4 audit; private original-runtime reference; no reader import yet |
 | pia-ps2 | SLPS-25222 v1.04 | Paused incomplete runtime |
 | synthetic | Original bundled fixture | Public tests only |
 
@@ -17,11 +21,30 @@ CLANNAD SLPM-66302 v1.01 remains supported: see [its import guide](clannad-impor
 `clannad-ps2` supports only this tested executable; other HuneX games are untested.
 The shared `vnkit/source.py` provides bounded ISO/directory reads for new adapters.
 
+[Higurashi's measured fingerprint](higurashi-investigation.md) documents a Shin
+PS2 raw-sector ROM. Its encrypted directory is absent from the ISO filesystem;
+recover it from the complete disc, not from a plain directory extraction. The
+PS2 SNR operands and compact text table come from this edition's ELF. Archive
+and PIC/BUP recovery reuse licensed AlchemistUnpacker research; later Shin VMs
+are not proven interchangeable. Its exact edition is admitted to Add game with the measured presentation limits.
+
+[YU-NO PC-98 investigation](yuno-pc98-investigation.md) documents a different
+platform/runtime and its bounded recovery commands. `vnkit/cd_media.py` handles
+the tested separate-file CUE/BIN layout. [Platform environments](platform-environments.md)
+describes explicit content metadata and UI separation. Static recovery, native
+reference execution and reader integration are separate milestones.
+
 [Never7's measured fingerprint](never7-investigation.md) records the next reuse
 trial. Disc access, AFS/ADX, Sony bank rendering and PSS tools transfer; CPS/OGDT
 graphics and MWo3 word-table scripts require different implementations. The
 [experimental reader](never7-runtime.md) now executes those scripts. Its measured
 coverage and remaining gaps are separate from asset recovery success.
+
+[Ever17's comparison](ever17-investigation.md) confirms a closer relationship
+to Remember11: unchanged AFS/LZSS decoding, substantial image reuse and a shared
+native command family. An added save-title command shifts later IDs, and some
+operands differ. The [playable variant](ever17-runtime.md) now implements those
+differences behind the shared reader. It preserves the original Remember11 defaults.
 
 The reader's [Next choice traversal](reader-interface.md) repeatedly calls the
 normal `advance` contract; it does not inspect future script text. Adapters must

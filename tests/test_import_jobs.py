@@ -133,6 +133,6 @@ class ImportJobsTests(unittest.TestCase):
 
     def test_supported_editions_are_exposed_for_the_add_game_screen(self):
         labels=[row['label'] for row in self.jobs.listing()['editions']]
-        self.assertEqual(labels,['PS2 CLANNAD SLPM-66302 v1.01','PS2 Remember11 SLPM-65550 v1.02','PS2 Never7 SLPS-25256 v1.01'])
+        self.assertEqual(labels,['PS2 Cartagra SLPM-66231 v1.01','PS2 Ever17 Premium Edition SLPM-65421 v1.01','PS2 CLANNAD SLPM-66302 v1.01','PS2 Remember11 SLPM-65550 v1.02','PS2 Higurashi Matsuri Kakera Asobi SLPM-66913 v1.01','PS2 Never7 SLPS-25256 v1.01'])
 
 if __name__=='__main__':unittest.main()

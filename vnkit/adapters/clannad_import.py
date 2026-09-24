@@ -126,7 +126,7 @@ def package_game(source, extracted, images, audio, output, movie=None, effects=N
         'script_count':len(scripts),'command_count':sum(commands.values()),'choice_expressions':selections,'source_label_offsets_verified':native_labels,
         'unsupported_images':len(picture_report['unsupported']),'audio_failures':len(audio_report['failures']),
         'original_engine_comparison':'unverified','full_routes':'unverified'}
-    content={'format':'vnkit.content','version':1,'id':GAME_ID,'title':TITLE,'language':'ja','viewport':{'width':640,'height':448},
+    content={'format':'vnkit.content','version':1,'id':GAME_ID,'title':TITLE,'language':'ja','platform':{'id':'ps2','name':'PlayStation 2'},'viewport':{'width':640,'height':448},
         'adapter':{'id':ADAPTER_ID,'version':ADAPTER_VERSION,'importRevision':IMPORT_REVISION},'runtime':{'id':'clannad-ps2-hunex','version':1,'entry':natives['entry'],'scripts':scripts},
         'nativeData':natives,'assets':assets,'compatibility':compatibility}
     write_json(output,'content.json',content)

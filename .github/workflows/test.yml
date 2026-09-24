@@ -21,7 +21,7 @@ jobs:
       - name: Python tests
         run: python3 -m unittest discover -s tests -p 'test_*.py' -v
       - name: Reader and adapter tests
-        run: node --test tests/reader*.mjs tests/clannad-vm.test.mjs tests/remember11-vm.test.mjs tests/never7-vm.test.mjs
+        run: node --test tests/reader*.mjs tests/clannad-vm.test.mjs tests/remember11-vm.test.mjs tests/never7-vm.test.mjs tests/ever17-vm.test.mjs tests/higurashi-vm.test.mjs tests/cartagra-expression.test.mjs tests/cartagra-reader.test.mjs
       - name: Validate the public fixture
         run: python3 -m vnkit validate fixtures/synthetic
       - name: Stage public source

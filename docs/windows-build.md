@@ -13,7 +13,7 @@ pipes; shutdown is not exposed as an unauthenticated HTTP endpoint.
 - Node.js 22.22.1 x64 for content validation and route-path builders.
 - FFmpeg 8.0.1, Gyan's Windows essentials build (GPLv3).
 - vgmstream r2117 Windows x64 for CLANNAD CRI audio.
-- FluidSynth 2.4.8 Windows x64 for Remember11 and Never7's approximate original-bank synthesis.
+- FluidSynth 2.4.8 Windows x64 for Remember11, Never7 and Ever17's approximate original-bank synthesis.
 
 These packages are downloaded directly at installation, not silently substituted
 with whatever happens to be installed. Download checksums were recorded from the
@@ -26,8 +26,8 @@ and Sony PS2 pressure patches. The binary uses only KERNEL32 and msvcrt Windows
 imports. It is accompanied by its full patched source, vendored libraries and
 licences in `tools/vgmtrans/source.zip`, plus a receipt with hashes. These are
 software sources, not game scripts. No game input is involved in this build.
-Never7 uses this same pinned converter and the existing FFmpeg/FluidSynth tools.
-Adding it does not add a download or a separate runtime to the installer.
+Never7 and Ever17 use this same pinned converter and the existing FFmpeg/FluidSynth
+tools. Adding them does not add a download or a separate runtime to the installer.
 
 The installed libraries and application source remain replaceable. To rebuild
 VGMTrans natively, extract that source and build the `vgmtrans-shell` CMake target

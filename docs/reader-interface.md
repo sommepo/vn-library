@@ -212,3 +212,23 @@ blue. **Light** restores it. Source graphics and dialogue keep their independent
 settings; the main library retains its dark BIOS styling. Colours remain fixed
 per mode rather than following UI hue/opacity sliders. The library includes
 [Add game / Import ISO](import-gui.md).
+
+## Compact library menu (2026-09-24)
+
+The library uses compact grey titles, cyan focus and quiet orbiting lights on
+a near-black background. Disc numbers sit beside titles; actions stay collapsed
+until opened. Arrow keys ignore actions inside collapsed titles. Mobile rows
+retain a 44-pixel minimum target. Menu music controls remain at the lower left.
+
+PC-98 tabs, theme loading and import hints are removed from the active UI for
+now. A stored PC-98 preference falls back to PS2. The parked research, platform
+metadata and dormant compositor support are preserved; this is not new support
+for PC-98 games. Script waits display 「まってください」.
+
+Library titles form one accordion: opening another title closes the previous
+one first. `web/library-accordion.mjs` retains native details/summary keyboard
+semantics while animating measured height and a small content fade/slide. Rapid
+taps retarget from the painted position; closing actions are inert. Resize
+retargets the measurement, leaving the panel cancels its animation work, and
+reduced-motion settings use immediate transitions. Nested progress and disc
+information disclosures remain independent inside the one open title.

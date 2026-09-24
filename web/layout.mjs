@@ -24,14 +24,16 @@ export class ReaderLayout {
     this.resize();
   }
   setViewport(view){if(view?.width>0&&view?.height>0)this.viewport=view;this.fit();}
+  setPlatform(id){this.platform=id;this.fit();}
   fit(){
     const area=getComputedStyle(this.area),stage=getComputedStyle(this.stage),px=value=>parseFloat(value)||0;
     const w=this.area.clientWidth-px(area.paddingLeft)-px(area.paddingRight);
     const h=this.area.clientHeight-px(area.paddingTop)-px(area.paddingBottom);
     const bx=px(stage.borderLeftWidth)+px(stage.borderRightWidth),by=px(stage.borderTopWidth)+px(stage.borderBottomWidth);
     const ratio=this.viewport.width/this.viewport.height;
-    const maximum=document.body.classList.contains('reader-fullscreen')?Infinity:1200;
-    const width=Math.max(1,Math.min(w-bx,(h-by)*ratio,maximum));
+    const maximum=this.platform==='pc98'||document.body.classList.contains('reader-fullscreen')?Infinity:1200;
+    let width=Math.max(1,Math.min(w-bx,(h-by)*ratio,maximum));
+    if(this.platform==='pc98'&&width>=this.viewport.width)width=this.viewport.width*Math.floor(width/this.viewport.width);
     this.stage.style.setProperty('--fit-width',`${width+bx}px`);
     this.stage.style.setProperty('--fit-height',`${width/ratio+by}px`);
     this.stage.style.setProperty('--text-scale',String(Math.min(1,width/this.viewport.width)));
