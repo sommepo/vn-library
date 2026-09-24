@@ -1,4 +1,5 @@
 # Original discs, recovered content, local activity and tools never ship.
+/task-usage.csv
 private/
 dist/
 *.iso

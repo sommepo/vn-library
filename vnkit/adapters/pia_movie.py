@@ -33,9 +33,9 @@ def _pts(data: bytes, position: int):
     return ((q[0] >> 1 & 7) << 30) | (q[1] << 22) | (q[2] >> 1 << 15) | (q[3] << 7) | (q[4] >> 1)
 
 
-def demux_pss(data: bytes) -> tuple[bytes, dict]:
+def demux_pss(data: bytes, *, max_bytes=MAX_PSS) -> tuple[bytes, dict]:
     """Return the original complete Sony audio stream and source evidence."""
-    if not data or len(data) > MAX_PSS:
+    if not 0 < max_bytes <= 1024*1024*1024 or not data or len(data) > max_bytes:
         raise MovieError('PSS is empty or exceeds the configured limit')
     position = 0
     audio = bytearray()
@@ -102,10 +102,10 @@ def demux_pss(data: bytes) -> tuple[bytes, dict]:
     return bytes(audio), info
 
 
-def convert_movie(source: Path, output: Path, audio_codec='flac', ffmpeg='ffmpeg', ffprobe='ffprobe', video_codec='vp9') -> dict:
-    if source.stat().st_size > MAX_PSS:
+def convert_movie(source: Path, output: Path, audio_codec='flac', ffmpeg='ffmpeg', ffprobe='ffprobe', video_codec='vp9', *, max_bytes=MAX_PSS) -> dict:
+    if not 0 < max_bytes <= 1024*1024*1024 or source.stat().st_size > max_bytes:
         raise MovieError('PSS exceeds configured limit')
-    audio, info = demux_pss(source.read_bytes())
+    audio, info = demux_pss(source.read_bytes(),max_bytes=max_bytes)
     output.mkdir(parents=True, exist_ok=True)
     stem = source.stem
     write_bytes(output, stem + '.ss2', audio)
@@ -154,9 +154,11 @@ def convert_movie(source: Path, output: Path, audio_codec='flac', ffmpeg='ffmpeg
 
 
 
-def verify_movie(source: Path, movie: Path, ffmpeg='ffmpeg') -> dict:
+def verify_movie(source: Path, movie: Path, ffmpeg='ffmpeg', *, max_bytes=MAX_PSS) -> dict:
     """Compare decoded original video and PCM against an existing lossless derivative."""
-    audio, info = demux_pss(source.read_bytes())
+    if not 0 < max_bytes <= 1024*1024*1024 or source.stat().st_size > max_bytes:
+        raise MovieError('PSS exceeds configured limit')
+    audio, info = demux_pss(source.read_bytes(),max_bytes=max_bytes)
     result = dict(format='vnkit.pia-movie-roundtrip', version=1,
                   source_sha256=info['source_sha256'],
                   movie_sha256=hashlib.sha256(movie.read_bytes()).hexdigest())

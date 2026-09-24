@@ -36,8 +36,15 @@ def native_metadata(executable):
 
 
 class Script:
-    def __init__(self, data, name, commands):
+    def __init__(self, data, name, commands, *, opcode_map=None):
         self.data, self.name, self.commands = data, name, commands
+        # An explicit edition map translates command IDs only. It does not
+        # establish operand or runtime compatibility. None preserves R11 output.
+        if opcode_map is not None and any(type(k) is not int or type(v) is not int
+                or not 0 <= k <= 255 or not 0 <= v < len(commands)
+                for k, v in opcode_map.items()):
+            raise FormatError('Invalid edition opcode map')
+        self.opcode_map = None if opcode_map is None else dict(opcode_map)
         self.strings = {}
 
     def read(self, at, size):
@@ -68,9 +75,15 @@ class Script:
 
     def instruction(self, at):
         op, sub = self.read(at, 2)
+        source_op = op
+        if self.opcode_map is not None:
+            if op not in self.opcode_map:
+                raise FormatError(f'{self.name}:{at:04x}: unmapped edition opcode {op:#x}')
+            op = self.opcode_map[op]
         if op >= len(self.commands): raise FormatError(f'{self.name}:{at:04x}: unknown opcode {op:#x}')
         command = self.commands[op]; size = command['size']; targets = []
         i = {'id':f'{self.name}:{at:04x}', 'offset':at, 'op':op, 'name':command['name'], 'sub':sub}
+        if self.opcode_map is not None:i['sourceOp'] = source_op
         if not command['handler']: raise FormatError(f'{i["id"]}: null command handler')
         if op == 2:
             p = at+4; conditions=[]

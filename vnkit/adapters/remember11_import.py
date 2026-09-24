@@ -72,7 +72,7 @@ def import_game(source,out,work=None,prepare=True):
   'Source compact-Latin glyph mapping and original-console comparisons are unverified.',
   'Static command coverage does not prove every ending or cross-playthrough unlock.']
  content={'format':'vnkit.content','version':1,'id':'remember11-slpm65550-1.02','title':'Remember11 — the age of infinity',
-  'adapter':{'id':'remember11-ps2','version':VERSION},'viewport':{'width':640,'height':448},'assets':assets,
+  'adapter':{'id':'remember11-ps2','version':VERSION},'platform':{'id':'ps2','name':'PlayStation 2'},'viewport':{'width':640,'height':448},'assets':assets,
   'runtime':{'id':'remember11-ps2-kid','version':1,'entry':by_resource[159],'scripts':scripts,'byResource':by_resource,'movies':native['movies']},
   'compatibility':{'status':'incomplete-runtime','summary':'Japanese PS2 source-script interpreter with original images, voices, music and movies. Native presentation and extras remain incomplete.'}}
  write_json(out,'native-evidence.json',native);write_json(out,'compatibility.json',{'status':'incomplete-runtime','warnings':warnings,'census':dict(census),'scripts':len(scripts),'data_resources':sorted(DATA),'parse_errors':errors})

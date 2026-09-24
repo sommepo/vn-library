@@ -2,6 +2,22 @@
 import { Engine, validateContent } from './engine.mjs';
 export async function createEngine(content, options = {}) {
   if (!content.runtime) return new Engine(content, options);
+  if (content.runtime.id === 'higurashi-ps2-shin') {
+    const {HigurashiEngine} = await import('./adapters/higurashi-engine.mjs');
+    return HigurashiEngine.create(content, options);
+  }
+  if (content.runtime.id === 'cartagra-ps2-sc3') {
+    const {CartagraEngine} = await import('./adapters/cartagra-engine.mjs');
+    return CartagraEngine.create(content, options);
+  }
+  if (content.runtime.id === 'ever17-ps2-kid') {
+    const {Ever17Engine} = await import('./adapters/ever17-engine.mjs');
+    return Ever17Engine.create(content, options);
+  }
+  if (content.runtime.id === 'never7-ps2-oscr') {
+    const {Never7Engine} = await import('./adapters/never7-engine.mjs');
+    return Never7Engine.create(content, options);
+  }
   if (content.runtime.id === 'remember11-ps2-kid') {
     const {Remember11Engine} = await import('./adapters/remember11-engine.mjs');
     return Remember11Engine.create(content, options);
@@ -16,6 +32,22 @@ export async function createEngine(content, options = {}) {
 }
 export async function validateReaderContent(content) {
   if (!content.runtime) return validateContent(content);
+  if (content.runtime.id === 'higurashi-ps2-shin') {
+    const {validateHigurashiContent} = await import('./adapters/higurashi-engine.mjs');
+    return validateHigurashiContent(content);
+  }
+  if (content.runtime.id === 'cartagra-ps2-sc3') {
+    const {validateCartagraContent} = await import('./adapters/cartagra-engine.mjs');
+    return validateCartagraContent(content);
+  }
+  if (content.runtime.id === 'ever17-ps2-kid') {
+    const {validateEver17Content} = await import('./adapters/ever17-engine.mjs');
+    return validateEver17Content(content);
+  }
+  if (content.runtime.id === 'never7-ps2-oscr') {
+    const {validateNever7Content} = await import('./adapters/never7-engine.mjs');
+    return validateNever7Content(content);
+  }
   if (content.runtime.id === 'remember11-ps2-kid') {
     const {validateRemember11Content} = await import('./adapters/remember11-engine.mjs');
     return validateRemember11Content(content);

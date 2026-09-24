@@ -28,11 +28,30 @@ The location preference belongs to this browser/origin, not a game save. For
 consistent access use `https://your-server.your-tailnet.ts.net:8891/` with Tailscale enabled.
 No new port or change to the existing private route is required.
 
-If a server bank already exists, initial copying is unavailable to prevent an
-accidental overwrite. To transfer an individual local slot: Export it, switch
-to shared mode, Import save, then save it into the desired shared slot. Global
-progress has its own compatible Export/Import controls under Saves. Importing an
-old slot deliberately retains current progress in the active location.
+## Copy between local and shared saves
+
+Open **Saves → Save location → Copy saves** (or **Library → [game] → Save location**).
+Choose **Replace local saves with shared** or **Replace shared saves with local**.
+The confirmation shows the game, direction and number of saved positions.
+
+This replaces the destination's complete save bank, including route progress.
+Empty source slots clear the corresponding destination slots. The source bank
+stays intact. After copying, the reader switches to the destination and resumes
+its autosave. Reading activity, read-text history and preferences stay on this
+device and are not overwritten.
+
+A backup of the previous destination is kept in this browser. Reopen Save
+location to export it. The latest backup for each direction is retained; export
+it before another copy if you want to keep older versions. The server also keeps
+its existing bounded revision history. Backups contain private game state.
+
+Copying refuses a stale destination or an unresolved failed shared save. Retry
+that save or explicitly select the server position first. Close other reader
+tabs before copying. A dropped connection preserves the replacement operation
+for retry without turning it into a merge. Both client and server must be updated.
+
+To move just one slot, export it, switch location, import it, then save it into
+the desired slot. Loading an individual slot retains current route progress.
 
 ## What is shared
 
@@ -155,6 +174,11 @@ activity separately; it is not in the shared database.
   `baseRevision`, optional `operationId` and a separate same-origin save-session token. Writes are limited
   to installed games and fixed slot names, 512 KiB per record / 4 MiB per bank.
   A null change deletes only a fixed save position, never route-progress keys.
+  Explicit `replace: true` accepts a complete bank (including an empty bank)
+  and replaces route progress as part of the confirmed copy. It uses the same
+  revision checks, limits, receipts and history; null records are not accepted.
+  The session response advertises `bankReplacement: 1` so an older server cannot
+  silently treat a replacement as a merge.
   No activity records, arbitrary paths or public diagnostic dumps.
 - Existing Host/Origin checks, Tailscale HTTPS/device authentication or configured
   HTTP Basic authentication protect both reads and writes. Additional WebSocket
@@ -209,3 +233,16 @@ unit tests. Physical Z13 networking remains a user-device check.
 Before rollout, the live database was backed up consistently to
 `private/backups/shared-saves-before-retry-fix-20260919.sqlite3`. The service alone
 was restarted; its live bank was not used for test writes.
+
+## Whole-bank copy checks (2026-09-24)
+
+`tests/browser-save-copy.mjs` passes in Chromium and Firefox with separate
+profiles and a temporary database, using a real CLANNAD checkpoint. It covers
+cancel, both copy directions, replacing a nonempty bank, removing absent slots,
+backups, resume without recounting, activity preservation, and IndexedDB conflict
+and failed-backup rollback. No live save bank was written by these tests.
+
+Reader unit tests also cover stale shared revisions, replacement retries after
+a lost reply, preserved replacement mode after interruption, empty banks and
+refusal against an older server. Nine Python storage/HTTP tests pass. Physical
+Windows and Android copying remains a device check.

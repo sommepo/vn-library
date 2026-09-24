@@ -3,9 +3,9 @@
 import {randomId,signature} from '../engine.mjs';
 const clone=structuredClone;
 const s16=v=>(v<<16)>>16;
-export function validateRemember11Content(c){
+export function validateRemember11Content(c, runtimeId='remember11-ps2-kid'){
   const errors=[];
-  if(c?.format!=='vnkit.content'||c.version!==1||c.runtime?.id!=='remember11-ps2-kid'||c.runtime.version!==1)errors.push('Unsupported Remember11 content');
+  if(c?.format!=='vnkit.content'||c.version!==1||c.runtime?.id!==runtimeId||c.runtime.version!==1)errors.push('Unsupported KID MAC content');
   if(!c.runtime?.scripts?.[c.runtime.entry])errors.push('Missing source entry');
   for(const [id,a] of Object.entries(c.assets||{}))if(!['image','music','voice','sound','video','script'].includes(a.type)||typeof a.url!=='string'||/^(?:[a-z][a-z0-9+.-]*:|\/|\\)/i.test(a.url)||a.url.split(/[\\/]/).some(x=>x==='..'||x.startsWith('.')))errors.push(`${id}: invalid asset`);
   return errors;
@@ -21,10 +21,13 @@ export class Remember11Engine {
       messageVisible:true,messageType:0,previousText:'',voice:null,sounds:{},music:null,date:null,random:1,locks:{},counter:0};
   }
   get current(){return this.state.pending;}
+  get scriptFormat(){return 'vnkit.remember11-script';}
+  get pendingOperations(){return {text:[31,115,111],choice:[37,116],wait:[11,12,70],end:[1],movie:[96,130]};}
+  executeVariant(i,effects){return false;}
   async loadScript(name){
     if(this.scripts[name])return this.scripts[name];const ref=this.content.runtime.scripts[name];if(!ref)throw new Error(`Scenario absent: ${name}`);
     const data=await this.loadJSON(ref.url);
-    if(data.format!=='vnkit.remember11-script'||data.version!==1||data.source!==name||data.sha256!==ref.sha256)throw new Error(`Scenario identity mismatch: ${name}`);
+    if(data.format!==this.scriptFormat||data.version!==1||data.source!==name||data.sha256!==ref.sha256)throw new Error(`Scenario identity mismatch: ${name}`);
     this.scripts[name]=data;return data;
   }
   fail(i,message){throw new Error(`${i.id}: ${message}`);}
@@ -98,6 +101,8 @@ export class Remember11Engine {
       const s=this.state,script=await this.loadScript(s.script),i=script.instructions[s.pc];
       if(!i||i.unsupported)throw new Error(i?.unsupported||`${s.script}:${s.pc.toString(16)}: execution outside decoded instructions`);
       this.onInstruction?.(i,s);s.pc=i.next;
+      if(this.executeVariant(i,effects)){if(this.current)return {pending:this.current,effects};continue;}
+      if(i.runtimeUnsupported)this.fail(i,'Unsupported edition-specific instruction');
       const word=n=>i.words[n],wait=ms=>{if(ms<0||ms>3600000)this.fail(i,'Invalid wait');if(ms)s.pending={kind:'wait',id:i.id,ms,remainingMs:ms,display:s.lastMessage||null,source:{script:s.script,offset:i.offset}};};
       switch(i.op){
         case 0:break;
@@ -198,7 +203,7 @@ export class Remember11Engine {
     await this.loadScript(s.script);
     if(!this.scripts[s.script].instructions[s.pc]&&!s.ended)throw new Error('Saved program counter outside source');
     for(const f of s.stack){await this.loadScript(f.script);if(!this.scripts[f.script].instructions[f.pc])throw new Error('Saved return address outside source');}
-    if(s.pending){const i=this.scripts[s.script].instructions[s.pending.source?.offset],kinds={text:[31,115,111],choice:[37,116],wait:[11,12,70],end:[1],movie:[96,130]};if(!i||s.pending.source.script!==s.script||s.pending.id!==i.id||!kinds[s.pending.kind]?.includes(i.op))throw new Error('Invalid saved presentation');}
+    if(s.pending){const i=this.scripts[s.script].instructions[s.pending.source?.offset],kinds=this.pendingOperations;if(!i||s.pending.source.script!==s.script||s.pending.id!==i.id||!kinds[s.pending.kind]?.includes(i.op))throw new Error('Invalid saved presentation');}
     for(const g of Object.values(s.graphics))if(!this.content.assets[g.asset]||![g.x,g.y,g.z].every(Number.isFinite))throw new Error('Invalid saved artwork');
     if(s.pending?.kind==='text'){const i=this.scripts[s.script].instructions[s.pending.source.offset],old=this.state;try{this.state=clone(s);const expected=this.text(i.text,i);if(JSON.stringify(expected.text)!==JSON.stringify(s.pending.text)||expected.speaker!==s.pending.speaker||typeof s.pending.occurrenceId!=='string'||typeof s.pending.displayText!=='string'||!s.pending.displayText.endsWith(expected.text))throw new Error('Saved dialogue differs from source');}finally{this.state=old;}}
     if(s.pending?.kind==='wait'&&(!Number.isFinite(s.pending.remainingMs)||s.pending.remainingMs<0||s.pending.remainingMs>3600000))throw new Error('Invalid saved timer');

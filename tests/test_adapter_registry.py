@@ -15,11 +15,25 @@ class AdapterRegistryTests(unittest.TestCase):
         self.assertEqual(gui_adapter('remember11-ps2').gui_game_id, 'remember11-slpm65550-1.02')
         self.assertEqual(gui_adapter('clannad-ps2').setup_guide, 'clannad-import.md')
         self.assertEqual(gui_adapter('remember11-ps2').setup_guide, 'remember11-import.md')
+        never7 = gui_adapter('never7-ps2')
+        self.assertEqual(never7.gui_game_id, 'never7-slps25256-1.01')
+        self.assertEqual(never7.preflight_profile, gui_adapter('remember11-ps2').preflight_profile)
+        self.assertEqual(never7.max_unsupported_sites, 0)
+        ever17 = gui_adapter('ever17-ps2')
+        self.assertEqual(ever17.gui_game_id, 'ever17-slpm65421-1.01')
+        self.assertEqual(ever17.preflight_profile, never7.preflight_profile)
+        self.assertEqual(ever17.max_unsupported_sites, 0)
+        self.assertEqual(len(game_ids), 6)
+        cartagra = gui_adapter('cartagra-ps2')
+        self.assertEqual(cartagra.gui_game_id, 'cartagra-slpm66231-1.01')
+        self.assertEqual(cartagra.max_unsupported_sites, 1)
+        self.assertEqual(cartagra.preflight_profile, 'clannad')
+        self.assertTrue(all(spec.edition_label for spec in ADAPTERS if spec.gui_playable))
         self.assertIsNone(gui_adapter('pia-ps2'))
 
     def test_lookup_and_cli_ids_share_one_registration_source(self):
         self.assertEqual(adapter_ids(), tuple(spec.adapter_id for spec in ADAPTERS))
-        self.assertIs(adapter_spec('pia-ps2'), ADAPTERS[1])
+        self.assertIs(adapter_spec('never7-ps2'), ADAPTERS[-1])
         self.assertIsNone(adapter_spec('not-an-adapter'))
 
 

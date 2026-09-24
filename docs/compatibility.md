@@ -1,5 +1,36 @@
 # Compatibility and evidence
 
+**Higurashi Matsuri Kakera Asobi SLPM-66913 v1.01 has a source-driven reader.**
+All ten main chapter endings and five bad-ending variants finish in source
+replays; 309,298 instructions validate without unsupported sites. Chromium and
+Firefox each pass 150 real text segments and reader controls. Native animations,
+timing and galleries remain incomplete; three voice references are absent from
+the disc. See [runtime coverage and limits](higurashi-runtime.md). Source and Windows releases from v0.1.0-beta.3 support Add game.
+
+**Cartagra SLPM-66231 v1.01 has an experimental reviewed-text reader.**
+The reader adapter reaches all sixteen source ending flags in simulated route
+replays; Chromium checks 150 segments, media, choices and saves. A source-font
+visual review covers 2,446 glyphs and enables DOM Japanese/ruby, copying, text
+streams, searchable backlog and study statistics. The map is not independently
+proofread or recovered from an official encoding table. One macro instruction
+and auxiliary menus remain unsupported. See [the measured coverage and limits](cartagra-runtime.md).
+Add game and the Windows installer support this exact edition from v0.1.0-beta.3.
+This is basic story support, not complete native fidelity.
+
+**Ever17 Premium Edition SLPM-65421 v1.01 has a playable MAC variant.** All five
+main routes, earned final-route gate, both final-route entries, extra epilogues
+and three bad endings have source-execution evidence. All discovered story sites
+and direct resources validate; native presentation remains incomplete. See
+[Ever17 coverage and limits](ever17-runtime.md), including the distinction
+between headless replay, actual browser tests and unverified PS2 fidelity.
+
+**Never7 SLPS-25256 v1.01 has an experimental source-script reader.**
+[Runtime and tests](never7-runtime.md) distinguish real browser coverage, seeded
+headless endings and incomplete effects/extras. Its story VM differs from
+Remember11, while the audio and movie pipelines reuse measured shared formats.
+All 227 tables parse, including 39 separate credits tables. Credits are not run
+as story scripts; full validation still exits 3 for incomplete presentation.
+
 **Remember11 SLPM-65550 v1.02 now has an incomplete playable adapter**, with all
 167 script resources parsed and original artwork/audio/video converted. See
 [its coverage report](remember11-runtime.md) for separate browser, headless and

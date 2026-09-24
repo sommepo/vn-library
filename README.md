@@ -4,9 +4,8 @@ Play Japanese visual novels in your browser, with dictionary lookups, sentence
 mining and reading stats. Import your own game ISO on your computer or home
 server, then read from your desktop, tablet or phone.
 
-Supports the Japanese PS2 releases of **CLANNAD** and **Remember11** listed below.
-**Never7** is an unreleased, exact-edition research target, not a public import
-or playable adapter. No game files are included.
+Supports the Japanese PS2 releases of **CLANNAD**, **Remember11**, **Never7**, **Ever17**, **Cartagra** and **Higurashi Matsuri: Kakera Asobi**
+listed below. No game files are included.
 
 **Early beta:** some animations, effects and extras are missing. Not every route
 has been checked against the original games.
@@ -16,17 +15,43 @@ on Linux.
 
 ## Bring your own ISO
 
-Playable imports currently support only these Japanese PS2 releases:
+Supply your own copy of one of these Japanese PS2 releases:
 
-| Game | Disc serial | Version |
-| --- | --- | --- |
-| CLANNAD | SLPM-66302 | 1.01 |
-| Remember11 — the age of infinity | SLPM-65550 | 1.02 |
+| Game | Disc serial | Version | Import method |
+| --- | --- | --- | --- |
+| CLANNAD | SLPM-66302 | 1.01 | App or command line |
+| Remember11 — the age of infinity | SLPM-65550 | 1.02 | App or command line |
+| Never7 — the end of infinity | SLPS-25256 | 1.01 | App or command line |
+| Ever17 — the out of infinity — Premium Edition | SLPM-65421 | 1.01 | App or command line |
+| Cartagra — 魂ノ苦悩 | SLPM-66231 | 1.01 | App or command line |
+| Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
 
-Never7 — the end of infinity, Japanese PS2 **SLPS-25256 v1.01**, is under
-experimental investigation. It is not included in this public release: neither
-**Add game / Import ISO** nor the public CLI can import or play it yet. Its
-separate script and image formats must not be assumed compatible with Remember11.
+**New in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
+on Windows or Linux. The library has a compact, animated PS2-style menu, and
+save banks can be copied between local and shared storage.
+
+Higurashi's ten main chapter endings and five bad-ending variants have passed
+source-script replays. TIPS and the six after-party stories are supported.
+Native animations, some timing and gallery screens remain incomplete. This is
+the standalone Kakera Asobi disc, not the Append disc.
+See [Higurashi's setup and limits](docs/higurashi-runtime.md).
+
+Ever17's five main routes, earned final-route unlock, extra epilogues and bad
+endings have passed source-script replays. Animations and native credits remain
+unfinished. See [Ever17's setup and test results](docs/ever17-runtime.md).
+
+Never7 is included in the Windows installer and Add game screen. Its ten main good-ending outcomes and
+33 extra Append stories have been tested from their starting points to their
+endings, including choices, flags and save restoration. This is not a check of
+every possible choice sequence or a comparison with original PS2 execution.
+Animations, credits and some presentation details remain unfinished.
+See [Never7's setup and limits](docs/never7-runtime.md).
+
+Cartagra's sixteen source ending flags have passed route replays. The importer
+includes a reviewed character mapping for Japanese text, bound to this edition's
+font. It has not had an independent proofread. One framebuffer-capture command
+and some native menus remain unsupported; none blocked the tested ending paths.
+See [Cartagra's setup and limits](docs/cartagra-runtime.md).
 
 Other editions, translations and patched discs are not supported yet. The importer
 checks the disc’s contents.
@@ -45,6 +70,18 @@ CLANNAD
 
 Remember11
 5cfad772a6d320f2c96c5692e7813a971a045a451e49ba81e3a4402557bd612b
+
+Never7
+52759964e8437da516827dc5ca28dc92a15c98940f5b9453131ca028a3b78c8b
+
+Ever17 Premium Edition
+45b7e194a205e761f1550dc5b728811f82dc91d72af95a14f5ab085e08c1ac4c
+
+Cartagra
+6534fc86c45780aadb58dc6013d47bbf9a87bf305d8742e230cba9004f0946d1
+
+Higurashi Matsuri: Kakera Asobi (standalone)
+0d7ff9509035cce07a9b06c8d2c813cadcf2c07adb97e4fa9da3041851f8f859
 ```
 
 </details>
@@ -53,7 +90,8 @@ Remember11
 
 ### Windows setup
 
-1. Download and extract the Windows installer ZIP from Releases.
+1. Download and extract **VN-Library-Windows-v0.1.0-beta.3.zip** from
+   [Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3).
 2. Run **Install.cmd**. Internet access is needed to download the required tools.
 3. Open **VN Library** from the Start menu or desktop shortcut. The reader
    opens in your browser.
@@ -69,7 +107,9 @@ Games and shared saves are stored in `%LOCALAPPDATA%\VN Import Toolkit`. Updatin
 or uninstalling the app keeps this folder. Local browser saves and reading stats
 stay in your browser.
 
-The Windows installer is currently a test build.
+Quit the tray app before updating, then run the new installer. This is an
+unsigned beta build. The newer Ever17, Cartagra and Higurashi imports still need full
+conversion tests on Windows hardware.
 
 ### Linux setup
 
@@ -79,9 +119,18 @@ You’ll need Python 3.11+, Node.js 22+, FFmpeg/ffprobe and the game’s convers
 tools. The automatic tool setup currently targets Ubuntu 26.04 on x86-64; other
 distributions may need manual setup.
 
-Download or clone the project, open a terminal in its folder, then follow the
+Download **VN-Library-Linux-source-v0.1.0-beta.3.tar.gz** from
+[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3), or clone
+the repository. The Linux download is source code, not a desktop installer.
+Extract it, open a terminal in the `vnkit` folder, then follow the
 [CLANNAD setup guide](docs/clannad-import.md) or
 [Remember11 setup guide](docs/remember11-import.md).
+Cartagra uses FFmpeg/ffprobe and the standard media tool setup; see the
+[Cartagra guide](docs/cartagra-runtime.md).
+Never7 and Ever17 use the same media tools as Remember11; see the
+[Never7 guide](docs/never7-runtime.md) or [Ever17 guide](docs/ever17-runtime.md).
+Higurashi uses the CLANNAD media tools; follow its
+[import guide](docs/higurashi-runtime.md#import-from-your-own-disc).
 
 Start the reader:
 
@@ -97,12 +146,11 @@ not include the conversion tools.
 
 ### Importing your game
 
-1. Open **Library → Add game / Import ISO**.
+The Windows installer and Linux source version support all six editions in the table above.
+
+1. Open **Library → Add game / Import media**.
 2. Choose your ISO and click **Add game**.
 3. Wait for **Ready to play**, then click **Open game**.
-
-This flow currently accepts CLANNAD and Remember11 only; it does not advertise
-Never7 as ready to play.
 
 The app copies the ISO to the folder shown on screen, checks the edition and
 prepares the game automatically. Your original file stays unchanged.
@@ -140,6 +188,30 @@ uses exit code **2**.
 [GUI import and recovery](docs/import-gui.md) ·
 [CLI and adapter guide](docs/adapters.md)
 
+### Never7
+
+In the Windows app, use **Add game** as above. There are no extra tools to install
+for Never7. On Linux, install the media tools described in the
+[Never7 guide](docs/never7-runtime.md), then use Add game or the command line:
+
+```sh
+python3 -m vnkit import '/path/to/Never7.iso' \
+  --adapter never7-ps2 --work private/never7 \
+  --out private/library/never7
+```
+
+Once prepared, Never7 appears in the same browser library and uses the shared
+reader controls, 15 save slots, local/shared saves, stats, text output and display
+settings. The clean ISO-to-reader flow is tested on Linux. The updated Windows
+installer still needs a full conversion check on a Windows device.
+
+Finishing a route returns to the menu and keeps its unlocks. The original flags
+control access to Cure and the Append stories. **Route progress / debug** also
+lets you mark main routes complete if you finished them elsewhere.
+
+[Route test results](docs/never7-routes.md) ·
+[Read status and shared-save tests](docs/never7-read-status.md)
+
 ### Browsers and remote play
 
 Read on a desktop, tablet or phone. Firefox and Chromium have automated reader
@@ -166,7 +238,9 @@ Choose **Saves → Save location** for each game:
   reader, so you can continue on another device.
 
 To share saves, use the same server address and select **Shared** on each device.
-Local and shared saves stay separate.
+Local and shared saves stay separate. **Save location → Copy saves** can replace
+either bank with the other, including route progress. Copying asks for confirmation
+and keeps a backup of the destination; reading activity stays on each device.
 
 There are **15 manual save slots**, plus autosave. Saves can be deleted, exported
 and imported. A backup is also made before skipping to the next choice.
@@ -264,6 +338,10 @@ Manually marking a route complete does not add reading stats. Where a verified
 route path is available, its text is also marked as read. Alternate branches are
 not all assumed read.
 
+Never7's optional completed-route read paths must be built locally; they are not
+bundled with the code. Ordinary Skip read works without them. See the
+[read-path guide](docs/never7-read-status.md).
+
 ## Roadmap
 
 The next PS2 games planned for investigation are:
@@ -271,18 +349,60 @@ The next PS2 games planned for investigation are:
 - AIR
 - Tomoyo After
 - planetarian
-- Ever17
-- Never7 — active research for Japanese PS2 SLPS-25256 v1.01; not released
 - Memories Off series
 
 Other platforms of interest: **PSP, PS Vita, PC-98 and Dreamcast**.
 
-These games and platforms are not supported yet. The Never7 investigation is not
-an import or playability promise; existing import and engine code will be reused
-only where measured evidence supports it.
+These games and platforms are not supported yet. Existing import and engine code
+will be reused where compatible.
 
 Ongoing work also includes animations, presentation fixes, easier installation
-and broader testing.
+and broader testing. Never7's remaining work includes presentation details and
+native Windows testing.
+
+## Architecture
+
+VN Library has two parts: a local importer that prepares the game, and a browser
+reader that runs its story. The Windows tray app starts the same local server
+used on Linux.
+
+```mermaid
+flowchart LR
+    ISO[Your ISO] --> Import[Local importer]
+    Import --> Files[Private game library]
+    Files --> Adapter[Game script interpreter]
+    Adapter --> Reader[Browser reader]
+    Reader --> Local[Browser saves and activity]
+    Reader <--> Shared[Optional shared saves on your host]
+```
+
+The importer checks the edition, extracts resources and converts media where
+needed. It records source locations and fingerprints so a failed import can be
+checked and resumed. Finished games no longer need the ISO to run.
+
+The browser's game adapter follows the original script instructions: choices,
+conditions, variables, calls and endings. It sends text, scenes and media to the
+shared reader. Each game keeps its own instruction handling; a matching archive
+format does not mean two games run the same scripts. Unknown state-changing
+instructions stop with an error.
+
+| Location | What it does |
+| --- | --- |
+| `vnkit/disc.py`, `vnkit/source.py` | Read discs and extract files safely |
+| `vnkit/adapters/` | Identify exact editions and prepare their scripts and media |
+| `web/adapters/` | Execute each game's story and keep its state |
+| `web/` | Reader controls, graphics, text, audio, saves and reading activity |
+| `vnkit/server.py`, `vnkit/import_jobs.py` | Serve the library and run import jobs |
+| `windows/` | Installer, tray app and pinned tool setup |
+| `fixtures/synthetic/`, `tests/` | Original test game and automated checks |
+
+Game data, saves and reading history stay outside the distributed code. Activity
+history is separate from story saves, so loading an old position does not undo
+later reading. New games reuse the reader and any proven compatible extraction
+tools; they still need their own edition checks and execution tests.
+
+For the interfaces and format details, see the [adapter guide](docs/adapters.md),
+[content format](docs/adapters.md#current-content-contract) and [testing guide](docs/testing.md).
 
 ## Contributing — people and AI agents
 

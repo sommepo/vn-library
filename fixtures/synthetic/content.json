@@ -4,6 +4,7 @@
   "id": "original-synthetic",
   "title": "小さな読書の道 · Original test fixture",
   "synthetic": true,
+  "platform": {"id":"ps2", "name":"PlayStation 2"},
   "adapter": {
     "id": "original-fixture",
     "version": "1.0.0"

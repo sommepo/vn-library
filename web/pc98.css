@@ -1,0 +1,47 @@
+/* Original PC-9800 application chrome. No game, BIOS or OS artwork. */
+.platform-navigation{display:flex;gap:6px;align-items:center;margin-left:auto;margin-right:18px}
+.platform-navigation button{font:11px Arial,sans-serif!important;letter-spacing:.08em;padding:8px 10px!important;border:1px solid transparent!important;background:none!important;box-shadow:none!important;color:inherit!important;opacity:.6}
+.platform-navigation button[aria-pressed=true]{opacity:1;border-bottom-color:currentColor!important}
+.platform-navigation button:focus-visible{outline:2px solid #79cfff;outline-offset:2px}
+body[data-platform=pc98]{--paper:#e0e0d0;--muted:#b0b0b0;--accent:#60d0d0;background:#141828;color:#e0e0d0;font-family:'MS Gothic','Noto Sans Mono CJK JP',monospace}
+body[data-platform=pc98] .toolbar,body[data-platform=pc98] .controls,body[data-platform=pc98] .status{background:#303850;color:#d0d0d0;border-color:#808898;box-shadow:none;font-family:inherit}
+body[data-platform=pc98] .stage{border:0;box-shadow:none;outline:none;background:#000}
+body[data-platform=pc98] .art img,body[data-platform=pc98] .art canvas{image-rendering:pixelated}
+body[data-platform=pc98] #panel{color-scheme:dark;border:2px solid #c0c0b0;border-radius:0;background:#303848;box-shadow:2px 2px #000,inset 0 0 0 2px #101020;color:#e0e0d0;font:14px/1.5 'MS Gothic','Noto Sans Mono CJK JP',monospace;text-shadow:none;--paper:#e0e0d0;--muted:#a0b0c0;--accent:#80e0e0}
+body[data-platform=pc98] #panel::backdrop{background:#080c18eb}
+body[data-platform=pc98] #panel .panel-head{padding:6px 10px;background:#181848;border:0;border-bottom:2px solid #909090;box-shadow:none;color:#e0e0d0;min-height:36px}
+body[data-platform=pc98] #panel .panel-head h1{font:14px/1.4 monospace;letter-spacing:0;text-transform:none;color:inherit;text-shadow:none}
+body[data-platform=pc98] #panel button,body[data-platform=pc98] #panel select{background:#505868;border:1px solid #d0d0c0;border-right-color:#101020;border-bottom-color:#101020;border-radius:0;box-shadow:inset 1px 1px #909898;padding:5px 10px;color:#f0f0e0;font:inherit;text-shadow:none}
+body[data-platform=pc98] #panel button:hover{background:#606878}
+body[data-platform=pc98] #panel button:focus-visible{outline:2px solid #e0c060;outline-offset:1px}
+body[data-platform=pc98] #panel button:disabled{opacity:.45}
+body[data-platform=pc98] #panel .notice{background:#182838;border:1px solid #808898;color:inherit;max-width:none}
+body[data-platform=pc98] #panel .muted{color:#a0b0c0}
+body[data-platform=pc98] #panel.pc98-library{width:fit-content;max-width:calc(100vw - 16px);height:fit-content;min-height:0;max-height:calc(100dvh - 16px);overflow:auto;inset:0;margin:auto;align-self:center}
+body[data-platform=pc98] .pc98-library #panelBody{padding:8px;background-color:#181828;background-image:repeating-conic-gradient(#303848 0 25%,transparent 0 50%);background-size:4px 4px}
+.pc98-desktop{width:640px;height:400px;zoom:var(--pc98-scale,1);display:grid;grid-template-rows:28px 1fr 42px 24px;background:#808898;border:2px solid #e0e0d0;border-right-color:#202030;border-bottom-color:#202030;color:#101028}
+.pc98-titlebar{padding:3px 8px;color:#f0f0e0;background:#202058;letter-spacing:1px;font-size:14px}
+.pc98-workspace{display:grid;grid-template-columns:244px 1fr;gap:8px;padding:8px;min-height:0}
+.pc98-shelf,.pc98-game-detail{background:#c0c0b0;border:2px solid #202030;border-right-color:#e0e0d0;border-bottom-color:#e0e0d0;min-width:0;overflow:auto}
+.pc98-shelf h2{font:12px/1.4 monospace;margin:0;padding:4px 6px;background:#505868;color:#e0e0d0}
+.pc98-game-list{display:flex;flex-direction:column;padding:4px;gap:2px}
+body[data-platform=pc98] #panel .pc98-game-list button{font:13px/1.4 monospace;text-align:left;border:0;box-shadow:none;background:transparent;color:#101028;padding:6px 4px;overflow-wrap:anywhere}
+body[data-platform=pc98] #panel .pc98-game-list button[aria-pressed=true]{background:#202058;color:#f0f0e0}
+.pc98-game-detail{padding:12px;display:flex;flex-direction:column;gap:8px}
+.pc98-game-detail h2{font:17px/1.5 'MS Gothic',monospace;margin:0}
+.pc98-game-detail p{font:12px/1.5 monospace;margin:0}
+.pc98-game-detail>div{font:22px/1.6 monospace;border-bottom:4px double #505878;margin-bottom:4px}
+.pc98-tools{display:flex;align-items:center;justify-content:center;gap:8px;border-top:1px solid #c0c0b0;padding:4px}
+body[data-platform=pc98] #panel .pc98-tools button{font-size:12px}
+.pc98-status{font:12px monospace;background:#c0c0b0;padding:4px 8px;border-top:2px solid #404058}
+body[data-platform=pc98] .menu-music-controls{position:relative;bottom:auto;left:auto;right:auto;margin:10px 2px 0;color:#d0d0c0;font:11px monospace}
+body[data-platform=pc98] .pc98-import #panelBody{padding:16px}
+body[data-platform=pc98] #panel .stat-card{border:1px solid #808898;border-radius:0;background:#182838;box-shadow:none}
+body[data-platform=pc98] .idle-orbit{display:none}
+@media(max-width:690px),(max-height:590px){
+ body[data-platform=pc98] #panel.pc98-library{width:min(656px,calc(100vw - 16px))}
+ .pc98-desktop{zoom:1!important;width:100%;height:auto;min-height:320px;grid-template-rows:28px minmax(200px,1fr) auto 24px}
+ .pc98-workspace{grid-template-columns:minmax(110px,2fr) minmax(155px,3fr);padding:4px;gap:4px}
+ .pc98-tools{flex-wrap:wrap}.pc98-game-detail{padding:8px}.pc98-game-detail h2{font-size:14px}
+ .platform-navigation{gap:0;margin-right:5px}.platform-navigation button{padding:7px 5px!important;font-size:10px!important}
+}

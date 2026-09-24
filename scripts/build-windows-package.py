@@ -4,7 +4,7 @@
 No discs, imported assets or user state are selected. Other dependencies are
 checksum-locked downloads at installation, not bundled redistributions.
 """
-import argparse, hashlib, io, json, subprocess, sys, tarfile, tempfile, zipfile
+import argparse, hashlib, io, json, re, subprocess, sys, tarfile, tempfile, zipfile
 from pathlib import Path
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -21,7 +21,9 @@ def main():
     p.add_argument('--vgmtrans',type=Path,default=ROOT/'private/tooling/windows-cross/build2/src/ui/shell/vgmtrans-shell.exe')
     p.add_argument('--source',type=Path,default=ROOT/'private/tooling/vgmtrans')
     p.add_argument('--code-package',type=Path,help='Reviewed allowlisted public source archive')
+    p.add_argument('--version',default='0.1.0-beta.1',help='Version shown in Windows installed apps')
     a=p.parse_args();source=a.source.resolve()
+    if not re.fullmatch(r'\d+\.\d+\.\d+(?:-[a-z0-9.]+)?',a.version):raise ValueError('Invalid package version')
     revision=subprocess.check_output(['git','rev-parse','HEAD'],cwd=source,text=True).strip()
     if revision!='3e16daae49d42246f2d1b302b04f6e80a8037342':raise ValueError('Wrong VGMTrans revision')
     expected={'src/main/components/matcher/FilenameMatcher.h','src/main/formats/SonyPS2/SonyPS2Seq.cpp'}
@@ -58,7 +60,7 @@ def main():
         with zipfile.ZipFile(output,'w') as z:
             for name in ('Install.cmd','Install.ps1'):put(z,name,(ROOT/'windows'/name).read_bytes())
             put(z,'app.zip',app.getvalue())
-            put(z,'bundle.json',json.dumps({'version':'0.1.0-beta.1','sha256':sha(app.getvalue())}).encode())
+            put(z,'bundle.json',json.dumps({'version':a.version,'sha256':sha(app.getvalue())}).encode())
             put(z,'READ-ME-FIRST.txt',b'Extract this ZIP completely, then double-click Install.cmd.\r\nWindows 10/11 x64 test build; internet required for verified runtime/tools.\r\nNo Python installation needed. No games are bundled.\r\nSetup does not change Linux services, firewall rules or system PATH.\r\nApp data: %LOCALAPPDATA%\\VN Import Toolkit\r\nTray Settings: configurable port; default 8891.\r\nEarly beta; see app.zip/README.md for tested scope and limitations.\r\n')
         write_bytes(a.out.parent,a.out.name,output.getvalue())
         print(json.dumps({'file':str(a.out.resolve()),'sha256':sha(output.getvalue()),'bytes':len(output.getvalue())}))

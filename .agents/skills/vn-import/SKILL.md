@@ -8,8 +8,88 @@ description: Inspect authorised Japanese visual-novel discs, run the local VN Im
 Locate the repository containing `vnkit/__main__.py` and read `AGENTS.md` and
 [the current handoff](../../../docs/next-session.md). The skill references runnable
 code; it does not replace the toolkit or depend on information from prior chats.
-Respect the user's active game. Remember11 is the active adapter project; preserve
-CLANNAD and its saves. Work on the Pia ISO/runtime remains paused. Preserve the configurable
+Respect the user's active game. Higurashi Matsuri Kakera Asobi PS2 SLPM-66913
+v1.01 now has a source-driven reader: read
+[its runtime guide](../../../docs/higurashi-runtime.md) and
+[fingerprint](../../../docs/higurashi-investigation.md). Run ordinary inspect,
+import and validate with `higurashi-matsuri-ps2`. Import/validation exit 3 records
+presentation limits; zero unsupported/unexplained references is still required.
+The exact edition is admitted to Add game, but no Windows device conversion or
+new public installer is claimed. Preserve all other installed games and saves.
+
+Its encrypted raw-sector Shin ROM/SNR differs from KID/HuneX; the ISO filesystem
+alone omits its resources. Never bundle upstream's original directory header or
+our extracted kana table. Use `scripts/higurashi-evidence.py` for bounded native
+evidence. Register words 0x8000..0xbfff differ from negative literals 0xc000+;
+masked choices return source indices, and | separates simultaneous voice cues.
+Three source voice paths are absent: report them, never substitute guessed files.
+TIPS IDs are zero based and suspend/restore actual execution. Keep global flags
+independent of saves/activity. After-party selectors 235–240 retain native gates.
+
+Use `tests/higurashi-route-suite.mjs`, `tests/higurashi-tips-smoke.mjs`,
+`tests/browser-higurashi.mjs` and `scripts/validate-higurashi.mjs`. All 15 endings
+have simulated source replay evidence; this is not exhaustive original-console
+comparison. Native animation/timing/chart presentation remain incomplete.
+`scripts/build-higurashi-read-paths.mjs` rebuilds ten private fixed paths from an
+earned campaign. Do not ship those recipes/paths or inflate study counts.
+Compare new Shin discs with the actual parsers; later Shin versions are not
+assumed bytecode-compatible. Preserve AlchemistUnpacker BSD and PDTools MIT notices.
+
+Cartagra PS2 SLPM-66231 v1.01 remains an installed experimental reader:
+read [its runtime guide](../../../docs/cartagra-runtime.md) and
+[recovery evidence](../../../docs/cartagra-investigation.md).
+Its KID SC3 scripts and encrypted CPS differ from the prior MAC/oscr adapters.
+The reader supports original bitmap fallback and reviewed Unicode, source media
+and execution saves. Read [the glyph review](../../../docs/cartagra-unicode.md):
+all 2,446 used glyphs were visually transcribed, with no official table recovery
+or independent human proofread. Never use unverified OCR candidates as dialogue.
+`cartagra_text.py` accepts only a font-bound reviewed table; coverage is not proof
+of transcription accuracy. Public beta.3 uses the original MIT correspondence
+module `cartagra_charset.py`, bound to the exact source font. Use ordinary
+`python3 -m vnkit import ISO --adapter cartagra-ps2 --work WORK --out OUT` or
+Add game; no private review file is needed. Only the exact documented capture
+site is admitted by generic validation; any additional unknown story site,
+unresolved direct reference or unverified map rejects installation. Use
+`tests/browser-cartagra-import.mjs` for isolated GUI cached-import verification
+and the campaign/browser commands in the runtime guide. Preserve all six games.
+Retain bitmap-save compatibility and occurrence IDs. Original
+font previews never publish fake Unicode or study counts. One macro capture and
+unknown menu/state operations remain stops; full validation is intentionally nonzero.
+
+Ever17 PS2 Premium Edition SLPM-65421 v1.01
+now has a playable source-script variant: read [its runtime guide](../../../docs/ever17-runtime.md)
+and [measured comparison](../../../docs/ever17-investigation.md).
+`python3 -m vnkit import` and Add game use the registered `ever17-ps2` adapter;
+only this exact edition is admitted. It reuses Remember11 MAC/media helpers,
+with separate save-title, compact operand, entry-table, CG arithmetic and tile
+geometry handling. End mode 2 resumes the post-credits script; mode 1 returns
+to the menu. Do not collapse both into a final end. All five main routes and
+the earned final-route gate have replay evidence; native presentation remains
+incomplete. Unknown controls and auxiliary debug placeholders stay fail-closed.
+Use `scripts/validate-ever17.mjs`, `tests/ever17-route-suite.mjs` and the browser
+harnesses listed in the runtime guide. The GUI cached-resume test is not a
+clean-cache or Windows-device test. `scripts/build-ever17-read-paths.mjs` builds
+private signature-bound assumed-read paths from earned recipes; never bundle
+those recipes, source scripts or sidecars. Keep original-console comparison,
+optional branches and FOP spacing-glyph uncertainty explicit. Preserve the other
+three games and the exact-ID platform bridge for older catalogue responses.
+
+Original Japanese PC-98 YU-NO is paused at the user's request. Its preserved
+work is in [the investigation](../../../docs/yuno-pc98-investigation.md) and
+[platform environments](../../../docs/platform-environments.md). Its CUE/BIN
+recovery and external MES/GP4 audit work, but it is not a playable reader import.
+Use `scripts/yuno-pc98-media.py`, `scripts/build-lime-juice.py` and
+`scripts/audit-yuno-pc98.py`; preserve exact executable/media fingerprints.
+Do not confuse this AI5 runtime with AI5WIN, KID or HuneX. The separate native
+reference/probe scripts preserve original gameplay for investigation; glyph
+capture does not establish logical text events, saves or A.D.M.S. correctness.
+Keep GPL tooling external and original DOS media/ROMs/traces out of packages.
+The original PC-9800 UI uses explicit platform metadata and separate CRT defaults;
+retain the existing PS2 environment. Never admit recovery-only media to Add game.
+
+Never7 remains a supported PS2 experimental reader;
+read [its runtime guide](../../../docs/never7-runtime.md) and
+[measured fingerprint](../../../docs/never7-investigation.md). Preserve Remember11, CLANNAD and their saves. Work on the Pia ISO/runtime remains paused. Preserve the configurable
 in-game lavender/gold surfaces, fixed blue console player chrome and Dim toggle.
 Library actions collapse by title; inactive-title sound/progress menus must not
 start a story or write its autosave. Previous line uses bounded session-only
@@ -38,7 +118,7 @@ skipped narrative is neither published, backlogged nor marked read.
 
 ## Browser import entry point
 
-Library → Add game / Import ISO supports existing server ISOs and resumable
+Library → Add game / Import media supports existing PS2 server ISOs and resumable
 uploads to the same reader server. Read [GUI import](../../../docs/import-gui.md)
 for status semantics, dependency setup, private staging and recovery. ISO uploaded,
 identified and imported are separate outcomes. The background worker runs the
@@ -76,6 +156,40 @@ python3 -m vnkit extract '/path/to/game.iso' --level archives --out private/new-
 ```
 
 Current commercial adapters are edition-specific and **incomplete**:
+
+- `never7-ps2`: SLPS-25256 v1.01, experimental source-word reader. Read
+  [runtime/commands](../../../docs/never7-runtime.md) and the disc fingerprint.
+  MWo3/oscr and CPS/OGDT differ from Remember11; AFS/ADX voices, Sony BGM banks
+  and PSS movies reuse proven tools. Native predicates are bounded read-only ELF
+  data; never execute the disc binary. All 188 story and 39 mend credits tables
+  now parse. Credits animation is omitted; validation still exits 3 for incomplete
+  presentation. Read [route/menu evidence](../../../docs/never7-routes.md): ten main
+  good outcomes and all 33 extra Append stories have source-entry replay evidence.
+  Native flags 21–24 earn the Cure gate; row zero requires 21, other Append rows 70.
+  Do not replace conditions with guide recipes or treat credits as story opcodes.
+  Run `tests/never7-route-suite.mjs`, `tests/never7-append-smoke.mjs` and isolated
+  `tests/browser-never7-routes.mjs` for route changes. Keep the anomalous native
+  read-index entry in validation and preserve save-signature compatibility.
+  Completed-route assumptions use ten replayed main-outcome paths; read
+  [Never7 read status](../../../docs/never7-read-status.md). Rebuild with
+  `scripts/build-never7-read-paths.mjs` from private source-choice recipes and
+  earned dependencies. Only the newly completed target receives its path; never
+  add later-route text to prerequisite clears or study history. Missing sidecars
+  leave ordinary reading usable. Test the read modes with
+  `tests/browser-never7-read-status.mjs`; shared-save tests need a stable text
+  checkpoint and `VNKIT_CLEAR_FLAG=21` for Yuka. Keep all generated paths private.
+  CLI and Add game use `never7_import.py`; the installer supplies the same media
+  tools as Remember11. GUI admission requires a zero-unsupported/zero-unresolved
+  script census, not just its allowed presentation notice. Recovery 0.4/import 0.6
+  escape trailing dots in cache paths; retain original source names and IDs.
+  `tests/browser-never7-clean-import.mjs ISO NEW_PRIVATE_OUTPUT` exercises the real
+  upload/conversion flow; its optional `--verify-finished` only checks an already
+  completed import after interruption. Native Windows execution still needs a
+  device test. Use `scripts/validate-never7.mjs`, `tests/never7-real-smoke.mjs` and
+  `tests/browser-never7.mjs` with private reports and isolated saves. Both SQ
+  streams are retained; native BGM selects Song zero. Stale AFS filename-row sizes
+  require the explicit Never7 opt-in, never relaxed extent/path validation.
+  kidfile has no declared reuse licence. Do not claim exhaustive choices or PS2/SPU2 parity.
 
 - `remember11-ps2`: Japanese PS2 SLPM-65550 v1.02, KID. **Incomplete playable
   runtime**, newly authorized and implemented after the failed generality trial.
@@ -322,3 +436,12 @@ Native Windows installation and complete imports require device evidence.
 Do not run Wine on the home server: the attempted tests were associated with a
 runaway process/OOM incident. Use the user's Windows device or a dedicated VM
 with enforced memory/process limits for execution tests.
+
+## Task usage tracking
+
+The user requests a model/token CSV for roadmap work. Follow
+[the counting policy](../../../docs/task-usage.md) and run
+`scripts/record-task-usage.py` to update local `task-usage.csv`. Use actual model
+metadata and counter deltas; distinguish cached input and output subsets. Keep
+measurement timestamps and partial outcomes. Never infer an exact missing count,
+include subsequent tasks in an earlier total, or publish the raw session logs.

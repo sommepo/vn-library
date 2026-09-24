@@ -42,17 +42,20 @@ class SharedSaves:
         if not isinstance(body, dict) or body.get('gameId') != game or body.get('format') != 'vnkit.shared-saves' or type(body.get('version')) is not int or body['version'] != 1:
             raise ValueError('Invalid save-bank identity or format')
         signature, revision, changes = body.get('gameSignature'), body.get('baseRevision'), body.get('changes')
+        replace = body.get('replace', False)
+        if type(replace) is not bool:
+            raise ValueError('Invalid save-bank replacement mode')
         operation = body.get('operationId')
         if operation is not None and (not isinstance(operation, str) or not re.fullmatch(r'[A-Za-z0-9_-]{16,128}', operation)):
             raise ValueError('Invalid save operation identity')
         if not isinstance(signature, str) or not 1 <= len(signature) <= 128 or type(revision) is not int or revision < 0:
             raise ValueError('Invalid signature or revision')
-        if not isinstance(changes, dict) or not changes or any(name not in SLOTS for name in changes):
+        if not isinstance(changes, dict) or (not changes and not replace) or any(name not in SLOTS for name in changes):
             raise ValueError('Invalid save-slot names')
         for name, value in changes.items():
             # Tombstones only remove save positions; never erase route progress
             # or study history through the slot API. They share normal CAS/receipts.
-            if value is None and not name.startswith('progress'):
+            if value is None and not replace and not name.startswith('progress'):
                 continue
             fmt = 'vnkit.progress' if name.startswith('progress') else 'vnkit.save'
             if not isinstance(value, dict) or value.get('format') != fmt or type(value.get('version')) is not int or value['version'] != 1 or value.get('gameId') != game or value.get('gameSignature') != signature:
@@ -77,7 +80,9 @@ class SharedSaves:
                 raise SaveConflict('Shared saves changed on another device. Reload shared saves before writing.')
             if old['gameSignature'] is not None and old['gameSignature'] != signature:
                 raise SaveConflict('Shared saves belong to a different content revision. Use local saves or a compatible import.')
-            records = dict(old['records'])
+            # Explicit whole-bank copies include route progress. Ordinary slot
+            # writes/deletions retain their narrower semantics.
+            records = {} if replace else dict(old['records'])
             for name, value in changes.items():
                 if value is None:
                     records.pop(name, None)

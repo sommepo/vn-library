@@ -5,6 +5,7 @@ the original fixture are reachable. Relay SQLite stores occurrence IDs, not
 dialogue. A separate private SQLite bank stores explicitly opted-in game saves.
 """
 from __future__ import annotations
+from .platforms import content_platform
 import base64
 import hashlib
 import hmac
@@ -189,6 +190,7 @@ class ReaderServer(ThreadingHTTPServer):
                 if (folder / '.hide-from-library').is_file():
                     continue
                 games.append({'id': ident, 'title': content['title'], 'url': f'/content/{ident}/content.json',
+                              'platform': content_platform(content),
                               'compatibility': content.get('compatibility', {'status': 'untested'}),
                               'replaces': content.get('replaces', []),
                               'fixture': folder == fixture})
@@ -306,7 +308,7 @@ class ReaderHandler(BaseHTTPRequestHandler):
             self.reply(200, {'games': self.server.catalogue()[0]})
             return
         if parsed.path == '/api/saves/session':
-            self.reply(200, {'token': self.server.save_token})
+            self.reply(200, {'token': self.server.save_token, 'bankReplacement': 1})
             return
         if parsed.path.startswith('/api/saves/'):
             game = parsed.path.removeprefix('/api/saves/')

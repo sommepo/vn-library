@@ -1,3 +1,5 @@
+import { PLATFORMS, PLATFORM_KEY, storedPlatform, platformId, platformGames } from './platforms.mjs';
+import { libraryAccordion } from './library-accordion.mjs';
 import { MenuMusic } from './menu-music.mjs';
 import { visibleLibrary } from './library.mjs';
 import { Engine, plainText, characterCount, randomId } from './engine.mjs';
@@ -33,9 +35,17 @@ let pausedVoiceCue = false;
 let gameLease = null;
 let deletedAutosaveEngine = null;
 let choiceSeek = null;
-let loadingGame = false, panelCleanup = null;
+let loadingGame = false, panelCleanup = null, changingSaveLocation = false;
 const tabId = randomId();
+let selectedPlatform=storedPlatform(localStorage);
 const crt = new CRTDisplay($('art'), () => {const view=engine?.presentationViewport||engine?.content.viewport;return view?[view.width,view.height]:[640,448];});
+function setPlatform(id) {
+  if(!PLATFORMS.some(p=>p.id===id))throw new Error('This platform environment is not supported yet.');
+  selectedPlatform=id;document.body.dataset.platform=id;crt.setPlatform(id);layout.setPlatform(id);
+  try{localStorage.setItem(PLATFORM_KEY,id);}catch{}
+  document.querySelectorAll('.platform-navigation').forEach(n=>n.remove());
+
+}
 async function acquireGame(id) {
   if (gameLease?.id === id) return gameLease;
   if (navigator.locks?.request) {
@@ -61,7 +71,7 @@ const globalPause = new GlobalPause();
 const menuMusic = new MenuMusic(new Audio(),localStorage);
 let libraryMode=false;
 const menuSuspended=new Set();
-function leaveLibrary(){libraryMode=false;for(const a of menuSuspended)if(!a.ended)play(a);menuSuspended.clear();syncMenuMusic();}
+function leaveLibrary(){libraryMode=false;if(game)setPlatform(platformId(game));for(const a of menuSuspended)if(!a.ended)play(a);menuSuspended.clear();syncMenuMusic();}
 function syncMenuMusic(){menuMusic.sync((!engine||libraryMode)&&!loadingGame&&currentDialog!=='sound-test'&&!globalPause.paused&&!document.hidden);}
 for(const event of ['pointerdown','keydown'])document.addEventListener(event,syncMenuMusic);
 document.addEventListener('visibilitychange',syncMenuMusic);
@@ -115,7 +125,7 @@ export function renderText(container, value, limit = Infinity) {
     else { const ruby = document.createElement('ruby'); ruby.append(document.createTextNode(base)); const rt = document.createElement('rt'); rt.textContent = run.reading; ruby.append(rt); container.append(ruby); }
   }
 }
-function exportSentence(p) { return (p.dialogue||[p]).map(part=>`${settings.includeSpeaker && part.speaker ? `${part.speaker}：` : ''}${plainText(part.text, settings.ruby)}`).join('\n'); }
+function exportSentence(p) { if(p.sourceGlyphs)throw Error('This preview uses original font images. Copying requires verified Unicode text.');return (p.dialogue||[p]).map(part=>`${settings.includeSpeaker && part.speaker ? `${part.speaker}：` : ''}${plainText(part.text, settings.ruby)}`).join('\n'); }
 async function copyText(text, automatic = false) {
   if (window.isSecureContext && navigator.clipboard?.writeText) {
     try { await navigator.clipboard.writeText(text); status(automatic ? 'Automatic copy: latest segment copied on this device.' : 'Copied on this device.'); return true; }
@@ -167,9 +177,11 @@ async function renderScene(effectsToPlay = [], restoring = false) {
   for (const [index, layer] of (scene.layers || []).entries()) {
     const crop = document.createElement('div'); crop.className = 'scene-layer';
     crop.style.cssText = `left:${layer.x}%;top:${layer.y}%;width:${layer.width}%;height:${layer.height}%;z-index:${index + 1};opacity:${layer.opacity??1}`;
+    if(layer.colour){crop.style.backgroundColor=layer.colour;art.append(crop);continue;}
     const img = new Image(); img.src = mediaURL(layer.asset); img.alt = '';
     img.style.cssText = `width:100%;height:${(layer.atlasFrames || 1) * 100}%;position:absolute;top:${-(layer.frame || 0) * 100}%;left:0`;
     if (layer.alphaScale) img.style.filter = 'url(#source-alpha)';
+    if(layer.tint)img.dataset.tint=JSON.stringify(layer.tint);
     crop.append(img); art.append(crop);
   }
   for(const overlay of overlays){const img=new Image();img.src=mediaURL(overlay.asset);img.alt='';img.className=`game-overlay ${overlay.role||''}`;img.style.cssText=`position:absolute;left:${overlay.x}%;top:${overlay.y}%;width:${overlay.width}%;height:${overlay.height}%;z-index:60;pointer-events:none`;art.append(img);}
@@ -240,6 +252,10 @@ function schedule() {
   sceneCleanup?.resume?.();
   if (pausedVoiceCue) {pausedVoiceCue = false; if (engine.current?.voiceUntilMs != null || engine.current?.presentation?.voice || engine.state.immediateVoice) play(voice);}
   if (engine.current?.kind === 'wait') {
+    const soundWait=engine.current.soundWait;
+    if(soundWait&&[...effects].some(a=>a.vnAsset===soundWait.asset&&a.vnChannel===soundWait.channel&&!a.ended&&!a.error)){
+      clearTimeout(waitTimer);waitDeadline=null;waitTimer=setTimeout(schedule,100);return;
+    }
     if(engine.current.voiceWait&&voiceAsset===engine.state.immediateVoice?.asset&&!voice.error){
       if(voice.ended)engine.current.remainingMs=0;
       else{clearTimeout(waitTimer);waitDeadline=null;waitTimer=setTimeout(schedule,100);return;}
@@ -279,7 +295,8 @@ function showText(p, restoring = false) {
   const visibleText = p.displayText ?? p.text;
   const count = [...plainText(visibleText)].length;
   const prefixCount = p.displayText == null ? 0 : Math.max(0, count - [...plainText(p.text)].length);
-  if (settings.speed > 0 && !skip && !restoring) {
+  if(p.sourceGlyphs){engine.renderSourceText($('sentence'),p);engine.renderSourceText($('speaker'),p,'speaker');}
+  else if (settings.speed > 0 && !skip && !restoring) {
     typing = true; typeStarted = performance.now();typePausedAt=globalPause.paused?typeStarted:null; renderText($('sentence'), visibleText, prefixCount);
     typeTimer = setInterval(() => {
       if (globalPause.paused || selected()) return;
@@ -332,8 +349,9 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     const willSkip = skip && isRead(activity, engine, p.id);
     if (skip && !willSkip) { skip = false; status('Skip stopped at unread text.'); }
     showText(p, restoring);
+    engine.recordPresentation?.(p,{restoring,skipped:willSkip});
     if (!restoring) {
-      const record = activity.present(p, { skip: willSkip });
+      const record = p.sourceGlyphs ? null : activity.present(p, { skip: willSkip });
       await Promise.all([store.put(key('activity'), activity.data), store.put(key('autosave'), engine.save(mediaSnapshot()))]);
       if (record) await publish(record, navigation);
     }
@@ -344,11 +362,12 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     if(p.promptAsset){const img=new Image();img.src=mediaURL(p.promptAsset);img.className='choice-prompt';img.alt='';$('choices').append(img);}
     for (const option of p.options) {
       const b = button('', async () => { if (selected()) return; await advance('choice', option.id); });
-      renderText(b, option.text); $('choices').append(b);
+      if(option.asset){const img=new Image();img.src=mediaURL(option.asset);img.alt='';img.style.cssText='width:72px;max-height:100px;object-fit:contain;display:block;margin:auto';b.append(img);const label=document.createElement('span');renderText(label,option.text);b.append(label);}
+      else if(option.sourceGlyphs)engine.renderSourceText(b,option);else renderText(b, option.text); $('choices').append(b);
     }
     if (!restoring) {
       const text = p.options.flatMap((o, index) => [...(index ? ['\n'] : []), ...(typeof o.text === 'string' ? [o.text] : o.text)]);
-      const record = activity.present({ ...p, text, speaker: '', voice: null });
+      const record = p.sourceGlyphs || p.auxiliary ? null : activity.present({ ...p, text, speaker: '', voice: null });
       await Promise.all([store.put(key('activity'), activity.data), store.put(key('autosave'), engine.save(mediaSnapshot()))]);
       if (record) await publish(record, navigation === 'next-choice' ? navigation : 'choice-presentation');
     }
@@ -375,7 +394,7 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
         if(record)await publish(record,navigation);
       }
     } else if ((restoring || restoreMedia) && p.display) { showText({ ...p.display, voice:restoredMedia?.voice?.asset||null },true); }
-    $('position').textContent = 'Script timing…';
+    $('position').textContent = 'まってください';
   } else if (p && ['movie', 'sound'].includes(p.kind)) {
     auto = skip = false; voice.pause(); $('speaker').textContent = ''; $('sentence').textContent = '';
     scriptMedia = document.createElement(p.kind === 'movie' ? 'video' : 'audio');
@@ -423,13 +442,13 @@ async function advance(navigation = 'advance', optionId) {
       pauseWait();clearTimers();
       throw error;
     }
-    if(option)activity.choice(option.text);
+    if(option&&!checkpoint.state.presentation?.auxiliary&&!checkpoint.state.pending?.auxiliary)activity.choice(option.text);
     try {await present(result,{navigation});if(previousId&&previousId!==currentReadable()?.id)lineHistory.push(checkpoint,previousId);}
     catch(error){await engine.restore(checkpoint);restoredMedia=checkpoint.media;sceneVisualKey=null;await present({pending:engine.current,effects:[]},{restoring:true});pauseWait();clearTimers();throw error;}
   } finally { busy = false; advanceButton(); modeButtons(); schedule(); }
 }
 async function persistCurrent() {
-  if (!engine || !gameLease?.owned()) return;
+  if (changingSaveLocation || !engine || !gameLease?.owned()) return;
   if(store.blocked(game.id)){await store.local.put(key('activity'),activity.data);return;}
   // Deleting autosave must remain effective while viewing menus/closing the
   // tab. A new presentation or explicit restore resumes ordinary autosaving.
@@ -514,11 +533,11 @@ async function loadGame(item, resume = true, entry = 'start') {
     let result,retained=false;
     if(saved){await candidate.restore(saved);candidate.applyProgress?.(progress);retained=Boolean(candidate.current);result=retained?{pending:candidate.current,effects:[]}:await candidate.run();}
     else result=candidate.startNew?await candidate.startNew(progress,entry):await candidate.run();
-    libraryMode=false;menuSuspended.clear();engine=candidate;document.body.classList.remove('reader-idle');game={...item,id:content.id,title:content.title};gameLease=nextLease;contentBase=base;
+    libraryMode=false;menuSuspended.clear();engine=candidate;document.body.classList.remove('reader-idle');game={...item,id:content.id,title:content.title,platform:content.platform||item.platform};setPlatform(platformId(game));gameLease=nextLease;contentBase=base;
     store.onStatus(game.id,store.mode(game.id)==='shared'?'Shared saves · connected':'Local saves');
     await engine.loadReadPaths?.();activity=await loadActivity(game.id,history);sceneVisualKey=null;musicAsset=voiceAsset=null;effects.clear();
     restoredMedia=saved?.media||null;closePanel(false);
-    $('gameTitle').textContent=game.title;$('gameBadge').textContent=content.synthetic?'Original test fixture':'';
+    $('gameTitle').textContent=game.title;$('gameBadge').textContent=content.synthetic?'Original test fixture':candidate.previewNotice||'';
     await present(result,{restoring:retained,restoreMedia:Boolean(saved)&&!retained,navigation:saved?'resume':'start'});
     await store.put(key('autosave'),engine.save(mediaSnapshot()));
     lineHistory.clear();committed=true;if(previous.lease&&previous.lease!==nextLease)previous.lease.release();
@@ -537,26 +556,28 @@ async function loadGame(item, resume = true, entry = 'start') {
     $('panelBody').removeAttribute('aria-busy');$('loadNotice').hidden=true;advanceButton();modeButtons();schedule();
   }
 }
-function openPanel(title,id){$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',['library','import'].includes(id));$('panel').classList.toggle('console-import',id==='import');$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
-function closePanel(resume=true){panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();activity?.interact();if(resume)schedule();}
-async function libraryPanel(ending = false) {
+function openPanel(title,id){$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',selectedPlatform==='ps2'&&['library','import'].includes(id));$('panel').classList.toggle('console-import',selectedPlatform==='ps2'&&id==='import');$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
+function closePanel(resume=true){if(changingSaveLocation)return;panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();activity?.interact();if(resume)schedule();}
+async function libraryPanel(ending = false, platform = null) {
+  setPlatform(platform||(!libraryMode&&game?platformId(game):selectedPlatform));
   libraryMode=true;for(const a of [music,voice,scriptMedia,...effects])if(a&&!a.paused&&!a.ended){menuSuspended.add(a);a.pause();}
   const body = openPanel(ending ? 'Ending reached · Main menu' : 'Main menu', 'library');
   if(ending)body.append(paragraph('Your progress has been saved. Start again to follow another route; your saves and reading history are kept.', 'notice'));
+  const titles=platformGames(library,selectedPlatform);
   const atmosphere=document.createElement('div');atmosphere.className='console-atmosphere';atmosphere.setAttribute('aria-hidden','true');
   atmosphere.innerHTML='<div class="console-orbit">'+Array.from({length:8},(_,i)=>`<i style="--n:${i}"></i>`).join('')+'</div><div class="console-towers">'+Array.from({length:7},(_,i)=>`<i style="--n:${i}"></i>`).join('')+'</div>';
   body.append(atmosphere);
   const catalogue=document.createElement('div');catalogue.className='console-catalogue';body.append(catalogue);
-  if (!library.length) body.append(paragraph('No games imported yet. Choose Add game / Import ISO to get started.', 'notice'));
-  for (const item of library) {
+  if (!titles.length) body.append(paragraph('No games imported yet. Choose Add game / Import media to get started.', 'notice'));
+  for (const item of titles) {
     const card = document.createElement('article'); card.className = 'game-card'; const title = document.createElement('h2'); title.textContent = item.title;
     const disclosure=document.createElement('details');disclosure.className='console-title';const heading=document.createElement('summary');heading.append(title);disclosure.append(heading);card.append(disclosure);
     const blocked = ['blocked', 'unsupported', 'extraction-only'].includes(item.compatibility?.status);
-    const disc=paragraph(`DISC ${String(library.indexOf(item)+1).padStart(2,'0')} / ${item.fixture?'TEST FIXTURE':'VISUAL NOVEL'}`,'console-disc');card.prepend(disc);
+    const disc=document.createElement('span');disc.className='console-disc';disc.textContent=String(titles.indexOf(item)+1).padStart(2,'0');disc.setAttribute('aria-label',`Disc ${disc.textContent}`);heading.prepend(disc);
     const actions=document.createElement('div');actions.className='console-menu-actions';disclosure.append(actions);
     if (!blocked) { actions.append(button('Read / resume', () => loadGame(item)), button('Start again', () => loadGame(item, false))); }
     if(!blocked&&item.id===game?.id){
-      for(const entry of engine.newGameEntries?.()||[])if(entry.id!=='start')actions.append(button(entry.label,()=>loadGame(item,false,entry.id)));
+      appendNewGameEntries(actions,engine,item);
       const completed=engine.routeProgress?.().filter(r=>r.complete&&!r.extra)||[];
       if(completed.length){const details=document.createElement('details');details.className='console-progress';const summary=document.createElement('summary');summary.textContent=`${completed.length} completed · Progress saved`;details.append(summary,paragraph('Completed: '+completed.map(r=>r.label+(r.manual?' (manual)':'')).join(' · ')));disclosure.append(details);}
       else if(ending)card.append(paragraph('This ending did not award a route-completion flag. Try different choices in a new playthrough.'));
@@ -573,10 +594,11 @@ async function libraryPanel(ending = false) {
     if(!blocked)actions.append(button('Save location',()=>saveLocationPanel(item)));
     catalogue.append(card);
   }
-  const system=document.createElement('div');system.className='console-system';system.append(button('Add game / Import ISO',showImportPanel),button('Display / CRT',crtPanel),button('Reading settings',settingsPanel));catalogue.append(system);
+  panelCleanup=libraryAccordion(catalogue);
+  const system=document.createElement('div');system.className='console-system';system.append(button('Add game / Import media',showImportPanel),button('Display / CRT',crtPanel),button('Reading settings',settingsPanel));catalogue.append(system);
   appendMenuMusic(body);
   const footer=document.createElement('div');footer.className='console-footer';footer.innerHTML='<span>LOCAL MEMORY <i></i></span>';body.append(footer);
-  catalogue.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)||e.altKey||e.ctrlKey||e.metaKey)return;const buttons=[...catalogue.querySelectorAll('summary,button:not(:disabled)')].filter(el=>el.getClientRects().length);if(!buttons.length)return;e.preventDefault();const at=buttons.indexOf(document.activeElement);buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(at+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length].focus();});
+  catalogue.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)||e.altKey||e.ctrlKey||e.metaKey)return;const buttons=[...catalogue.querySelectorAll('summary,button:not(:disabled)')].filter(el=>{if(el.closest('[inert]'))return false;for(let parent=el.parentElement;parent&&parent!==catalogue;parent=parent.parentElement){if(parent.tagName==='DETAILS'&&!parent.open&&parent.firstElementChild!==el)return false;}return el.getClientRects().length;});if(!buttons.length)return;e.preventDefault();const at=buttons.indexOf(document.activeElement);buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(at+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length].focus();});
   requestAnimationFrame(()=>{if(currentDialog==='library')catalogue.querySelector('summary')?.focus({preventScroll:true});});
 }
 function appendMenuMusic(body){
@@ -602,8 +624,8 @@ async function refreshLibrary() {
   const superseded=new Set(library.flatMap(item=>item.replaces||[]));library=library.filter(item=>!superseded.has(item.id));
 }
 async function showImportPanel() {
-  const body=openPanel('Add game / Import ISO','import');
-  const cleanup=await importPanel(body,{refreshLibrary,openGame:async id=>{const item=library.find(g=>g.id===id);if(!item)throw new Error('Import is not in the library yet');await loadGame(item);}});
+  const body=openPanel('Add game / Import media','import');
+  const cleanup=await importPanel(body,{platform:selectedPlatform,refreshLibrary,openGame:async id=>{const item=library.find(g=>g.id===id);if(!item)throw new Error('Import is not in the library yet');await loadGame(item);}});
   if(currentDialog==='import'){panelCleanup=cleanup;appendMenuMusic(body);}else cleanup();
 }
 function applySettings() {
@@ -639,7 +661,7 @@ async function progressPanel(context={engine,game,contentBase,active:true}) {
   body.append(paragraph(engine.isInheritedRead?'Completed routes with a verified path use that fixed path for red text and Skip read. Alternate branches remain unread; study counts stay unchanged.':'Read status follows text encountered on this device. Completed-route read paths are not available for this game yet.')); 
   if(engine.readPathWarning)body.append(paragraph(engine.readPathWarning,'notice'));
   if(engine.progressNotice)body.append(paragraph(engine.progressNotice()));
-  for(const entry of engine.newGameEntries().filter(e=>e.id!=='start'))body.append(button(entry.label,()=>loadGame(game,false,entry.id)));
+  appendNewGameEntries(body,engine,game);
   body.append(row(button('Export global progress',()=>download(`${game.id}-progress.json`,engine.progressSnapshot())),button('Back to main menu',()=>libraryPanel())));
   for(const route of engine.routeProgress()){
     const line=document.createElement('div');line.className='slot route-progress';line.dataset.route=route.id;
@@ -654,6 +676,21 @@ async function progressPanel(context={engine,game,contentBase,active:true}) {
     });mark.disabled=route.complete;line.append(mark);body.append(line);
   }
   if(await store.get(key('progress-before-debug')))body.append(row(button('Export progress before last manual change',async()=>download(`${game.id}-before-debug.json`,await store.get(key('progress-before-debug'))))));
+}
+function appendNewGameEntries(parent,engine,item){
+  const groups=new Map();
+  for(const entry of engine.newGameEntries?.()||[]){
+    if(entry.id==='start')continue;
+    let container=parent;
+    if(entry.group){
+      if(!groups.has(entry.group)){
+        const details=document.createElement('details'),summary=document.createElement('summary');
+        details.className='console-extra-stories';summary.textContent=entry.group;details.append(summary);parent.append(details);groups.set(entry.group,details);
+      }
+      container=groups.get(entry.group);
+    }
+    container.append(button(entry.label,()=>loadGame(item,false,entry.id)));
+  }
 }
 async function soundTestPanel(context={engine,game,contentBase,active:true}) {
   const {engine,contentBase}=context;
@@ -757,6 +794,7 @@ async function settingsPanel() {
 }
 async function backlogPanel() {
   if (!activity) return;
+  if(engine.previewNotice){const body=openPanel('Encountered text','backlog');body.append(paragraph('The original-font preview does not yet have a searchable text backlog. Previous line and saves retain your place.'));return;}
   const body = openPanel('Encountered text', 'backlog'), search = document.createElement('input'), entries = document.createElement('div'); search.className = 'search'; search.placeholder = 'Search encountered Japanese or speaker'; search.setAttribute('aria-label', 'Search backlog');
   body.append(search, row(button('Bookmark current position', async () => { activity.data.bookmarks.push({ id: randomId(), label: plainText(engine.current?.text || '').slice(0, 45), savedAt: new Date().toISOString(), save: engine.save(mediaSnapshot()) }); await store.put(key('activity'), activity.data); status('Bookmark saved with execution state.'); }), button('Bookmarks', bookmarkPanel)), entries);
   let limit = 100;
@@ -842,7 +880,10 @@ async function saveLocationPanel(item=game) {
   if(recovery)body.append(row(button('Export unsynced recovery',()=>download(`${id}-shared-recovery.json`,recovery)),...(recovery.records.autosave?[button('Export recovery position',()=>download(`${id}-recovery-save.json`,recovery.records.autosave))]:[])));
   const cache=await store.local.get(`${id}:shared-cache`);
   if(cache)body.append(row(button('Export last shared backup on this device',()=>download(`${id}-shared-cache.json`,cache))));
-  body.append(paragraph('To transfer one save into an existing bank: Export that save, switch location, then Import save and save it into a slot. Export global progress separately if you also want to transfer route unlocks.'));
+  for(const destination of ['local','shared']){
+    const backup=await store.local.get(`${id}:before-copy-${destination}`);
+    if(backup)body.append(button(`Export ${destination} backup from before last copy`,()=>download(`${id}-before-copy-${destination}.json`,backup)));
+  }
   body.append(button('Back to main menu',()=>libraryPanel()));
   try{
     let signature=engine&&game?.id===id?engine.signature:null;
@@ -869,6 +910,35 @@ async function saveLocationPanel(item=game) {
       shared.append(button('Copy local saves to server & use shared',()=>switchTo('shared',true,bank,signature)));
       shared.append(paragraph('Copies the local slots and route progress into the empty server bank. Your local originals remain intact.'));
     }
+    const copies=document.createElement('section');copies.className='save-location-box';
+    const heading=document.createElement('h2');heading.textContent='Copy saves';
+    copies.append(heading,paragraph('Replace all saves and route progress in one location with the other. The source stays unchanged. A backup of the destination is kept on this device; reading activity is not copied or reset.'));
+    const copy=async destination=>{
+      if(busy||choiceSeek||changingSaveLocation)throw new Error('Wait for the current operation before copying saves.');
+      const controls=[...$('panel').querySelectorAll('button')].map(b=>[b,b.disabled]);controls.forEach(([b])=>b.disabled=true);
+      let lease,completed=false;
+      try{
+        lease=await acquireGame(id);
+        await persistCurrent();changingSaveLocation=true;
+        await store.flush(id);
+        if(await store.recovery(id))throw new Error('Resolve the unsynced save first: retry it or choose the server position.');
+        const localBank=await store.localBank(id,signature),sharedBank=await store.fetchBank(id,signature);
+        const source=destination==='local'?sharedBank:localBank,previous=destination==='local'?localBank:sharedBank;
+        const count=value=>SAVE_SLOTS.filter(name=>value.records[name]).length;
+        const from=destination==='local'?'shared':'local';
+        if(!confirm(`${item.title}\n\nReplace ${destination} saves (${count(previous)} positions) with ${from} saves (${count(source)} positions)?\n\nAll destination slots and route progress will match the source, including empty slots. A backup will be kept on this device. Reading activity stays unchanged.`))return;
+        await store.replaceBank(id,signature,destination,source,previous);
+        // Do not allow pagehide/heartbeat to write the old engine over the copy.
+        gameLease?.release();gameLease=null;lease.release();lease=null;
+        store.setMode(id,destination);completed=true;
+        const target=new URL(location.href);target.searchParams.set('game',id);location.assign(target.href);
+      }finally{
+        if(lease&&lease!==gameLease)lease.release();
+        if(!completed){changingSaveLocation=false;controls.forEach(([b,disabled])=>b.disabled=disabled);}
+      }
+    };
+    copies.append(button('Replace local saves with shared',()=>copy('local')),button('Replace shared saves with local',()=>copy('shared')));
+    shared.after(copies);
   }catch(error){detail.textContent=error.message;detail.classList.add('error');}
 }
 async function savesPanel() {
@@ -971,7 +1041,7 @@ async function statsPanel() {
 
 $('crtButton').onclick=guard(crtPanel);$('crtButton').setAttribute('aria-pressed',String(crt.settings.enabled));
 $('libraryButton').onclick = guard(()=>libraryPanel()); $('settingsButton').onclick = guard(settingsPanel); $('closePanel').onclick = closePanel;
-$('panel').addEventListener('cancel', e => {if(loadingGame){e.preventDefault();return;}panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();setTimeout(schedule);});
+$('panel').addEventListener('cancel', e => {if(loadingGame||changingSaveLocation){e.preventDefault();return;}panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();setTimeout(schedule);});
 $('nextButton').onclick = guard(() => advance());
 $('choiceButton').onclick = guard(nextChoice);
 $('dimButton').onclick = () => { settings.dimSurroundings = !settings.dimSurroundings; applySettings(); };
@@ -1023,7 +1093,7 @@ setInterval(guard(async () => { if (!activity || !gameLease?.owned()) return; ac
 voice.addEventListener('ended', schedule);
 
 await guard(async () => {
-  await store.open(); applySettings();
+  await store.open(); applySettings();setPlatform(selectedPlatform);
   const response = await fetch('/api/library'); if (!response.ok) throw new Error(`Library unavailable (${response.status}); launch with the toolkit server.`);
   library = (await response.json()).games || [];
   library = visibleLibrary(library,location.search);
