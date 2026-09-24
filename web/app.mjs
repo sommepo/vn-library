@@ -17,7 +17,8 @@ import { CRTDisplay } from './crt.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
 import { ReaderLayout } from './layout.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
-import { applyLoop, snapshotLoop, isOneShot, releaseLoop } from './audio-loop.mjs';
+import { applyLoop, releaseLoop } from './audio-loop.mjs';
+import { clearEffects, restoreEffects, snapshotEffects, startEffect, stopEffects } from './audio-effects.mjs';
 
 const $ = id => document.getElementById(id);
 const defaults = { readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
@@ -154,7 +155,7 @@ function play(audio) { if(!globalPause.request(audio))return;const promise = aud
 function volumes() { music.volume = Number(settings.music) * (engine?.state.scene.musicGain ?? 1); voice.volume = Number(settings.voice); for (const sound of effects) sound.volume = Number(settings.sound); }
 function mediaSnapshot() {
   if (waitDeadline !== null && engine.current?.kind === 'wait') engine.current.remainingMs = Math.max(0, waitDeadline - performance.now());
-  return { music: { asset: musicAsset, time: music.currentTime || 0, paused: (!menuSuspended.has(music)&&globalPause.savedPaused(music)) }, voice: { asset: voiceAsset, time: voice.currentTime || 0, paused: (!menuSuspended.has(voice)&&globalPause.savedPaused(voice)) }, scriptMedia: scriptMedia ? {asset: engine.current.asset, time: scriptMedia.currentTime || 0, paused: (!menuSuspended.has(scriptMedia)&&globalPause.savedPaused(scriptMedia))} : null, effects: [...effects].filter(audio => !audio.ended).map(audio => ({ asset: audio.vnAsset, ...(audio.vnChannel?{channel:audio.vnChannel}:{}), time: audio.currentTime || 0, paused: (!menuSuspended.has(audio)&&globalPause.savedPaused(audio)), loop: snapshotLoop(audio) })) };
+  return { music: { asset: musicAsset, time: music.currentTime || 0, paused: (!menuSuspended.has(music)&&globalPause.savedPaused(music)) }, voice: { asset: voiceAsset, time: voice.currentTime || 0, paused: (!menuSuspended.has(voice)&&globalPause.savedPaused(voice)) }, scriptMedia: scriptMedia ? {asset: engine.current.asset, time: scriptMedia.currentTime || 0, paused: (!menuSuspended.has(scriptMedia)&&globalPause.savedPaused(scriptMedia))} : null, effects: snapshotEffects(effects, audio => !menuSuspended.has(audio) && globalPause.savedPaused(audio)) };
 }
 function seek(audio, time) {
   if (!Number.isFinite(time) || time <= 0) return;
@@ -197,11 +198,7 @@ async function renderScene(effectsToPlay = [], restoring = false) {
   if (scene.music?.asset !== musicAsset) { music.pause(); musicAsset = scene.music?.asset || null; if (musicAsset) { music.src = mediaURL(musicAsset); configureAudio(music, musicAsset, scene.music.loop); play(music); } else {releaseLoop(music); music.removeAttribute('src');} }
   if (restoring && restoredMedia?.music?.asset === musicAsset) { seek(music, restoredMedia.music.time); if (restoredMedia.music.paused) music.pause(); else if (musicAsset) play(music); }
   if (restoring) {
-    for (const audio of effects) { audio.pause(); releaseLoop(audio); } effects.clear();
-    for (const saved of restoredMedia?.effects || []) {
-      if (!engine.content.assets[saved.asset]) throw new Error(`Saved effect unavailable: ${saved.asset}`);
-      const audio = new Audio(mediaURL(saved.asset)); audio.vnAsset = saved.asset; audio.vnChannel = saved.channel; configureAudio(audio, saved.asset, saved.loop); audio.volume = settings.sound; effects.add(audio); seek(audio, saved.time); if (isOneShot(saved.loop)) audio.addEventListener('ended', () => effects.delete(audio), { once: true }); if (!saved.paused) play(audio);
-    }
+    restoreEffects(effects, restoredMedia?.effects, effectServices());
   }
   if(restoring&&engine.state.immediateVoice&&restoredMedia?.voice?.asset===engine.state.immediateVoice.asset){voiceAsset=restoredMedia.voice.asset;voice.src=mediaURL(voiceAsset);configureAudio(voice,voiceAsset);seek(voice,restoredMedia.voice.time);if(!restoredMedia.voice.paused)play(voice);}
   for (const effect of effectsToPlay) playSceneEffect(effect);
@@ -210,9 +207,12 @@ async function renderScene(effectsToPlay = [], restoring = false) {
 function playSceneEffect(effect) {
    if (effect.op === 'voice') {voice.pause();voiceAsset=effect.asset;voice.src=mediaURL(effect.asset);configureAudio(voice,effect.asset);voice.volume=Number(settings.voice);play(voice);}
    if (effect.op === 'sound') {
-    const audio = new Audio(mediaURL(effect.asset)); audio.vnAsset = effect.asset; audio.vnChannel = effect.channel; configureAudio(audio, effect.asset, effect.loop === true); audio.volume = settings.sound; effects.add(audio); if (isOneShot(effect.loop)) audio.addEventListener('ended', () => effects.delete(audio), { once: true }); play(audio);
+    startEffect(effects, effect, effectServices());
    }
-   if (effect.op === 'stopSound') for (const audio of effects) if (effect.channel === 'effects' || (effect.channel && audio.vnChannel === effect.channel) || audio.vnAsset === effect.asset) {audio.pause(); releaseLoop(audio); effects.delete(audio);}
+   if (effect.op === 'stopSound') stopEffects(effects, effect);
+}
+function effectServices() {
+  return { hasAsset: asset => Boolean(engine.content.assets[asset]), createAudio: url => new Audio(url), mediaURL, configure: configureAudio, seek, play, volume: settings.sound };
 }
 function pauseWait() { if (waitDeadline !== null && engine?.current?.kind === 'wait') engine.current.remainingMs = Math.max(0, waitDeadline - performance.now()); sceneCleanup?.pause?.(); clearTimeout(waitTimer); waitDeadline = null;
   if ((engine?.current?.voiceUntilMs != null || engine?.current?.presentation?.voice || engine?.state.immediateVoice) && !voice.paused && !voice.ended) {voice.pause(); pausedVoiceCue = true;}
@@ -535,7 +535,7 @@ async function loadGame(item, resume = true, entry = 'start') {
     else result=candidate.startNew?await candidate.startNew(progress,entry):await candidate.run();
     libraryMode=false;menuSuspended.clear();engine=candidate;document.body.classList.remove('reader-idle');game={...item,id:content.id,title:content.title,platform:content.platform||item.platform};setPlatform(platformId(game));gameLease=nextLease;contentBase=base;
     store.onStatus(game.id,store.mode(game.id)==='shared'?'Shared saves · connected':'Local saves');
-    await engine.loadReadPaths?.();activity=await loadActivity(game.id,history);sceneVisualKey=null;musicAsset=voiceAsset=null;effects.clear();
+    await engine.loadReadPaths?.();activity=await loadActivity(game.id,history);sceneVisualKey=null;musicAsset=voiceAsset=null;clearEffects(effects);
     restoredMedia=saved?.media||null;closePanel(false);
     $('gameTitle').textContent=game.title;$('gameBadge').textContent=content.synthetic?'Original test fixture':candidate.previewNotice||'';
     await present(result,{restoring:retained,restoreMedia:Boolean(saved)&&!retained,navigation:saved?'resume':'start'});
