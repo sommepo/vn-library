@@ -259,7 +259,7 @@ format/dependency/I/O failure. Packaging-only success is not full validation.
 
 The server is already `vnkit-reader.service`: use
 `python3 scripts/reader-service.py status|restart|start|stop`, never a duplicate
-listener. Private Z13 URL and origin rules are in
+listener. Private reader URL and origin rules are in
 [remote access](../../../docs/remote-access.md). A fresh checkout without this
 service can run `python3 -m vnkit serve --port 8891`. No public deployment or
 unrelated service/route changes are implied.
