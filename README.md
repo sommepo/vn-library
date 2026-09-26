@@ -26,7 +26,12 @@ Supply your own copy of one of these Japanese PS2 releases:
 | Cartagra — 魂ノ苦悩 | SLPM-66231 | 1.01 | App or command line |
 | Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
 
-**New in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
+**New in v0.1.0-beta.4:** Yomitan can add the game’s scene image and original
+voice to Anki cards through the optional VN Library media add-on. This release
+also includes the music-loop fix from [PR #1](https://github.com/sommepo/vn-library/pull/1).
+See the [Anki setup guide](docs/anki.md).
+
+**Added in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
 on Windows or Linux. The library has a compact, animated PS2-style menu, and
 save banks can be copied between local and shared storage.
 
@@ -90,8 +95,8 @@ Higurashi Matsuri: Kakera Asobi (standalone)
 
 ### Windows setup
 
-1. Download and extract **VN-Library-Windows-v0.1.0-beta.3.zip** from
-   [Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3).
+1. Download and extract **VN-Library-Windows-v0.1.0-beta.4.zip** from
+   [Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.4).
 2. Run **Install.cmd**. Internet access is needed to download the required tools.
 3. Open **VN Library** from the Start menu or desktop shortcut. The reader
    opens in your browser.
@@ -119,8 +124,8 @@ You’ll need Python 3.11+, Node.js 22+, FFmpeg/ffprobe and the game’s convers
 tools. The automatic tool setup currently targets Ubuntu 26.04 on x86-64; other
 distributions may need manual setup.
 
-Download **VN-Library-Linux-source-v0.1.0-beta.3.tar.gz** from
-[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.3), or clone
+Download **VN-Library-Linux-source-v0.1.0-beta.4.tar.gz** from
+[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.4), or clone
 the repository. The Linux download is source code, not a desktop installer.
 Extract it, open a terminal in the `vnkit` folder, then follow the
 [CLANNAD setup guide](docs/clannad-import.md) or
@@ -259,8 +264,18 @@ Use [Yomitan](https://github.com/yomidevs/yomitan) or another browser dictionary
 directly on the Japanese text. Looking up words and selecting text won’t advance
 the story.
 
-Yomitan can create Anki cards with the usual dictionary setup. The reader itself
-does not attach screenshots or sentence audio.
+Yomitan can create Anki cards with the usual dictionary setup. Optional
+**[Anki media support](docs/anki.md)** adds the scene image and original voice
+clip when you click Add. It uses the game’s assets directly, with a small
+desktop Anki add-on. No screen recording is needed.
+
+Download the add-on from **Reading settings → Anki media**, install it in Anki,
+and set Yomitan’s AnkiConnect address to **http://127.0.0.1:8776**. AnkiConnect
+itself stays on **8765**. Enable Anki media in the reader and wait for
+**Anki: ready** before opening a word lookup. The setup guide covers note fields
+and card templates. Desktop Anki must run on the computer where you use Yomitan.
+Unvoiced lines get an image only; backlog and Live text mining are not supported
+yet. Media added to Anki follows your Anki sync settings.
 
 For external tools, enable **Publish newly presented text** in settings. This
 provides a **WebSocket stream** of dialogue as it appears. Plain text and JSON

@@ -22,6 +22,7 @@ import struct
 import threading
 from .import_jobs import ImportJobs, CHUNK
 from .shared_saves import SharedSaves, SaveConflict, MAX_SAVE_REQUEST
+from .mining import MiningContexts, MAX_REQUEST as MAX_MINING_REQUEST
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit, parse_qs, unquote
 
@@ -130,6 +131,8 @@ class ReaderServer(ThreadingHTTPServer):
             self.shared_saves = SharedSaves(Path(state))
             self.save_token = secrets.token_urlsafe(32)
             self.import_token = secrets.token_urlsafe(32)
+            self.mining_token = secrets.token_urlsafe(32)
+            self.mining = MiningContexts()
             self.extra_origins = set(origins)
             self.public_origin = public_origin
             self.password = password
@@ -219,12 +222,14 @@ class ReaderHandler(BaseHTTPRequestHandler):
         # Request query strings can contain private stream tokens. Never log them.
         pass
 
-    def reply(self, code, data, content_type='application/json; charset=utf-8'):
+    def reply(self, code, data, content_type='application/json; charset=utf-8', headers=None):
         if not isinstance(data, bytes):
             data = json.dumps(data, ensure_ascii=False).encode()
         self.send_response(code)
         self.send_header('Content-Type', content_type)
         self.send_header('Content-Length', str(len(data)))
+        for name, value in (headers or {}).items():
+            self.send_header(name, value)
         self.end_headers()
         if self.command != 'HEAD':
             self.wfile.write(data)
@@ -292,7 +297,28 @@ class ReaderHandler(BaseHTTPRequestHandler):
             self.close_connection = True
             self.reply(400, {'error': 'Malformed request target'})
             return
+        if parsed.path == '/api/mining/context':
+            # A scoped capability grants only one presented line, including
+            # through a password-protected host. No collection-wide credentials.
+            if not self.host_ok() or self.headers.get('Origin') not in (None, self.origin()):
+                self.reply(403, {'error': 'Origin or host is not allowed'})
+                return
+            try:
+                self.reply(200, self.server.mining.get(self.headers.get('X-VNKit-Mining-Context')))
+            except KeyError:
+                self.reply(404, {'error': 'Mining context expired. Look up the word again on its original line.'})
+            except (OSError, ValueError):
+                self.reply(409, {'error': 'Original voice is unavailable; no card was added.'})
+            return
         if not self.authorized(websocket=parsed.path == '/ws'):
+            return
+        if parsed.path == '/api/mining/session':
+            self.reply(200, {'token': self.server.mining_token, 'ttlSeconds': 7200})
+            return
+        if parsed.path == '/api/mining/addon':
+            from .anki_addon import build_addon
+            self.reply(200, build_addon(self.origin()), 'application/octet-stream',
+                       {'Content-Disposition': 'attachment; filename="VN-Library-media.ankiaddon"'})
             return
         if parsed.path == '/ws':
             return self.websocket(parse_qs(parsed.query))
@@ -411,6 +437,9 @@ class ReaderHandler(BaseHTTPRequestHandler):
         if path.startswith('/api/saves/'):
             self.save_request(path)
             return
+        if path == '/api/mining/contexts':
+            self.mining_request()
+            return
         if path != '/api/events':
             self.reply(404, {'error': 'Unknown endpoint'})
             return
@@ -430,6 +459,27 @@ class ReaderHandler(BaseHTTPRequestHandler):
             self.reply(200, {'accepted': accepted})
         except (ValueError, TypeError, UnicodeError, RecursionError, EOFError):
             self.reply(400, {'error': 'Malformed text event'})
+
+    def mining_request(self):
+        if not token_matches(self.headers.get('X-VNKit-Mining-Token'), self.server.mining_token):
+            self.reply(403, {'error': 'Invalid mining session; reload the reader'})
+            return
+        try:
+            lengths = self.headers.get_all('Content-Length', [])
+            if len(lengths) != 1 or self.headers.get('Transfer-Encoding'):
+                raise ValueError('Expected one Content-Length')
+            length = int(lengths[0])
+            if not 0 < length <= MAX_MINING_REQUEST or self.headers.get('Content-Type', '').split(';')[0] != 'application/json':
+                raise ValueError('Expected bounded JSON')
+            body = json.loads(self.read_exact(length))
+            folder = self.server.catalogue()[1].get(body['gameId'])
+            if folder is None:
+                raise ValueError('Unknown imported game')
+            content, _ = self.server.reader_content(folder)
+            self.server.mining.put(body, content, folder, safe_path)
+            self.reply(200, {'ready': True})
+        except (OSError, ValueError, TypeError, KeyError, UnicodeError, RecursionError, EOFError):
+            self.reply(400, {'error': 'Cannot prepare this line’s original media'})
 
     def import_request(self, path):
         if not token_matches(self.headers.get('X-VNKit-Import-Token'), self.server.import_token):

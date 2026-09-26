@@ -507,3 +507,30 @@ bounds checks come from our supplied-disc investigation. No PDTools binary or
 game texture is bundled. PS2HomeDeveloper/ps2-tim2-tool was also inspected but
 was not reused. Existing vgmstream/FFmpeg tools decode original Sony audio and
 PSS movies; their existing pins and notices remain in force.
+
+## Anki media integration (2026-09-26)
+
+Original MIT integration; no upstream dictionary, recorder or AnkiConnect code is
+bundled. Protocol/source references inspected:
+
+- [Yomitan](https://github.com/yomidevs/yomitan), GPL-3.0-or-later, revision
+  `67db60ddc2cbd7b5172d777c117e3201d7ddff0f`: frontend search context,
+  display-anki note context, default `{url}` template and AnkiConnect client.
+  The real unmodified client is used privately for compatibility checks.
+- [Hachidori](https://github.com/bee-san/hachidori), GPL-3.0-or-later, revision
+  `1a12326aaa1b3f4a791e1934f02539956fe8292d`: media-capture documentation and
+  separate pronunciation/sentence-audio fields; no recorder code was reused.
+- [GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner), GPL-3.0,
+  revision `d6b160cd5e7c8ff9007e6a1a74bec68c5b787f68`: Anki/media integration
+  inspected as a reference. No polling, OCR or recording implementation copied.
+- [AnkiConnect's archived source](https://github.com/FooSoft/anki-connect),
+  GPL-3.0-or-later: versioned responses, storeMediaFile and addNote semantics.
+  The project now points to its SourceHut repository; that documentation endpoint
+  was inaccessible during this check. The independent protocol bridge requires
+  the user's existing AnkiConnect, which is not bundled.
+- [Anki add-on documentation](https://addon-docs.ankiweb.net/): package manifest,
+  configuration and profile hooks.
+
+The reader makes scene images with its existing original compositor and exposes
+only registered voice assets associated with presented text. Game media and
+private integration-test reports remain excluded from public packages.

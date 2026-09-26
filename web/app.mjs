@@ -14,6 +14,7 @@ import { createEngine } from './runtime.mjs';
 import { seekNextChoice, NavigationCancelled } from './navigation.mjs';
 import { decodeSceneImages } from './scene-images.mjs';
 import { CRTDisplay } from './crt.mjs';
+import { MiningMedia } from './mining.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
 import { ReaderLayout } from './layout.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
@@ -21,7 +22,7 @@ import { applyLoop, releaseLoop } from './audio-loop.mjs';
 import { clearEffects, restoreEffects, snapshotEffects, startEffect, stopEffects } from './audio-effects.mjs';
 
 const $ = id => document.getElementById(id);
-const defaults = { readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
+const defaults = { ankiMedia: false, readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
 let settings;
 try { settings = { ...defaults, ...JSON.parse(localStorage.getItem('vnkit.settings') || '{}') }; } catch { settings = { ...defaults }; }
 const store = new SaveStore(new Store());
@@ -40,6 +41,16 @@ let loadingGame = false, panelCleanup = null, changingSaveLocation = false;
 const tabId = randomId();
 let selectedPlatform=storedPlatform(localStorage);
 const crt = new CRTDisplay($('art'), () => {const view=engine?.presentationViewport||engine?.content.viewport;return view?[view.width,view.height]:[640,448];});
+const mining=new MiningMedia((message,error=false,state='off')=>{
+  const el=$('anki-media-state');if(el)el.textContent=message;
+  for(const id of ['ankiMediaButton','ankiMediaFullscreen']){
+    const control=$(id);if(!control)continue;
+    control.hidden=state==='off';control.dataset.state=state;
+    control.textContent={pending:'Anki: preparing…',ready:'Anki: ready',error:'Anki: retry',unavailable:'Anki: no line',off:'Anki'}[state];
+    control.title=message;control.setAttribute('aria-label',control.textContent+'. '+message);
+  }
+  if(error)status(message,true);
+});mining.setEnabled(settings.ankiMedia);
 function setPlatform(id) {
   if(!PLATFORMS.some(p=>p.id===id))throw new Error('This platform environment is not supported yet.');
   selectedPlatform=id;document.body.dataset.platform=id;crt.setPlatform(id);layout.setPlatform(id);
@@ -418,6 +429,7 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
   }
   if(engine.progressSnapshot)await store.put(key('progress'),engine.progressSnapshot());
   if(p?.kind==='end')await libraryPanel(true);
+  prepareMining();
   if(globalPause.paused)pauseWait();
   modeButtons(); schedule(); restoredMedia = null;
 }
@@ -556,8 +568,8 @@ async function loadGame(item, resume = true, entry = 'start') {
     $('panelBody').removeAttribute('aria-busy');$('loadNotice').hidden=true;advanceButton();modeButtons();schedule();
   }
 }
-function openPanel(title,id){$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',selectedPlatform==='ps2'&&['library','import'].includes(id));$('panel').classList.toggle('console-import',selectedPlatform==='ps2'&&id==='import');$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
-function closePanel(resume=true){if(changingSaveLocation)return;panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();activity?.interact();if(resume)schedule();}
+function openPanel(title,id){mining.suspend(true);$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',selectedPlatform==='ps2'&&['library','import'].includes(id));$('panel').classList.toggle('console-import',selectedPlatform==='ps2'&&id==='import');$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
+function closePanel(resume=true){if(changingSaveLocation)return;panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();mining.suspend(false);activity?.interact();if(resume)schedule();}
 async function libraryPanel(ending = false, platform = null) {
   setPlatform(platform||(!libraryMode&&game?platformId(game):selectedPlatform));
   libraryMode=true;for(const a of [music,voice,scriptMedia,...effects])if(a&&!a.paused&&!a.ended){menuSuspended.add(a);a.pause();}
@@ -759,6 +771,7 @@ function crtPanel() {
 }
 async function settingsPanel() {
   const body = openPanel('Reading settings', 'settings');
+  body.append(row(button('Anki media',ankiPanel)));
   body.append(row(button('Display / CRT',crtPanel)));
   const colour=document.createElement('input'),colourLabel=document.createElement('label');colour.type='color';colour.id='setting-readColour';colour.value=settings.readColour;colourLabel.htmlFor=colour.id;colourLabel.textContent='Previously read text colour';colour.oninput=()=>{settings.readColour=colour.value;applySettings();};body.append(row(colourLabel,colour));
   const range = (label, name, min, max, step, format = value => value) => {
@@ -791,6 +804,24 @@ async function settingsPanel() {
     try { const response = await fetch('/api/session'); const session = await response.json(); token = session.token; const p = paragraph('Private receiver URL (keep its token private): '); const code = document.createElement('code'); code.textContent = session.wsUrl || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}/ws?token=${encodeURIComponent(token)}&format=sentence`; p.append(code); body.append(p); }
     catch { body.append(paragraph('Relay session unavailable. Verify the toolkit server is running.')); }
   }
+}
+function prepareMining(){
+  if(!engine||libraryMode){mining.invalidate();return;}
+  const p=engine.current?.kind==='choice'?engine.current:currentReadable();
+  void mining.present({game,p,art:$('art'),viewport:engine.presentationViewport||engine.content.viewport,visualKey:sceneVisualKey,skipping:skip});
+}
+function ankiPanel(){
+  const body=openPanel('Anki media','anki');
+  const label=document.createElement('label'),enabled=document.createElement('input');enabled.type='checkbox';enabled.id='anki-media-enabled';enabled.checked=!!settings.ankiMedia;
+  enabled.onchange=()=>{settings.ankiMedia=enabled.checked;applySettings();mining.setEnabled(enabled.checked);prepareMining();};label.append(enabled,document.createTextNode(' Attach the scene and original voice when mining with Yomitan'));body.append(row(label));
+  body.append(paragraph('Install the VN Library media add-on on the computer running Anki. Keep AnkiConnect installed and Anki open.'));
+  body.append(row(button('Download Anki add-on',async()=>{const r=await fetch('/api/mining/addon');if(!r.ok)throw Error('Could not download the add-on');const u=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=u;a.download='VN-Library-media.ankiaddon';a.click();setTimeout(()=>URL.revokeObjectURL(u),10000);})));
+  body.append(paragraph('In Anki: Tools → Add-ons → Install from file. Restart Anki. Tools → VN Library media lets you choose the note fields and ports. This download already includes this reader’s address.'));
+  const steps=document.createElement('ol');for(const text of ['In Yomitan’s Anki settings, set the AnkiConnect address to http://127.0.0.1:8776. Keep your existing AnkiConnect key if you use one.','Map Source to {url}. Leave Picture and SentenceAudio blank. Those fields must exist in your note type; change their names in Anki → Tools → VN Library media if needed. Keep word pronunciation in its own field.','Enable the option above. Close settings and wait for Anki: ready, then open a fresh word lookup and click Add. A popup opened while preparing must be closed and reopened.']){const li=document.createElement('li');li.textContent=text;steps.append(li);}body.append(steps);
+  body.append(paragraph('The image uses the original scene artwork, without menus or CRT effects. Audio is the complete associated voice clip; narration without a voice adds only an image. Backlog and live-text-page mining are not supported yet.'));
+  body.append(paragraph('The reader host must stay reachable. Contexts expire after two hours or when the temporary cache fills. Media attached to a card follows your Anki sync settings.'));
+  const miningStatus=paragraph(mining.message);miningStatus.id='anki-media-state';miningStatus.setAttribute('role','status');body.append(miningStatus);
+  body.append(row(button('Prepare current line again',()=>{mining.invalidate();prepareMining();})));
 }
 async function backlogPanel() {
   if (!activity) return;
@@ -1040,8 +1071,9 @@ async function statsPanel() {
 }
 
 $('crtButton').onclick=guard(crtPanel);$('crtButton').setAttribute('aria-pressed',String(crt.settings.enabled));
+$('ankiMediaButton').onclick=guard(ankiPanel);
 $('libraryButton').onclick = guard(()=>libraryPanel()); $('settingsButton').onclick = guard(settingsPanel); $('closePanel').onclick = closePanel;
-$('panel').addEventListener('cancel', e => {if(loadingGame||changingSaveLocation){e.preventDefault();return;}panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();setTimeout(schedule);});
+$('panel').addEventListener('cancel', e => {if(loadingGame||changingSaveLocation){e.preventDefault();return;}panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();mining.suspend(false);setTimeout(schedule);});
 $('nextButton').onclick = guard(() => advance());
 $('choiceButton').onclick = guard(nextChoice);
 $('dimButton').onclick = () => { settings.dimSurroundings = !settings.dimSurroundings; applySettings(); };
@@ -1071,6 +1103,7 @@ $('fullscreenMenu').onclick=guard(()=>{
     if(source.hasAttribute('aria-pressed'))control.setAttribute('aria-pressed',source.getAttribute('aria-pressed'));
     actions.append(control);
   }
+  if(settings.ankiMedia){const control=button($('ankiMediaButton').textContent,ankiPanel);control.id='ankiMediaFullscreen';control.title=mining.message;actions.append(control);}
   body.append(actions);
 });
 $('fullscreenButton').onclick = guard(async () => { if (document.fullscreenElement) await document.exitFullscreen(); else if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({navigationUI:'hide'}); else status('Fullscreen is unavailable in this browser.'); });

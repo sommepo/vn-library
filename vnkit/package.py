@@ -14,6 +14,7 @@ TREES = {
     'vnkit': {'.py'}, 'web': {'.mjs', '.js', '.html', '.css', '.md'},
     'scripts': {'.py', '.mjs', '.js', '.sh'}, 'tests': {'.py', '.mjs', '.js'},
     'docs': {'.md'}, 'third_party': {'.txt', '.md'}, '.agents/skills/vn-import': {'.md'},
+    'anki-addon': {'.py', '.md'},
     'windows': {'.cs', '.ps1', '.cmd', '.json', '.md'},
     '.github': {'.md', '.yml', '.yaml'},
 }
