@@ -27,8 +27,7 @@ Supply your own copy of one of these Japanese PS2 releases:
 | Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
 
 **New in v0.1.0-beta.4:** Yomitan can add the game’s scene image and original
-voice to Anki cards through the optional VN Library media add-on. This release
-also includes the music-loop fix from [PR #1](https://github.com/sommepo/vn-library/pull/1).
+voice to Anki cards through the optional VN Library media add-on. 
 See the [Anki setup guide](docs/anki.md).
 
 **Added in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
