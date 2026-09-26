@@ -11,6 +11,7 @@ import html
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import re
+import secrets
 import socket
 from urllib.parse import urlsplit
 from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHandler
@@ -18,7 +19,16 @@ from urllib.request import Request, build_opener, HTTPRedirectHandler, ProxyHand
 MAX_BODY = 48 * 1024 * 1024
 DEFAULTS = {'port': 8776, 'anki_port': 8765,
             'reader_origins': ['http://127.0.0.1:8891', 'http://localhost:8891'],
-            'source_field': 'Source', 'image_field': 'Picture', 'audio_field': 'SentenceAudio'}
+            'source_field': 'Source', 'image_field': 'Picture', 'audio_field': 'SentenceAudio',
+            'remote_enabled': False, 'remote_origin': '', 'remote_key': '', 'anki_key': ''}
+
+# The remote key authorizes mining and Yomitan's normal collection lookups,
+# not arbitrary AnkiConnect operations such as deleting decks or installing code.
+REMOTE_ACTIONS = frozenset({'version', 'requestPermission', 'apiReflect', 'multi',
+    'deckNames', 'deckNamesAndIds', 'modelNames', 'modelNamesAndIds', 'modelFieldNames',
+    'canAddNotes', 'canAddNotesWithErrorDetail', 'findNotes', 'findCards', 'notesInfo',
+    'cardsInfo', 'addNote', 'addNotes', 'guiAddCards', 'guiBrowse', 'guiEditNote',
+    'storeMediaFile', 'updateNoteFields', 'suspend', 'sync'})
 
 
 class NoRedirect(HTTPRedirectHandler):
@@ -50,7 +60,33 @@ def config_checked(values):
     fields = [c[k] for k in ('source_field', 'image_field', 'audio_field')]
     if any(not isinstance(x, str) or not 0 < len(x) < 128 for x in fields) or len(set(fields)) != 3:
         raise ValueError('Choose three different note fields')
+    if type(c['remote_enabled']) is not bool:
+        raise ValueError('Invalid remote mining setting')
+    if not all(isinstance(c[k], str) for k in ('remote_origin', 'remote_key', 'anki_key')):
+        raise ValueError('Invalid remote connection settings')
+    if c['remote_enabled']:
+        if origin(c['remote_origin']) != c['remote_origin'] or not c['remote_origin'].startswith('https://'):
+            raise ValueError('Use the desktop’s full HTTPS address, without a path or trailing slash')
+        if not re.fullmatch(r'[A-Za-z0-9_-]{32,128}', c['remote_key']):
+            raise ValueError('Generate a connection key before enabling remote mining')
     return c
+
+
+def tailscale_serve_command(config):
+    c = config_checked(config)
+    if not c['remote_enabled'] or not urlsplit(c['remote_origin']).hostname.endswith('.ts.net'):
+        raise ValueError('Enter this computer’s Tailscale HTTPS address first')
+    port = urlsplit(c['remote_origin']).port or 443
+    return f'tailscale serve --bg --https={port} http://127.0.0.1:{c["port"]}'
+
+
+def tailscale_origin(status, port=8776):
+    name = status.get('Self', {}).get('DNSName', '').rstrip('.')
+    if status.get('BackendState') != 'Running' or not re.fullmatch(r'[a-zA-Z0-9.-]+\.ts\.net', name):
+        raise ValueError('Connect Tailscale on this computer, then detect its address again')
+    if type(port) is not int or not 1 <= port <= 65535:
+        raise ValueError('Invalid HTTPS port')
+    return f'https://{name}:{port}'
 
 
 def request_json(url, data=None, headers=None):
@@ -69,6 +105,38 @@ class MediaBridge:
     def __init__(self, config, fetch=request_json):
         self.config = config_checked(config)
         self.fetch = fetch
+
+    def authorize(self, request):
+        if not isinstance(request, dict):
+            raise ValueError('Invalid Anki request')
+        if self.config['remote_enabled']:
+            supplied = request.get('key')
+            if not isinstance(supplied, str) or not secrets.compare_digest(supplied.encode(), self.config['remote_key'].encode()):
+                raise ValueError('Connection key missing or incorrect. Copy it from Anki → Tools → VN Library media into Yomitan’s API key setting.')
+
+    def remote_request(self, request):
+        """Validate the entire batch before any media write or note creation."""
+        budget = [64]
+        def walk(r, depth=0):
+            budget[0] -= 1
+            if not isinstance(r, dict) or depth > 4 or budget[0] < 0:
+                raise ValueError('Invalid remote Anki request')
+            if r.get('action') not in REMOTE_ACTIONS:
+                raise ValueError('This Anki action is not available through remote mining')
+            if not isinstance(r.get('params', {}), dict):
+                raise ValueError('Invalid remote Anki parameters')
+            r.pop('key', None)
+            if self.config['anki_key']:
+                r['key'] = self.config['anki_key']
+            if r['action'] == 'multi':
+                actions = r.get('params', {}).get('actions')
+                if not isinstance(actions, list) or len(actions) > 32:
+                    raise ValueError('Invalid remote Anki batch')
+                for a in actions:
+                    walk(a, depth+1)
+        result = copy.deepcopy(request)
+        walk(result)
+        return result
 
     def enrich(self, note):
         if not isinstance(note, dict):
@@ -160,6 +228,8 @@ class MediaBridge:
             raise ValueError('Invalid Anki request')
         r = copy.deepcopy(request)
         action, params = r.get('action'), r.get('params', {})
+        if not isinstance(params, dict):
+            raise ValueError('Invalid Anki parameters')
         if action in ('addNote', 'guiAddCards'):
             params['note'] = self.enrich(params['note'])
         elif action == 'addNotes':
@@ -173,8 +243,15 @@ class MediaBridge:
         return r
 
     def invoke(self, request, client_origin=None):
+        self.authorize(request)
+        remote = self.config['remote_enabled']
+        if remote:
+            request = self.remote_request(request)
         prepared = self.prepare(request)
-        headers = {'Origin': client_origin} if client_origin else {}
+        # In remote mode our connection key is the authorization boundary. Only
+        # the desktop's separate AnkiConnect key goes upstream; a phone's
+        # extension UUID need not be added to AnkiConnect's CORS configuration.
+        headers = {'Origin': client_origin} if client_origin and not remote else {}
         endpoint = 'http://127.0.0.1:'+str(self.config['anki_port'])
         def call(action, params):
             body = {'action': action, 'params': params, 'version': 6}
@@ -241,7 +318,14 @@ class BridgeHandler(BaseHTTPRequestHandler):
         self.connection.settimeout(25)
         port = self.server.server_address[1]
         value = self.headers.get('Origin')
-        return (self.path == '/' and self.headers.get('Host') in (f'127.0.0.1:{port}', f'localhost:{port}')
+        hosts = {f'127.0.0.1:{port}', f'localhost:{port}'}
+        config = self.server.bridge.config
+        if not config['remote_enabled'] and any(name.lower().startswith(('x-forwarded-', 'tailscale-')) or name.lower() == 'forwarded' for name in self.headers):
+            return False  # A leftover Serve route must not expose local-only mode.
+        if config['remote_enabled']:
+            hosts.add(urlsplit(config['remote_origin']).netloc)
+        return (self.path == '/' and len(self.headers.get_all('Host', [])) == 1
+                and len(self.headers.get_all('Origin', [])) <= 1 and self.headers.get('Host') in hosts
                 and (value is None or re.fullmatch(r'(?:chrome|moz)-extension://[a-zA-Z0-9-]+', value)))
 
     def reply(self, result=None, error=None, status=200, raw=False):

@@ -27,7 +27,7 @@ Supply your own copy of one of these Japanese PS2 releases:
 | Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
 
 **New in v0.1.0-beta.4:** Yomitan can add the game’s scene image and original
-voice to Anki cards through the optional VN Library media add-on. 
+voice to Anki cards through the optional VN Library media add-on.
 See the [Anki setup guide](docs/anki.md).
 
 **Added in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
@@ -272,7 +272,11 @@ Download the add-on from **Reading settings → Anki media**, install it in Anki
 and set Yomitan’s AnkiConnect address to **http://127.0.0.1:8776**. AnkiConnect
 itself stays on **8765**. Enable Anki media in the reader and wait for
 **Anki: ready** before opening a word lookup. The setup guide covers note fields
-and card templates. Desktop Anki must run on the computer where you use Yomitan.
+and card templates. The newer **media add-on 0.2.0** also supports mining on a
+phone into desktop Anki through Tailscale HTTPS; see
+[phone setup](docs/anki.md#mine-on-a-phone-add-cards-on-a-computer).
+The refreshed beta.4 download includes this add-on. If you installed the earlier
+0.1.0 add-on, download it again from the updated reader and reinstall it in Anki.
 Unvoiced lines get an image only; backlog and Live text mining are not supported
 yet. Media added to Anki follows your Anki sync settings.
 

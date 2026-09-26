@@ -1,7 +1,7 @@
 # Import and read this CLANNAD disc
 
 The active library is `private/library/clannad-live`. With Tailscale connected,
-the Z13 can open:
+the Windows PC can open:
 
 [Read CLANNAD](https://your-server.your-tailnet.ts.net:8891/?game=clannad-slpm66302-1.01).
 
@@ -124,7 +124,7 @@ but it is not a substitute for browser save/history exports.
 
 ## Personal checks
 
-1. Open the direct CLANNAD link on the Z13; check music after a user gesture and
+1. Open the direct CLANNAD link on the Windows PC; check music after a user gesture and
    an original voiced line. If autoplay is blocked, Aa → Enable audio.
 2. Select Japanese and use Yomitan; confirm dictionary interaction never advances.
 3. Try a choice, quicksave/load, backlog search and normal/automatic copying.

@@ -79,7 +79,7 @@ If native composition itself fails, an explicit status appears and separate DOM
 image layers remain available. DOM fallback may show fractional-scale seams.
 
 Only Chromium software-WebGL and responsive mobile viewport tests have been run
-here. Physical Z13 GPU performance, Firefox/Android GPU behavior, actual 4K panel
+here. Physical Windows PC GPU performance, Firefox/Android GPU behavior, actual 4K panel
 appearance, Yomitan interaction on those devices and comparison with hardware
 CRTs/RetroArch/MiSTer remain user-device checks.
 

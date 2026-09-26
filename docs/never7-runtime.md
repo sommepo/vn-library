@@ -88,7 +88,7 @@ harness/resumed verification boundary. These are actual conversion tests with
 existing Linux tools, not a fresh OS setup or native Windows execution claim.
 
 On Windows, quit the old tray app, install the updated package, reopen VN Library
-and use Add game. Still to check on the Z13: installer update, a complete Never7
+and use Add game. Still to check on the Windows PC: installer update, a complete Never7
 conversion, audio playback, route/save controls and reopening after quitting.
 
 ## Execution and state

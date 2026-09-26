@@ -214,7 +214,7 @@ VNKIT_REPORT_DIR=private/browser-tests/new-shared-saves sh scripts/browser-env.s
 ## Connection fix verification (2026-09-19)
 
 The reported “Cannot reach shared saves” was a failed browser fetch; the precise
-Z13 network failure could not be observed from the server. Read-only diagnostics
+Windows PC network failure could not be observed from the server. Read-only diagnostics
 found a healthy database and successful local/private HTTPS reads and a rejected,
 non-mutating HTTPS POST. One HTTP/1.1 defect was corrected: save POST deliberately
 closed its socket but omitted `Connection: close`, allowing clients/proxies to
@@ -228,7 +228,7 @@ reload, explicit Retry and exact source-occurrence restoration pass without loca
 bank or reading-count changes. Eleven shared-store Node tests, seven Python shared
 storage/API tests and eighteen server tests pass. Backend token rotation, legacy
 recovery, conflicting recovery and persisted/bounded receipts are covered in the
-unit tests. Physical Z13 networking remains a user-device check.
+unit tests. Physical Windows PC networking remains a user-device check.
 
 Before rollout, the live database was backed up consistently to
 `private/backups/shared-saves-before-retry-fix-20260919.sqlite3`. The service alone

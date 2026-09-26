@@ -17,7 +17,7 @@ def build_addon(reader_origin):
              'config.json': json.dumps(config, indent=2).encode(),
              'config.md': (root/'anki-addon/config.md').read_bytes(),
              'LICENSE': (root/'LICENSE').read_bytes(),
-             'manifest.json': json.dumps({'package':'vn_library_media','name':'VN Library media','human_version':'0.1.0'}).encode()}
+             'manifest.json': json.dumps({'package':'vn_library_media','name':'VN Library media','human_version':'0.2.0'}).encode()}
     with zipfile.ZipFile(buffer, 'w', zipfile.ZIP_DEFLATED) as archive:
         for name, data in files.items():
             archive.writestr(name, data)

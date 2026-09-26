@@ -107,7 +107,7 @@ versions, download cache, shortcuts and optional start-at-login entry. **Games,
 saves, activity and port settings are kept.** An active import blocks normal
 Stop/Quit; let it finish. An unfinished browser upload can be resumed later.
 
-## First Z13 test
+## First Windows PC test
 
 If the original test build reports `TimeoutExpired: import stopped`, install the
 updated import-fix build after quitting the old app from the tray. It retains
@@ -145,7 +145,7 @@ is needed. Check tools and import now use the same isolated FluidSynth check.
 If it still stops, copy the error including “Last step”, or open the job's private
 `preflight.log` in the data folder. The reported stage distinguishes a library
 load stall from version lookup or process shutdown. We have not yet confirmed a
-complete Windows conversion on the Z13.
+complete Windows conversion on the Windows PC.
 
 The app is named VN Library. Existing AppData folders retain the earlier
 `VN Import Toolkit` name so upgrades preserve games and saves.

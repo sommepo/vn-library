@@ -9,7 +9,7 @@ const base=process.env.VNKIT_URL||'http://127.0.0.1:8891';
 const game='clannad-slpm66302-1.01';
 const target=Number(process.env.VNKIT_SEGMENTS||310);if(!Number.isInteger(target)||target<310||target>10000)throw new Error('VNKIT_SEGMENTS must be 310..10000');
 const out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/clannad');await fs.mkdir(out,{recursive:true});
-const report={game,realScriptWaits:true,mainPathTextSegments:0,choices:0,checks:[],errors:[],limitations:['Original PS2 execution comparison unavailable','Physical Z13/Android, Firefox and Yomitan untested','Native visual degradations documented separately']};
+const report={game,realScriptWaits:true,mainPathTextSegments:0,choices:0,checks:[],errors:[],limitations:['Original PS2 execution comparison unavailable','Physical Windows PC/Android, Firefox and Yomitan untested','Native visual degradations documented separately']};
 const browser=await chromium.launch({headless:true});let ws;
 const pass=name=>{report.checks.push(name);console.log('PASS '+name);};
 const pause=ms=>new Promise(r=>setTimeout(r,ms));

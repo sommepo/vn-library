@@ -94,7 +94,7 @@ checkpoints. No user's live save bank was used:
 The first shared-save attempt used a timed ending checkpoint, unsuitable for a
 stable-position assertion. The second exposed outdated test interaction with a
 modal. The final run uses source dialogue and current controls; no save transport
-change was necessary. These are browser simulations, not a physical Z13/phone
+change was necessary. These are browser simulations, not a physical Windows PC/phone
 handoff or additional PS2 route-comparison evidence.
 
 ```sh

@@ -1,7 +1,9 @@
 # Anki media from the game
 
-**Available in beta.4.** This needs the updated reader/server and the
-VN Library media add-on. Earlier release downloads do not contain this feature.
+**Included in the refreshed beta.4 download.** Phone-to-desktop mining needs
+**VN Library media add-on 0.2.0**. If you installed the earlier 0.1.0 add-on,
+download it again from the updated reader and reinstall it in Anki. Updating
+the reader alone does not update an add-on already installed in Anki.
 
 Once set up, Yomitan's ordinary **Add** button includes the current scene image
 and its original voice clip, when available. No desktop recording, microphone,
@@ -62,7 +64,7 @@ silently create a game card without its media.
   URL saying `pending` indefinitely.
 
 The ready indicator confirms that the reader prepared media. It cannot check
-Yomitan's settings or confirm the add-on is running on your reading computer.
+Yomitan's settings or confirm the add-on is running on your Anki computer.
 Existing cards are not automatically repaired by changing the address.
 
 ## Home server and device support
@@ -72,10 +74,81 @@ Windows or Linux reading computer. Use the reader's private HTTPS/Tailscale
 address to download the add-on. That exact origin is allowed in its configuration.
 The computer running Anki must be able to reach that address.
 
-The bridge binds only to `127.0.0.1`; it does not expose Anki on your network.
-Remote reader origins require HTTPS. The bridge is not an AnkiDroid/AnkiMobile
-add-on, and direct phone-to-desktop mining is not provided in this first version.
-Cards already added follow Anki's normal media sync and device playback support.
+The bridge and AnkiConnect both bind to `127.0.0.1`. Remote reader origins require
+HTTPS. Cards already added follow Anki's normal media sync and device playback
+support.
+
+### Mine on a phone, add cards on a computer
+
+This works through the phone's Yomitan extension and desktop Anki. The game may
+stay on a separate home server. It is not an AnkiDroid or AnkiMobile add-on.
+
+```text
+Phone: VN Library + Yomitan
+    → Tailscale HTTPS on the Anki computer
+    → VN Library media add-on
+    → local AnkiConnect → Anki collection
+
+The add-on fetches the selected scene and voice from the reader host.
+```
+
+1. Install **VN Library media 0.2.0** on the computer running Anki, replacing the
+   older add-on through **Tools → Add-ons → Install from file**. Restart Anki.
+   Keep your existing note-field names and reader address.
+2. Connect that computer and the phone to your Tailscale network. The computer
+   must also be able to open your reader's address.
+3. Open **Tools → VN Library media** and enable **Allow mining from my phone /
+   another device through Tailscale**. Choose **Detect Tailscale**. This fills
+   in the Anki computer's HTTPS address and generates a connection key.
+4. Choose **Copy Tailscale setup command / instructions**, then **Save**. In a
+   terminal on the Anki computer, run `tailscale serve status`. Check that the
+   chosen HTTPS port is unused, then run the copied command. With the default
+   ports, it is:
+
+   ```sh
+   tailscale serve --bg --https=8776 http://127.0.0.1:8776
+   ```
+
+   Follow Tailscale's HTTPS setup link if it shows one. If that HTTPS port already
+   belongs to another service, change the port in the add-on's HTTPS address,
+   save, and copy its updated command. Do not reset existing Serve routes.
+5. In the phone's **Yomitan → Anki settings**, set the server address to the
+   **phone address** shown in the add-on, for example
+   `https://your-anki-computer.your-tailnet.ts.net:8776`. Use **Copy key** to put the
+   connection key in Yomitan's **API key** setting. It is required even for the
+   connection check. Do not put the key in the URL.
+6. Keep the same note-field setup: Source uses `{url}`, with empty templates for
+   your scene image and sentence audio fields. Enable **Anki media** in the
+   phone's VN Library settings, wait for **Anki: ready**, and open a fresh lookup.
+
+If you also mine on the Anki computer, its Yomitan address can stay
+`http://127.0.0.1:8776`, but it now needs the **same connection key**. If
+AnkiConnect already has its own key, enter that separately in the add-on's
+**Existing AnkiConnect key** field. The phone key is not sent to AnkiConnect.
+
+There are two different addresses: **Reader addresses** points to the machine
+hosting the game; **This Anki computer's HTTPS address** points to the machine
+running Anki. They can be different machines. Keep Anki open and its computer
+awake while mining. Phone cards are added to that desktop collection and reach
+AnkiDroid through your usual sync.
+
+Use [Tailscale Serve](https://tailscale.com/docs/features/tailscale-serve), which
+is private to your tailnet, rather than Funnel. No router port forwarding is
+needed. Leave AnkiConnect's bind address, CORS settings and port unchanged.
+The add-on detects an address and copies commands; it does not change your
+Tailscale setup itself. Keep the connection key private: it grants access to
+mining and collection lookups. Normal mining actions are allowed; arbitrary
+AnkiConnect administration and deletion commands are refused.
+
+To turn remote access off, remove only this Serve endpoint with
+`tailscale serve --https=8776 off` (use your chosen HTTPS port), then disable
+remote mining in the add-on. Restore the local Yomitan API key to your original
+AnkiConnect key, or leave it empty if you had none.
+
+If Yomitan cannot connect, check the HTTPS address and connection key, that Anki
+is open, and that both devices are connected to Tailscale. `127.0.0.1` on a phone
+means the phone itself. Opening the bridge address as a normal webpage is not a
+connection test; use Yomitan's connection status.
 
 ## What gets attached
 
@@ -148,7 +221,7 @@ Do not run this command and the Anki add-on simultaneously on the same port.
 Tests use temporary state and an Anki transport mock, never the user's collection:
 
 ```sh
-python3 -m unittest discover -s tests -p test_mining.py -v
+python3 -m unittest discover -s tests -p 'test_mining*.py' -v
 sh scripts/browser-env.sh node tests/browser-mining.mjs private/browser-tests/new-mining
 ```
 
@@ -162,3 +235,10 @@ The maintainer reported successful desktop mining after configuring Yomitan
 to use the bridge on port 8776. The automated tests do not run a real Anki
 collection. Other note templates, browser/OS combinations and media playback
 on synced devices still need testing.
+
+Remote tests use an isolated HTTPS reverse proxy with a verified test certificate
+and mocked Anki writes. They cover image/voice attachment, version-2 and version-6
+replies, connection-key checks, nested batches, backend key separation and turning
+remote mode off. `VNKIT_TEST_REMOTE_MINING=1` runs the browser harness with remote
+authentication; its transport remains loopback, while the Python tests cover TLS.
+These checks do not establish a real phone/Tailscale/Windows Anki pass.

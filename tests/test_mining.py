@@ -74,6 +74,10 @@ class MiningTests(unittest.TestCase):
         with zipfile.ZipFile(io.BytesIO(build_addon('https://reader.example.ts.net:8891'))) as z:
             self.assertEqual(set(z.namelist()),{'__init__.py','bridge.py','config.json','config.md','LICENSE','manifest.json'})
             self.assertEqual(json.loads(z.read('config.json'))['reader_origins'],['https://reader.example.ts.net:8891'])
+            self.assertEqual(json.loads(z.read('manifest.json'))['human_version'], '0.2.0')
+            config = json.loads(z.read('config.json'))
+            self.assertFalse(config['remote_enabled'])
+            self.assertEqual((config['remote_key'], config['anki_key']), ('', ''))
         with self.assertRaises(ValueError):build_addon('https://reader.example/a')
 
 

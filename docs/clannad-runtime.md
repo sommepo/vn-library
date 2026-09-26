@@ -68,7 +68,7 @@ the final state immediately. The compatibility report deliberately remains
 unsupported script command sites. The detailed per-family list is in
 [basic execution](clannad-basic-execution.md).
 
-Original PS2 side-by-side comparison, every route/end, Firefox, physical Z13/
+Original PS2 side-by-side comparison, every route/end, Firefox, physical Windows PC/
 Android and Yomitan remain unverified. Do not describe these as passed or call
 this a faithful complete port.
 

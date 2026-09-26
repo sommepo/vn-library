@@ -127,5 +127,5 @@ movie playback/restoration/resumption, immediate voice completion and progress.
 
 Full validation still intentionally exits 3: 81 atlas/format entries, detailed
 credits/MZD/montages, timing and complete route fidelity remain incomplete.
-Original PS2 comparison, physical Z13/Android, Firefox and dictionary-extension
+Original PS2 comparison, physical Windows PC/Android, Firefox and dictionary-extension
 checks were not performed in this pass.

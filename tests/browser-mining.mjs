@@ -8,7 +8,7 @@ const ports=await new Promise((resolve,reject)=>{const t=setTimeout(()=>reject(E
 const origin=`http://127.0.0.1:${ports.reader}`,playwright=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs'))),browserType=process.env.VNKIT_BROWSER||'chromium';
 let browser,page;const report={browser:browserType,game,checks:[],errors:[],ankiCollection:'mock transport; no real user collection touched'};
 const pass=x=>{report.checks.push(x);console.log('PASS '+x);};
-const post=async body=>{const r=await fetch(`http://127.0.0.1:${ports.bridge}/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});return r.json();};
+const post=async body=>{const r=await fetch(`http://127.0.0.1:${ports.bridge}/`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({...body,...(ports.remoteKey?{key:ports.remoteKey}:{})})});return r.json();};
 const records=()=>fetch(`http://127.0.0.1:${ports.anki}/`).then(r=>r.json());
 const mineNote=url=>({deckName:'Test',modelName:'Vocabulary',fields:{Word:'道',Sentence:'Test sentence',Source:url,Picture:'',SentenceAudio:'',WordAudio:'[sound:dictionary.mp3]'}});
 try{
@@ -52,10 +52,11 @@ try{
  const counts=()=>page.evaluate(async game=>{const{Store}=await import('/storage.mjs');const s=new Store();await s.open();const a=await s.get(game+':activity');s.db.close();return {seen:a.seen,occurrences:a.occurrences,characters:a.sessions.reduce((n,x)=>n+x.characters,0)};},game);const beforeAdd=await counts();
  let result;
  if(process.env.VNKIT_YOMITAN_CLIENT){
-  const {AnkiConnect}=await import(pathToFileURL(path.resolve(process.env.VNKIT_YOMITAN_CLIENT)));const client=new AnkiConnect();client.enabled=true;client.server=`http://127.0.0.1:${ports.bridge}/`;assert.equal(await client.addNote(mineNote(firstUrl)),123);pass('Unmodified upstream Yomitan AnkiConnect client adds a note through the bridge');
+  const {AnkiConnect}=await import(pathToFileURL(path.resolve(process.env.VNKIT_YOMITAN_CLIENT)));const client=new AnkiConnect();client.enabled=true;client.server=`http://127.0.0.1:${ports.bridge}/`;if(ports.remoteKey)client.apiKey=ports.remoteKey;assert.equal(await client.addNote(mineNote(firstUrl)),123);pass('Unmodified upstream Yomitan AnkiConnect client adds a note through the bridge');
  }else{result=await post({action:'addNote',version:6,params:{note:mineNote(firstUrl)}});assert.equal(result.result,123);assert.equal(result.error,null);}
  assert.deepEqual(await counts(),beforeAdd);pass('Mining does not change read IDs, occurrences or character totals');
  let all=await records(),added=all.find(r=>r.action==='addNote').params.note;
+ if(ports.remoteKey){assert.ok(!JSON.stringify(all).includes(ports.remoteKey));pass('Remote mode accepts Yomitan’s connection key without forwarding it to Anki');}
  assert.ok(added.fields.Picture.includes(first.image.filename));if(first.audio)assert.ok(added.fields.SentenceAudio.includes(first.audio.filename));assert.equal(added.fields.WordAudio,'[sound:dictionary.mp3]');assert.ok(!added.fields.Source.includes('#vnl='));
  assert.equal(all.find(r=>r.action==='storeMediaFile').sha256,crypto.createHash('sha256').update(Buffer.from(first.image.data,'base64')).digest('hex'));pass('Lookup stays pinned after advancing; original media arrives before note; word audio preserved');
  if(game==='original-synthetic'){

@@ -149,7 +149,7 @@ their original menus are not implemented. The compact Latin glyph currently
 decodes as CP932 ⑳; its font mapping is unverified. Unknown percent controls fail.
 Ruby is supported by the reader, but this edition's exact ruby/font-control
 coverage has not been established. No PS2/emulator audiovisual comparison was
-performed. Android, Z13 audio and the user's dictionary extension require device
+performed. Android, Windows PC audio and the user's dictionary extension require device
 checks. Do not claim full-game fidelity or an exact completion percentage.
 
 ## Format/native evidence for maintainers

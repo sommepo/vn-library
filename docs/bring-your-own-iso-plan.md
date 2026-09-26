@@ -145,7 +145,7 @@ panel with this sequence:
 For the first home-server version, sources come from an explicitly configured
 import directory or a source registered through the CLI. The browser receives
 opaque source IDs, not unrestricted server filesystem access. A file picker on
-the Z13 selects a file on the Z13, not one on the development host; make that distinction explicit.
+the Windows PC selects a file on the Windows PC, not one on the development host; make that distinction explicit.
 If device-to-own-server transfer is added later, show the destination/transfer
 clearly, bound its size and support interruption. Do not imply that this transfer
 is needed when the ISO is already on the server. No third-party upload is involved.
@@ -179,7 +179,7 @@ partially compatible imports are distinguished; existing reading features remain
   actual external WebSocket reception, auto/skip/Next choice and activity
   deduplication across restoration/reload. Use synthetic data for public tests.
 - Recheck both mobile orientations/fullscreen, opacity, CRT and font preferences.
-  Distinguish automated desktop-browser emulation from physical Android/Z13 and
+  Distinguish automated desktop-browser emulation from physical Android/Windows PC and
   Yomitan checks. Never use the user's live shared-save bank for test writes.
 - Audit tarball/container contents: no commercial assets/scripts/tables, ISOs,
   local study data, tool caches or secrets. Verify manifest checksums and notices.

@@ -170,7 +170,7 @@ sh scripts/browser-env.sh node tests/browser-pia-audio.mjs
 
 The isolated Chromium test decoded the real movie's video frames and unmuted
 audio, reached playback, then sought to the end and observed `ended`. Browser
-codec support on the user's Firefox/Z13/Android still requires device checks.
+codec support on the user's Firefox/Windows PC/Android still requires device checks.
 Reports are private: `private/browser-tests/pia-media-report.json` and
 `private/probe/movie/decoded-roundtrip.json`. Movie playback is a media test;
 it does not establish the runtime's correct movie trigger or task continuation.

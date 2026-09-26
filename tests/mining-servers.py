@@ -3,6 +3,7 @@ import base64
 import hashlib
 from http.server import BaseHTTPRequestHandler,ThreadingHTTPServer
 import json
+import os
 from pathlib import Path
 import socket
 import sys
@@ -32,9 +33,12 @@ class AnkiMock(BaseHTTPRequestHandler):
 reader=ReaderServer(('127.0.0.1',0),sys.argv[1],sys.argv[2])
 anki=ThreadingHTTPServer(('127.0.0.1',0),AnkiMock)
 with socket.socket() as sock:sock.bind(('127.0.0.1',0));port=sock.getsockname()[1]
-bridge=BridgeServer({'port':port,'anki_port':anki.server_address[1],'reader_origins':['http://127.0.0.1:'+str(reader.server_address[1])]})
+remote = bool(os.environ.get('VNKIT_TEST_REMOTE_MINING'))
+remote_key = 'browser-test-credential-'+'r'*32 if remote else None
+bridge=BridgeServer({'port':port,'anki_port':anki.server_address[1],'reader_origins':['http://127.0.0.1:'+str(reader.server_address[1])],
+    **({'remote_enabled': True, 'remote_origin': 'https://desktop.example.ts.net:8776', 'remote_key': remote_key} if remote else {})})
 for s in (reader,anki,bridge):threading.Thread(target=s.serve_forever,daemon=True).start()
-print(json.dumps({'reader':reader.server_address[1],'anki':anki.server_address[1],'bridge':bridge.server_address[1]}),flush=True)
+print(json.dumps({'reader':reader.server_address[1],'anki':anki.server_address[1],'bridge':bridge.server_address[1], 'remoteKey': remote_key}),flush=True)
 try:sys.stdin.read()
 finally:
     for s in (reader,anki,bridge):s.shutdown();s.server_close()

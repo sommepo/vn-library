@@ -21,7 +21,7 @@ need evidence that their formats and engine behavior match a supported adapter.
 
 Windows test installer: see [Windows setup](windows.md). It includes a tray app,
 app-local runtime/tool setup and configurable port. It still needs installation,
-upgrade/uninstall and complete import tests on the Z13 before claims of a verified
+upgrade/uninstall and complete import tests on the Windows PC before claims of a verified
 Windows install-and-play release.
 
 1. **Prove clean setup and conversion.** Unpack the release on a fresh Linux

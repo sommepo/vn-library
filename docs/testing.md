@@ -156,7 +156,7 @@ looked at a stale periodic autosave after voice completion; v5 explicitly persis
 live state and passed, also testing nonempty earned completion flags. These failed
 assertions are not missing disc content or passed checks.
 
-Original PS2 comparison, every route, natural After Story unlock, physical Z13/
+Original PS2 comparison, every route, natural After Story unlock, physical Windows PC/
 Android, Firefox and Yomitan are still unperformed. Earlier F[500] difference
 checks below used a missing native default; they are historical implementation
 observations, not current original-engine fidelity evidence.
@@ -216,7 +216,7 @@ save list before its IndexedDB rendering finished; v2/v3 use an explicit wait.
 A validation begun against a build directory during its promotion produced
 transient missing-path messages; `validation-live-v10.txt` reran against the stable
 live path and is the accepted resource evidence. None indicates absent ISO data.
-Physical Z13/Android, Firefox, Yomitan and comparison against original PS2 execution
+Physical Windows PC/Android, Firefox, Yomitan and comparison against original PS2 execution
 remain unperformed. Full route/ending fidelity is still unverified.
 
 ```sh
@@ -252,7 +252,7 @@ tested separately from the 1,800-page reading run below:
   button now stays disabled until advancement completes; v4 passes rapid normal
   advancement as well as the new interruption test. Earlier evidence is retained.
 - The repository-local skill validates. No ISO, private import or unrelated
-  service/route was modified. Physical Z13/Android, Firefox and Yomitan checks
+  service/route was modified. Physical Windows PC/Android, Firefox and Yomitan checks
   remain for the user; this change does not expand native opcode support.
 
 ```sh
@@ -307,7 +307,7 @@ sh scripts/browser-env.sh node tests/browser-clannad-voice-cues.mjs
 
 The latter tests need the private reached checkpoints documented in the runtime
 report. They create isolated profiles and keep screenshots/reports under private
-paths. Physical Z13/Android, Firefox, Yomitan and hosted Renji UI tests remain
+paths. Physical Windows PC/Android, Firefox, Yomitan and hosted Renji UI tests remain
 unperformed. The wire protocol and independent external consumers were checked;
 that does not establish every browser extension's behavior. No running original
 PS2/emulator comparison or full-route test has been performed.
@@ -344,7 +344,7 @@ its earlier static-only limitations are superseded by this checkpoint and
   VP9/FLAC variant. Independent browser video/audio checks passed. Three real
   music/ambient FLAC files and a native effect also passed browser decoding.
 - The existing reader service is active. Private Tailscale HTTPS health passed
-  from the development host; physical Z13/Android/Yomitan checks remain user-device tests.
+  from the development host; physical Windows PC/Android/Yomitan checks remain user-device tests.
 
 ```sh
 python3 -m unittest discover -s tests -p 'test_*.py' -v
@@ -547,7 +547,7 @@ See [CRT commands and scope](crt-display.md). Current evidence:
   pixel dimensions. All browser runs use fresh profiles, not the user's saves.
 
 CRT browser tests use Chromium software rendering (SwiftShader). They do not
-establish physical Z13/Android/Firefox GPU performance, 4K monitor quality or
+establish physical Windows PC/Android/Firefox GPU performance, 4K monitor quality or
 parity with RetroArch/MiSTer/CRT hardware. The CRT feature does not change game
 adapter support, import/save signatures or the existing full-validation exit 3.
 
@@ -597,7 +597,7 @@ pass 18 cases including private 304, changed-file invalidation, Host/Origin chec
 and API no-store. All five reader Node test files pass.
 
 Image first loads and revalidation round trips remain; no remote latency benchmark
-or physical Z13/Firefox/Android test was performed. The supplied blue-haired
+or physical Windows PC/Firefox/Android test was performed. The supplied blue-haired
 portrait crop has no attached source checkpoint; the regression uses the existing
 source-reached Sunohara body/face checkpoint. Native coordinates are scale-invariant
 there, and screenshots confirm removal of its unfiltered rectangular join.

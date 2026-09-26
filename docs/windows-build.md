@@ -68,7 +68,7 @@ on 2026-09-21 coincided with the user's reported runaway explorer.exe processes
 and host-wide OOM/reboot. Wine is the strongly suspected source; this task has not
 performed a kernel-level incident investigation. A subsequent prefix-specific
 process check found no remaining processes. Further execution testing belongs on
-the Z13 or a dedicated VM with memory and process limits, not this shared host.
+the Windows PC or a dedicated VM with memory and process limits, not this shared host.
 
 The patched VGMTrans executable reached its shell and exited under Wine. The
 complete tool check did **not** pass: a newer FFmpeg shared build timed out, and
@@ -82,7 +82,7 @@ start/stop/restart, import stop protection, same-folder locking, adapter-specifi
 preflight and package pins. Linux tests do not establish native Windows support.
 The Windows executable is cross-compiled, not tested on a physical PS2 or Windows
 machine by that fact alone. Full native imports and the installer remain part of
-the user's Z13 test.
+the user's Windows PC test.
 
 ## Reference documents
 
