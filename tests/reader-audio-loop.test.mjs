@@ -38,4 +38,8 @@ test('loop-point effect survives save/restore and remains stoppable',()=>{
  assert.notEqual(restored,original);assert.equal(restored.currentTime,12);assert.equal(restored.loop,false);assert.equal(restored.vnLoop,true);assert.ok(restored.ontimeupdate);assert.ok(restored.onended);assert.equal(restored.listeners.length,0);
  stopEffects(effects,{op:'stopSound',asset:'ambient'});
  assert.equal(effects.size,0);assert.equal(restored.paused,true);assert.equal(restored.ontimeupdate,null);assert.equal(restored.onended,null);assert.equal(created.length,2);assert.equal(played.length,2);
+ const quiet=startEffect(effects,{asset:'ambient',channel:'rain',volume:.25},services);
+ assert.equal(quiet.volume,.125);
+ const saved=snapshotEffects(effects,a=>a.paused);assert.equal(saved[0].volume,.25);
+ assert.equal(restoreEffects(effects,saved,services)[0].volume,.125);
 });

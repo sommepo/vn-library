@@ -93,3 +93,21 @@ the user's Windows PC test.
 - [FFmpeg Windows build and licences](https://github.com/GyanD/codexffmpeg/releases/tag/8.0.1)
 
 These are dependency documentation, not evidence of full-game Windows tests.
+
+
+## Beta.5 package
+
+Beta.5 adds one/two/portable platform menus, the PS1 reader/importer source,
+Memories Off sound test, the full-scene text scanning correction and the bundled
+Otogirisou glyph-ID/Unicode correspondence. It retains the existing pinned PS2
+Windows converter and its full corresponding patched source. PS1 converters
+remain separate external tools; their source patches and build instructions
+are included, but CUE/BIN imports are not automated by the Windows installer.
+Portable starts empty and has no playable PSP adapter. Existing imports and
+save signatures need no rebuild or migration for these changes.
+
+The reviewed public tree passes 213 Python tests (one private-data check skipped),
+29 Node test files and synthetic content validation on Linux. The bundled
+Otogirisou map matches all 1,745 private reviewed correspondences and generates
+identical font metadata/atlas against the supplied disc. These checks do not
+establish native Windows installation or conversion; no Wine test is performed.

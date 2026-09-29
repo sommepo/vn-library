@@ -2,12 +2,12 @@
 
 This repository welcomes contributors working by hand or with any coding agent.
 Read `README.md`, `CONTRIBUTING.md`, and `docs/contributor-workflow.md` before
-changing code. For PS2/adapter work also read `docs/adapter-contributions.md` and
+changing code. For adapter work also read `docs/adapter-contributions.md` and
 `docs/adapters.md`.
 
 ## Contribution boundaries
 
-- Any lawful PS2 ISO may be investigated as an exact edition. It is never
+- Any lawfully dumped game media may be investigated as an exact edition. It is never
   presumed importable or playable because of its platform, publisher, filenames
   or an engine label.
 - Never commit, upload, request or link to game discs, executables, scripts,

@@ -1,5 +1,47 @@
 # Upstream research and code provenance
 
+## PS1 Chunsoft sound novels (2026-09-29)
+
+The exact-edition adapters, PAC bounds/index reader, IKE/LZS/TIM/font decoders are
+original toolkit code derived from the supplied discs' structures and static
+MIPS consumers. Existing in-project PS1 sector reading and bounded integer
+probe are reused; no new third-party interpreter is bundled. The source page
+renderer is original DOM/CSS code with original synthetic test text.
+
+Upstream checks and links are recorded in
+[the investigation](chunsoft-ps1-investigation.md#reuse-investigation).
+ButThouMust's Otogirisou tools are GPL-3.0 and target SFC. The companion SFC
+Kamaitachi project was checked for platform relevance, not reused. PhoenixBound's
+AT6P documentation describes different DS headers; its code was not copied.
+jPSXdec's non-commercial terms exclude casually bundling it into the MIT
+toolkit; it remains only a possible external media research tool. No upstream
+game text, images, fonts, translation patches or glyph tables were downloaded.
+The attached screenshot is a presentation reference, not a distributed asset.
+
+The playable readers also use original edition-specific control/page kernels,
+source SPU cue decoders and native palette composition. No original game code,
+source glyph descriptors, media or scripts are copied into public modules.
+At the user's request, beta.5 includes the original MIT Otogirisou correspondence
+review as glyph-ID/Unicode-codepoint facts, review methods and eight font texture
+hashes in `otogirisou_charset.py`. The map is source-font-bound, with 1,557
+unique cropped bitmap identities and 188 visual reviews; it is not an official
+encoding table or independent human proofread. Original font bitmaps and
+annotated review materials remain private.
+Original VAB instruments are exported with an external VGMTrans build based on
+revision `3e16daae49d42246f2d1b302b04f6e80a8037342` (zlib), with local changes to
+`PS1SeqScanner.cpp` and `PSXSPU.cpp` for exact source bank extents and bounded
+ADPCM frame validation. Beta.5 includes the [audited patch](../scripts/vgmtrans-chunsoft-exact-vab.patch)
+and [build instructions](ps1-media-tools.md), under the upstream zlib notice.
+The full external source and executable remain separate from the MIT runtime. FFmpeg and FluidSynth remain external media tools under
+their existing notices. Converted sound is an approximation of PS1 SPU synthesis.
+
+The sound-novel word-lookup regression loads the unmodified Yomitan DOM scanner
+and string helpers from private tooling only: [upstream revision
+67db60ddc2cbd7b5172d777c117e3201d7ddff0f](https://github.com/yomidevs/yomitan/tree/67db60ddc2cbd7b5172d777c117e3201d7ddff0f),
+GPL-3.0-or-later. Its licence and source hashes are retained with the downloaded
+files. The reader fix and public test harness are original code; no upstream
+scanner implementation is copied into the MIT runtime or code package.
+
 ## Higurashi PS2 recovery (2026-09-23)
 
 `shin_ps2.py` and `shin_ps2_graphics.py` adapt sector cipher, LZ10, palette and
@@ -364,7 +406,7 @@ completion flags and native title checks determine the PS2 adapter's behaviour.
 ## Console menu and CRT display (2026-09-19)
 
 `web/console-menu.css` is original CSS geometry inspired by the user's console
-reference images. No Sony logo, firmware/menu artwork, boot audio or attached
+reference images. No supplied logo, firmware/menu artwork, boot audio or attached
 photograph is bundled. `web/crt*.mjs` / `web/crt.css` are original MIT rendering
 and settings code, with no copied upstream shader source.
 
@@ -534,3 +576,102 @@ bundled. Protocol/source references inspected:
 The reader makes scene images with its existing original compositor and exposes
 only registered voice assets associated with presented text. Game media and
 private integration-test reports remain excluded from public packages.
+
+## User-supplied platform logo
+
+`web/media/platform-logo.png` is the wordmark image supplied by the user on
+2026-09-28 for the one, two and portable library headers. The supplied PNG is
+stored unchanged and displayed at a smaller size. It is user-supplied artwork,
+not original MIT toolkit artwork. The package
+allowlist includes this exact file, not arbitrary media images.
+
+The active header asset is now `web/media/platform-logo-transparent.png`, a
+transparent cutout produced with the built-in imagegen tool on user request.
+The original supplied PNG remains unchanged locally; only the transparent version
+is included in the package allowlist. CSS displays white lettering on dark menus
+and black lettering on one. Generation prompt: remove only the grey background,
+retain the black SOMY lettering and proportions, genuine alpha transparency,
+no redesign, shadow, outline or painted checkerboard. Alpha was verified (0–255),
+and the result inspected on a light browser background.
+
+
+## Memories Off original PS1 (2026-09-28)
+
+The owner supplied the SLPS-02296 CUE/BIN. New MODE2 IO, MSF/LZSS recovery,
+bytecode interpreter, TIM conversion and exact-font correspondence facts are
+original toolkit code. Static executable inspection supplied the consumer
+semantics; no proprietary program was run. All source assets, font bitmap
+reviews, scripts, audio, screenshots and campaign evidence stay private.
+The 36 custom character mappings are a visual transcription, not an official
+mapping or independently proofread text. No story text was fabricated.
+
+VGMTrans revision `3e16daae49d42246f2d1b302b04f6e80a8037342` remains an external
+zlib-licensed PS1 SEQ/VAB converter. The new
+`scripts/vgmtrans-memoriesoff-short-vab.patch` uses native size entries for one
+four-frame sample missed by upstream's ten-frame heuristic; source sample/SEQ
+bytes are unchanged. Retain `third_party/LICENSE-vgmtrans.txt`. Patch SHA-256:
+`3ef0a7b36e12fd9c8d7a7ea53565f6e668837f19e1c9b910ea999b1326bb4890`.
+The private short-VAB binary also retains the earlier local filename/PS2 patches;
+its SHA-256 is `31694f4dcb9f7546685e5f80696355928638e5c3b60d6a08c0bb01d1625627a7`.
+The standard binary SHA-256 is
+`08b9f248ceea94bf609f32975254d3a3e8ec46b3e96eb98a5195be009d59751a`.
+Neither binary is added to the code package or existing Windows installer.
+
+FFmpeg 8.0.1-3ubuntu2 decodes mono 18,900 Hz XA voices to FLAC. FluidSynth
+renders the original VAB instrument banks with approximate SPU synthesis/mixing.
+Existing external-tool licence notices apply; no third-party tool becomes MIT
+merely because it is called by the importer. No game content was uploaded and
+no public release or updated installer was produced.
+
+## 428 PSP static recovery (2026-09-28)
+
+The owner supplied ULJS-00219 v1.01. Original Python CPK/SNS recovery keeps source
+bytes, offsets and raw operands. This is not a runtime port or an all-route
+claim. See [the measured fingerprint](428-psp-investigation.md).
+
+[vgmstream cri_utf.c](https://github.com/vgmstream/vgmstream/blob/master/src/util/cri_utf.c)
+was a format reference for UTF schema/storage fields under the existing ISC
+notice, `third_party/LICENSE-vgmstream.txt`. No vgmstream C code is linked into
+the standard-library reader. The primary author's
+[SNS format discussion](https://zenhax.com/viewtopic.php%40t%3D13137.html) supplied
+an obfuscation/layout lead, verified separately against PSP files and native
+consumers; its parser code and posted game files were not copied/downloaded.
+CriPakTools and PyCriCodecs/CriCodecs were checked as leads but not adopted;
+no clear reuse licence was established in those inspected trees.
+
+[pspdecrypt](https://github.com/John-K/pspdecrypt), GPL-3.0, revision
+`c156627db7634d395c380c0a9589130f603307fc`, was built privately for static EBOOT
+inspection. Its GPL source/licence and the small private API harness are retained
+under `private/428/tooling`. No original program was booted. It is not part of
+the MIT importer, code package, browser runtime or Windows installer. Recovery
+does not need this tool. No game scripts, media, native tables or evidence are
+included in public code; tests contain original synthetic structures only.
+
+The 2026-09-29 continuation adds an original FLO parser, GIM decoder, control VM
+draft and bounded integer Allegrex probe. Selected original control routines are
+interpreted privately to compare branch and flow semantics, without starting the
+PSP program or firmware. Native routine bytes, tables and reports stay private.
+This remains an incomplete runtime investigation, not a playable import.
+
+[gimconv_v](https://github.com/jeffangelion/gimconv_v) (GPL-3.0-or-later) supplied
+GIM layout documentation; [PPSSPP's image-format documentation](https://dev.ppsspp.org/docs/psp-hardware/gpu/image-formats/)
+and [TextureDecoder.h](https://github.com/hrydgard/ppsspp/blob/master/GPU/Common/TextureDecoder.h)
+(GPL-2.0-or-later) supplied pixel and PSP DXT field layouts. No implementation
+code was copied, linked or relicensed. `vnkit/psp_gim.py` and its pixel fixtures
+are independently written. No proprietary Sony SDK is used. Existing MIT PNG
+encoding is reused without modifying or resuming the paused Pia adapter.
+
+
+## 428 progress continuation (2026-09-29)
+
+The progress-record implementation and checked native bridge are original toolkit
+code derived from bounded inspection of the owner's exact decrypted executable.
+The bridge ships only addresses, structure/identity facts and an interpreter;
+original executable, SNS, FLO, native tables and reports remain private. Its
+three SHA-256 gates precede native setup. No OS/firmware execution interface is
+provided, and no upstream implementation was copied. The existing private GPL
+pspdecrypt dependency remains external and unbundled. Controlled graph/choice
+checks are research evidence, not original-console or earned-route coverage.
+
+Memories Off's Sound test reuses its existing SEQ/VAB-derived music. Numbered
+track labels do not claim original song titles or new independent audio fidelity.

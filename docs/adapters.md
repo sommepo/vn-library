@@ -2,6 +2,9 @@
 
 | Adapter | Tested source | Status |
 | --- | --- | --- |
+| otogirisou-ps1 | SLPS-01645 / exact PS-X EXE | CDIMG source-driven full-scene reader; local CUE/BIN only; native presentation/auxiliary limits; see chunsoft-ps1-runtime.md |
+| kamaitachi-ps1 | SLPS-01794 / exact PS-X EXE | Source SCE reader with original font/inline choices/media; local CUE/BIN only; native presentation/auxiliary limits; see chunsoft-ps1-runtime.md |
+| 428-psp | ULJS-00219 v1.01 / SNS 01.82 | Paused: recovery, GIM conversion and tested progress research bridge; no playable reader or GUI admission; see 428-psp-investigation.md |
 | clannad-ps2 | SLPM-66302 v1.01 / HuneX | Incomplete playable runtime; see CLANNAD reports |
 | remember11-ps2 | SLPM-65550 v1.02 / KID | Incomplete playable script runtime with original media; import/validation exit 3 |
 | never7-ps2 | SLPS-25256 v1.01 / KID oscr/MWo3 | Add game and CLI; main routes/Cure/Append endings tested; optional completed-route read paths; animations incomplete; validation exits 3 |
@@ -211,6 +214,12 @@ are not tested or claimed supported. The original test game can be imported with
 It demonstrates the reader contract, not support for another commercial engine.
 
 ## Current content contract
+
+Sound-novel adapters may opt into `presentation.textLayout: "full-scene"`.
+Pending text/choice pages must provide validated source coordinates, colours and
+inline choice IDs through `web/sound-novel.mjs`; missing geometry fails closed.
+The default bottom textbox is not a substitute. Full page `displayText` and
+new counted `text` stay distinct. See [the contract and its current limits](chunsoft-ps1-investigation.md).
 
 `format: "vnkit.content"`, `version: 1`, stable `id`, `title`,
 `adapter: {id, version}`, `entry`, `instructions` array, and `assets` dictionary.

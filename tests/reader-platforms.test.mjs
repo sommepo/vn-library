@@ -12,3 +12,6 @@ assert.equal(platformId({id:'clannad-other-edition'}),'unknown');
 assert.equal(storedPlatform({getItem:()=>{throw Error('blocked storage');}}),'ps2');
 assert.equal(storedPlatform({getItem:()=>'<bad>'}),'ps2');
 assert.equal(storedPlatform({getItem:()=> 'pc98'}),'ps2');
+assert.equal(storedPlatform({getItem:()=> 'psp'}),'psp');
+
+assert.equal(storedPlatform({getItem:()=> 'ps1'}),'ps1');

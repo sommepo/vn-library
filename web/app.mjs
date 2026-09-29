@@ -1,4 +1,7 @@
-import { PLATFORMS, PLATFORM_KEY, storedPlatform, platformId, platformGames } from './platforms.mjs';
+import {soundWaitActive} from './media-wait.mjs';
+import { PLATFORMS, PLATFORM_KEY, storedPlatform, platformId, platformGames, platformNavigation } from './platforms.mjs';
+import { pspLibrary } from './psp-library.mjs';
+import { psoneLibrary } from './psone-library.mjs';
 import { libraryAccordion } from './library-accordion.mjs';
 import { MenuMusic } from './menu-music.mjs';
 import { visibleLibrary } from './library.mjs';
@@ -17,6 +20,7 @@ import { CRTDisplay } from './crt.mjs';
 import { MiningMedia } from './mining.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
 import { ReaderLayout } from './layout.mjs';
+import { SoundNovelPage, validateSoundPage } from './sound-novel.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
 import { applyLoop, releaseLoop } from './audio-loop.mjs';
 import { clearEffects, restoreEffects, snapshotEffects, startEffect, stopEffects } from './audio-effects.mjs';
@@ -55,7 +59,6 @@ function setPlatform(id) {
   if(!PLATFORMS.some(p=>p.id===id))throw new Error('This platform environment is not supported yet.');
   selectedPlatform=id;document.body.dataset.platform=id;crt.setPlatform(id);layout.setPlatform(id);
   try{localStorage.setItem(PLATFORM_KEY,id);}catch{}
-  document.querySelectorAll('.platform-navigation').forEach(n=>n.remove());
 
 }
 async function acquireGame(id) {
@@ -163,7 +166,7 @@ async function publish(record, navigation) {
 }
 function mediaURL(id) { return new URL(engine.content.assets[id].url, contentBase).href; }
 function play(audio) { if(!globalPause.request(audio))return;const promise = audio.play(); promise?.catch(error => {if (error.name !== 'AbortError') status('Browser paused audio. Use “Enable audio” in settings.');}); }
-function volumes() { music.volume = Number(settings.music) * (engine?.state.scene.musicGain ?? 1); voice.volume = Number(settings.voice); for (const sound of effects) sound.volume = Number(settings.sound); }
+function volumes() { music.volume = Number(settings.music) * (engine?.state.scene.musicGain ?? 1); voice.volume = Number(settings.voice); for (const sound of effects) sound.volume = Number(settings.sound) * (sound.vnGain ?? 1); }
 function mediaSnapshot() {
   if (waitDeadline !== null && engine.current?.kind === 'wait') engine.current.remainingMs = Math.max(0, waitDeadline - performance.now());
   return { music: { asset: musicAsset, time: music.currentTime || 0, paused: (!menuSuspended.has(music)&&globalPause.savedPaused(music)) }, voice: { asset: voiceAsset, time: voice.currentTime || 0, paused: (!menuSuspended.has(voice)&&globalPause.savedPaused(voice)) }, scriptMedia: scriptMedia ? {asset: engine.current.asset, time: scriptMedia.currentTime || 0, paused: (!menuSuspended.has(scriptMedia)&&globalPause.savedPaused(scriptMedia))} : null, effects: snapshotEffects(effects, audio => !menuSuspended.has(audio) && globalPause.savedPaused(audio)) };
@@ -229,7 +232,7 @@ function pauseWait() { if (waitDeadline !== null && engine?.current?.kind === 'w
   if ((engine?.current?.voiceUntilMs != null || engine?.current?.presentation?.voice || engine?.state.immediateVoice) && !voice.paused && !voice.ended) {voice.pause(); pausedVoiceCue = true;}
 }
 function clearTimers() { clearInterval(typeTimer); clearTimeout(autoTimer); clearTimeout(waitTimer); waitDeadline = null; typing = false; }
-function advanceButton() { $('nextButton').disabled = globalPause.paused || busy || store.blocked(game?.id) || !engine?.current || ['choice', 'end', 'wait', 'setup', 'movie', 'sound'].includes(engine.current.kind); }
+function advanceButton() { $('nextButton').disabled = globalPause.paused || busy || store.blocked(game?.id) || !engine?.current || ['choice', 'end', 'wait', 'setup', 'input', 'movie', 'sound'].includes(engine.current.kind); }
 function modeButtons() {
   $('previousButton').disabled=!lineHistory.length||!engine||busy||globalPause.paused||Boolean(choiceSeek)||store.blocked(game?.id);
   $('pauseButton').textContent=globalPause.paused?'▶ Resume':'⏸ Pause';
@@ -264,7 +267,13 @@ function schedule() {
   if (pausedVoiceCue) {pausedVoiceCue = false; if (engine.current?.voiceUntilMs != null || engine.current?.presentation?.voice || engine.state.immediateVoice) play(voice);}
   if (engine.current?.kind === 'wait') {
     const soundWait=engine.current.soundWait;
-    if(soundWait&&[...effects].some(a=>a.vnAsset===soundWait.asset&&a.vnChannel===soundWait.channel&&!a.ended&&!a.error)){
+    if(soundWait?.timeoutMs!=null){
+      if(waitDeadline===null)waitDeadline=performance.now()+engine.current.remainingMs;
+      if(soundWaitActive(soundWait,effects)&&performance.now()<waitDeadline){
+        clearTimeout(waitTimer);waitTimer=setTimeout(schedule,100);return;
+      }
+      waitDeadline=null;engine.current.remainingMs=0;
+    }else if(soundWaitActive(soundWait,effects)){
       clearTimeout(waitTimer);waitDeadline=null;waitTimer=setTimeout(schedule,100);return;
     }
     if(engine.current.voiceWait&&voiceAsset===engine.state.immediateVoice?.asset&&!voice.error){
@@ -308,14 +317,14 @@ function showText(p, restoring = false) {
   const prefixCount = p.displayText == null ? 0 : Math.max(0, count - [...plainText(p.text)].length);
   if(p.sourceGlyphs){engine.renderSourceText($('sentence'),p);engine.renderSourceText($('speaker'),p,'speaker');}
   else if (settings.speed > 0 && !skip && !restoring) {
-    typing = true; typeStarted = performance.now();typePausedAt=globalPause.paused?typeStarted:null; renderText($('sentence'), visibleText, prefixCount);
+    typing = true; typeStarted = performance.now();typePausedAt=globalPause.paused?typeStarted:null; drawDialogue(p, prefixCount);
     typeTimer = setInterval(() => {
       if (globalPause.paused || selected()) return;
       const shown = prefixCount + Math.floor((performance.now() - typeStarted) * Number(settings.speed) / 1000);
-      renderText($('sentence'), visibleText, shown);
+      drawDialogue(p, shown);
       if (shown >= count) { clearInterval(typeTimer); typing = false; schedule(); }
     }, 35);
-  } else renderText($('sentence'), visibleText);
+  } else drawDialogue(p);
   // Source-timed continuations append text while the same audio clip keeps playing.
   if(engine.state.immediateVoice&&!p.voice&&voiceAsset===engine.state.immediateVoice.asset)return;
   if (!restoring && p.continueVoice && voiceAsset === p.voice) return;
@@ -328,8 +337,20 @@ function showText(p, restoring = false) {
     } else if (!skip) play(voice);
   }
 }
+const soundPage = new SoundNovelPage($('stage'), $('sentence'), $('choices'), renderText,
+  guard(async id => { if (!selected()) await advance('choice', id); }), id=>{
+    if(engine.content.assets[id]?.type!=='image')throw Error('Source font image unavailable');
+    return mediaURL(id);
+  });
+function drawDialogue(p, limit=Infinity) {
+  if(soundPage.enabled)soundPage.render({...p,kind:'text'},limit);
+  else renderText($('sentence'),p.displayText??p.text,limit);
+}
 async function present(result, { restoring = false, restoreMedia = false, navigation = 'advance' } = {}) {
   clearTimers();
+  const fullScene = engine.content.presentation?.textLayout === 'full-scene';
+  if(fullScene && ['text','choice'].includes(result.pending?.kind))validateSoundPage(result.pending);
+  soundPage.setEnabled(fullScene);
   deletedAutosaveEngine = null;
   const view=engine.presentationViewport || engine.content.viewport;
   layout.setViewport(view);
@@ -356,6 +377,24 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     form.addEventListener('submit', event => {event.preventDefault();if(globalPause.paused)return; guard(async () => {busy = true; try {await present(await engine.advance(Object.fromEntries(new FormData(form))), {navigation: 'start'});} finally {busy = false;advanceButton();modeButtons();schedule();}})();});
     $('choices').append(form); $('position').textContent = 'Defaults recovered from this release';
   }
+  else if (p?.kind === 'input') {
+    auto = skip = false; voice.pause(); $('speaker').textContent = '';
+    if (fullScene && p.display) drawDialogue(p.display);
+    else $('sentence').textContent = '';
+    const form = document.createElement('form'); form.className = 'source-input-form';
+    for (const field of p.fields) {
+      const label = document.createElement('label'); label.textContent = field.label;
+      const input = document.createElement('input'); input.name = field.id;
+      input.value = field.value || ''; input.maxLength = field.maxLength; input.required = true;
+      input.autocomplete = 'off'; input.spellcheck = false; input.lang = 'ja';
+      label.append(input); form.append(label);
+    }
+    const submit = document.createElement('button'); submit.type = 'submit'; submit.textContent = '↵';
+    submit.setAttribute('aria-label', 'Confirm'); form.append(submit);
+    form.addEventListener('submit', event => {event.preventDefault();if(globalPause.paused)return;guard(()=>advance('input',Object.fromEntries(new FormData(form))))();});
+    $('choices').append(form); $('position').textContent = '';
+    if (!restoring) await store.put(key('autosave'), engine.save(mediaSnapshot()));
+  }
   else if (p?.kind === 'text') {
     const willSkip = skip && isRead(activity, engine, p.id);
     if (skip && !willSkip) { skip = false; status('Skip stopped at unread text.'); }
@@ -369,12 +408,16 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     $('position').textContent = '';
   } else if (p?.kind === 'choice') {
     auto = skip = false; voice.pause();
-    $('speaker').textContent = ''; $('sentence').textContent = '選択してください。';
+    $('speaker').textContent = '';
+    if(soundPage.enabled)soundPage.render(p);
+    else {
+    $('sentence').textContent = '選択してください。';
     if(p.promptAsset){const img=new Image();img.src=mediaURL(p.promptAsset);img.className='choice-prompt';img.alt='';$('choices').append(img);}
     for (const option of p.options) {
       const b = button('', async () => { if (selected()) return; await advance('choice', option.id); });
       if(option.asset){const img=new Image();img.src=mediaURL(option.asset);img.alt='';img.style.cssText='width:72px;max-height:100px;object-fit:contain;display:block;margin:auto';b.append(img);const label=document.createElement('span');renderText(label,option.text);b.append(label);}
       else if(option.sourceGlyphs)engine.renderSourceText(b,option);else renderText(b, option.text); $('choices').append(b);
+    }
     }
     if (!restoring) {
       const text = p.options.flatMap((o, index) => [...(index ? ['\n'] : []), ...(typeof o.text === 'string' ? [o.text] : o.text)]);
@@ -385,7 +428,8 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     $('position').textContent = '';
   } else if (p?.kind === 'pause') {
     $('speaker').textContent = p.display?.speaker || '';
-    renderText($('sentence'), p.display?.text || '');
+    if(soundPage.enabled && p.display)drawDialogue(p.display);
+    else renderText($('sentence'), p.display?.text || '');
     if(p.presentation){
       const willSkip=skip&&isRead(activity,engine,p.presentation.id);
       if(skip&&!willSkip){skip=false;status('Unread text reached. Skip stopped.');}
@@ -439,8 +483,9 @@ async function advance(navigation = 'advance', optionId) {
   if (!gameLease?.owned()) throw new Error('Reader ownership moved to another tab. Reload to safely resume.');
   if (engine.current?.kind === 'wait' && navigation !== 'timing') return;
   if (['movie', 'sound'].includes(engine.current?.kind) && navigation !== 'media') return;
+  if (engine.current?.kind === 'input' && navigation !== 'input') return;
   activity.interact();
-  if (typing && navigation !== 'timing') { clearInterval(typeTimer); typing = false; const p=currentReadable();renderText($('sentence'), p.displayText ?? p.text); schedule(); return; }
+  if (typing && navigation !== 'timing') { clearInterval(typeTimer); typing = false; drawDialogue(currentReadable()); schedule(); return; }
   if (engine.current?.kind === 'choice' && !optionId) return;
   const previousId=currentReadable()?.id;
   const checkpoint=engine.save(mediaSnapshot()),option=engine.current?.options?.find(o=>o.id===optionId);
@@ -568,12 +613,56 @@ async function loadGame(item, resume = true, entry = 'start') {
     $('panelBody').removeAttribute('aria-busy');$('loadNotice').hidden=true;advanceButton();modeButtons();schedule();
   }
 }
-function openPanel(title,id){mining.suspend(true);$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',selectedPlatform==='ps2'&&['library','import'].includes(id));$('panel').classList.toggle('console-import',selectedPlatform==='ps2'&&id==='import');$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
-function closePanel(resume=true){if(changingSaveLocation)return;panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();mining.suspend(false);activity?.interact();if(resume)schedule();}
+function openPanel(title,id){mining.suspend(true);$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',['library','import'].includes(id));$('panel').classList.toggle('psp-library',selectedPlatform==='psp'&&id==='library');$('panel').classList.toggle('psone-library',selectedPlatform==='ps1'&&id==='library');$('panel').classList.toggle('console-import',id==='import');if(id!=='library'){cancelPlatformTransition();document.querySelectorAll('.platform-navigation').forEach(n=>n.dispose());}$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
+function closePanel(resume=true){if(changingSaveLocation)return;cancelPlatformTransition();panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();mining.suspend(false);activity?.interact();if(resume)schedule();}
+let platformTransitionRevision=0,platformFades=[],platformSurface=null;
+function cancelPlatformTransition(){
+  ++platformTransitionRevision;
+  for(const animation of platformFades)animation.cancel();platformFades=[];
+  platformSurface?.remove();platformSurface=null;
+}
+async function switchLibraryPlatform(id,keyboard=false){
+  if(currentDialog!=='library')return;
+  const body=$('panelBody'),panel=$('panel'),nav=panel.querySelector('.platform-navigation');
+  const opacity=getComputedStyle(body).opacity;
+  cancelPlatformTransition();const revision=platformTransitionRevision;
+  nav.update(id);nav.querySelector(`[data-platform="${id}"]`)?.focus({preventScroll:true});
+  const motion=!matchMedia('(prefers-reduced-motion: reduce)').matches&&Boolean(body.animate);
+  const fading=(node,frames,duration)=>{const animation=node.animate(frames,{duration,easing:'cubic-bezier(.22,1,.36,1)',fill:'both'});platformFades.push(animation);return animation.finished.catch(()=>{});};
+  if(id===selectedPlatform){
+    if(motion)await fading(body,[{opacity},{opacity:1}],140);
+  }else{
+    const background=getComputedStyle(panel).background;
+    if(motion)await fading(body,[{opacity},{opacity:0}],110);
+    if(revision!==platformTransitionRevision||currentDialog!=='library')return;
+    await libraryPanel(false,id);
+    if(revision!==platformTransitionRevision||currentDialog!=='library')return;
+    nav.querySelector(`[data-platform="${id}"]`)?.focus({preventScroll:true});
+    if(motion){
+      platformSurface=document.createElement('div');platformSurface.className='platform-transition-surface';platformSurface.style.background=background;platformSurface.setAttribute('aria-hidden','true');panel.append(platformSurface);
+      await Promise.all([fading(platformSurface,[{opacity:1},{opacity:0}],300),fading(body,[{opacity:0},{opacity:1}],260)]);
+    }
+  }
+  if(revision===platformTransitionRevision)cancelPlatformTransition();
+}
 async function libraryPanel(ending = false, platform = null) {
   setPlatform(platform||(!libraryMode&&game?platformId(game):selectedPlatform));
   libraryMode=true;for(const a of [music,voice,scriptMedia,...effects])if(a&&!a.paused&&!a.ended){menuSuspended.add(a);a.pause();}
   const body = openPanel(ending ? 'Ending reached · Main menu' : 'Main menu', 'library');
+  const nav=$('panel').querySelector('.platform-navigation')||platformNavigation(selectedPlatform,guard(switchLibraryPlatform));
+  nav.update(selectedPlatform);
+  const logo=document.createElement('img');logo.src='media/platform-logo-transparent.png';logo.alt='SOMY';logo.className='platform-logo';logo.width=114;logo.height=22;
+  $('panelTitle').replaceChildren(logo);
+  $('panelTitle').after(nav);
+  if(['ps1','psp'].includes(selectedPlatform)){
+    panelCleanup=(selectedPlatform==='ps1'?psoneLibrary:pspLibrary)(body,platformGames(library,selectedPlatform),{
+      launch:(item,resume=true)=>guard(()=>loadGame(item,resume))(),
+      soundTest:item=>guard(async()=>soundTestPanel(await libraryContext(item)))(),
+      saveLocation:item=>guard(()=>saveLocationPanel(item))(),
+      display:guard(crtPanel),settings:guard(settingsPanel),music:appendMenuMusic,
+    });
+    return;
+  }
   if(ending)body.append(paragraph('Your progress has been saved. Start again to follow another route; your saves and reading history are kept.', 'notice'));
   const titles=platformGames(library,selectedPlatform);
   const atmosphere=document.createElement('div');atmosphere.className='console-atmosphere';atmosphere.setAttribute('aria-hidden','true');
@@ -611,7 +700,7 @@ async function libraryPanel(ending = false, platform = null) {
   appendMenuMusic(body);
   const footer=document.createElement('div');footer.className='console-footer';footer.innerHTML='<span>LOCAL MEMORY <i></i></span>';body.append(footer);
   catalogue.addEventListener('keydown',e=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(e.key)||e.altKey||e.ctrlKey||e.metaKey)return;const buttons=[...catalogue.querySelectorAll('summary,button:not(:disabled)')].filter(el=>{if(el.closest('[inert]'))return false;for(let parent=el.parentElement;parent&&parent!==catalogue;parent=parent.parentElement){if(parent.tagName==='DETAILS'&&!parent.open&&parent.firstElementChild!==el)return false;}return el.getClientRects().length;});if(!buttons.length)return;e.preventDefault();const at=buttons.indexOf(document.activeElement);buttons[e.key==='Home'?0:e.key==='End'?buttons.length-1:(at+(e.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length].focus();});
-  requestAnimationFrame(()=>{if(currentDialog==='library')catalogue.querySelector('summary')?.focus({preventScroll:true});});
+  if(currentDialog==='library')catalogue.querySelector('summary')?.focus({preventScroll:true});
 }
 function appendMenuMusic(body){
   if(!engine||libraryMode){
@@ -717,10 +806,11 @@ async function soundTestPanel(context={engine,game,contentBase,active:true}) {
   player.onerror=()=>status('This track could not be loaded or decoded. Try another track or check your connection.',true);
   body.append(now,player,row(label,button('Stop',()=>{player.pause();player.currentTime=0;}),button('Main menu',()=>libraryPanel())));
   for(const [n,track] of tracks.entries()){
-    const b=button(`${String(n+1).padStart(2,'0')} · ${track.label}`,async()=>{
+    const number=String(n+1).padStart(2,'0'),title=track.label||`Track ${number}`;
+    const b=button(track.label?`${number} · ${title}`:title,async()=>{
       player.pause();current=track.asset;player.src=new URL(engine.content.assets[track.asset].url,contentBase).href;configureAudio(player,current,loop.checked,engine);
-      now.textContent=track.label;status('Loading track…');
-      try{await player.play();status(`Playing ${track.label}`);}catch(e){if(e.name!=='AbortError')throw new Error('Playback unavailable. Use the audio play button or check your connection.');}
+      now.textContent=title;status('Loading track…');
+      try{await player.play();status(`Playing ${title}`);}catch(e){if(e.name!=='AbortError')throw new Error('Playback unavailable. Use the audio play button or check your connection.');}
     });b.className='sound-track';b.dataset.asset=track.asset;body.append(b);
   }
   panelCleanup=()=>{player.pause();player.removeAttribute('src');player.load();for(const a of wasPlaying)if(!a.ended)play(a);};
@@ -1074,7 +1164,7 @@ async function statsPanel() {
 $('crtButton').onclick=guard(crtPanel);$('crtButton').setAttribute('aria-pressed',String(crt.settings.enabled));
 $('ankiMediaButton').onclick=guard(ankiPanel);
 $('libraryButton').onclick = guard(()=>libraryPanel()); $('settingsButton').onclick = guard(settingsPanel); $('closePanel').onclick = closePanel;
-$('panel').addEventListener('cancel', e => {if(loadingGame||changingSaveLocation){e.preventDefault();return;}panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();mining.suspend(false);setTimeout(schedule);});
+$('panel').addEventListener('cancel', e => {if(loadingGame||changingSaveLocation){e.preventDefault();return;}cancelPlatformTransition();panelCleanup?.();panelCleanup=null;currentDialog='';leaveLibrary();mining.suspend(false);setTimeout(schedule);});
 $('nextButton').onclick = guard(() => advance());
 $('choiceButton').onclick = guard(nextChoice);
 $('dimButton').onclick = () => { settings.dimSurroundings = !settings.dimSurroundings; applySettings(); };

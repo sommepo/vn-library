@@ -2,6 +2,18 @@
 import { Engine, validateContent } from './engine.mjs';
 export async function createEngine(content, options = {}) {
   if (!content.runtime) return new Engine(content, options);
+  if (content.runtime.id === 'kamaitachi-ps1') {
+    const {KamaitachiEngine} = await import('./adapters/kamaitachi-engine.mjs');
+    return KamaitachiEngine.create(content, options);
+  }
+  if (content.runtime.id === 'otogirisou-ps1') {
+    const {OtogirisouEngine} = await import('./adapters/otogirisou-engine.mjs');
+    return OtogirisouEngine.create(content, options);
+  }
+  if (content.runtime.id === 'memoriesoff-ps1') {
+    const {MemoriesOffEngine} = await import('./adapters/memoriesoff-engine.mjs');
+    return MemoriesOffEngine.create(content, options);
+  }
   if (content.runtime.id === 'higurashi-ps2-shin') {
     const {HigurashiEngine} = await import('./adapters/higurashi-engine.mjs');
     return HigurashiEngine.create(content, options);
@@ -32,6 +44,18 @@ export async function createEngine(content, options = {}) {
 }
 export async function validateReaderContent(content) {
   if (!content.runtime) return validateContent(content);
+  if (content.runtime.id === 'kamaitachi-ps1') {
+    const {validateKamaitachiContent} = await import('./adapters/kamaitachi-engine.mjs');
+    return validateKamaitachiContent(content);
+  }
+  if (content.runtime.id === 'otogirisou-ps1') {
+    const {validateOtogirisouContent} = await import('./adapters/otogirisou-engine.mjs');
+    return validateOtogirisouContent(content);
+  }
+  if (content.runtime.id === 'memoriesoff-ps1') {
+    const {validateMemoriesOffContent} = await import('./adapters/memoriesoff-engine.mjs');
+    return validateMemoriesOffContent(content);
+  }
   if (content.runtime.id === 'higurashi-ps2-shin') {
     const {validateHigurashiContent} = await import('./adapters/higurashi-engine.mjs');
     return validateHigurashiContent(content);

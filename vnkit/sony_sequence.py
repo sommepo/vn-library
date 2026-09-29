@@ -151,7 +151,7 @@ def midi_events(data):
     return ppqn,sorted(result,key=lambda e:(e[0],e[1]))
 
 
-def render_midi(midi, sf2, output, source_info, library=None):
+def render_midi(midi, sf2, output, source_info, library=None, *, silent_programs=()):
     """Offline only: no sound device, MIDI device, subprocess shell or host config."""
     ppqn, events = midi_events(midi.read_bytes())
     if ppqn != source_info['ppqn']:raise MusicError('SQ/MIDI tick resolutions differ')
@@ -185,7 +185,13 @@ def render_midi(midi, sf2, output, source_info, library=None):
         write=bind('fluid_synth_write_s16',integer,[ptr,integer,ptr,integer,integer,ptr,integer,integer])
         for channel in range(16):channeltype(synth,channel,0)
         buffer=(C.c_int16*(2048*2))();frame=0;tick=0;seconds=0.;tempo=500000
-        bank=[0]*16;programs=set();missing={};peak=0
+        silent_programs=list(silent_programs)
+        if any(not isinstance(p,tuple) or len(p)!=2 or
+               not all(isinstance(v,int) and not isinstance(v,bool) for v in p) or
+               not 0<=p[0]<=16383 or not 0<=p[1]<=127 for p in silent_programs):
+            raise MusicError('Invalid explicitly silent source instruments')
+        silent_programs=set(silent_programs)
+        bank=[0]*16;programs=set();missing={};peak=0;silent_notes=0
         with wave.open(str(output),'wb') as target:
             target.setnchannels(2);target.setsampwidth(2);target.setframerate(RATE)
             def until(target_frame):
@@ -202,7 +208,10 @@ def render_midi(midi, sf2, output, source_info, library=None):
                 if status=='tempo':tempo=args;continue
                 channel=status&15;kind=status&240
                 if kind==0x90:
-                    if args[1] and channel in missing:raise MusicError(f'Original bank lacks sounding instrument {missing[channel]} on channel {channel}')
+                    if args[1] and channel in missing:
+                        if missing[channel] not in silent_programs:raise MusicError(f'Original bank lacks sounding instrument {missing[channel]} on channel {channel}')
+                        silent_notes+=1
+                        continue  # Audited source programs with zero tone regions.
                     noteon(synth,channel,*args) if args[1] else noteoff(synth,channel,args[0])
                 elif kind==0x80:noteoff(synth,channel,args[0])
                 elif kind==0xc0:
@@ -221,6 +230,7 @@ def render_midi(midi, sf2, output, source_info, library=None):
         if not peak:raise MusicError('Rendered original-bank track is silent')
         return dict(sample_rate=RATE,channels=2,frames=frame,peak=peak,programs=sorted(programs),fluidsynth_version=bind('fluid_version_str',C.c_char_p,[])().decode(),
                     restored_sustain_events=source_info['controller_counts'].get(64,0),
+                    source_zero_tone_notes=silent_notes,
                     synthesis='FluidSynth original extracted bank; SPU2 ADSR/reverb/interpolation approximation')
     finally:
         bind('delete_fluid_synth',None,[ptr])(synth)

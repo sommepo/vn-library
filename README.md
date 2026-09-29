@@ -1,478 +1,85 @@
 # VN Library
 
-Play Japanese visual novels in your browser, with dictionary lookups, sentence
-mining and reading stats. Import your own game ISO on your computer or home
-server, then read from your desktop, tablet or phone.
+Read Japanese visual novels in your browser, with dictionary lookups, sentence
+mining and reading stats. Import your own game media, then read on a desktop,
+tablet or phone. No game files are included or downloaded.
 
-Supports the Japanese PS2 releases of **CLANNAD**, **Remember11**, **Never7**, **Ever17**, **Cartagra** and **Higurashi Matsuri: Kakera Asobi**
-listed below. No game files are included.
+## Get started
 
-**Early beta:** some animations, effects and extras are missing. Not every route
-has been checked against the original games.
+- **Windows:** download [the beta.5 installer](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.5), extract it and run `Install.cmd`.
+- **Linux:** download the source from [the same release](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.5) or clone this repository, then follow [setup](docs/setup.md).
 
-A Windows installer with a tray app is available. You can also host the reader
-on Linux.
+Open the library, choose **Add game / Import media** and select a supported PS2
+ISO. PS1 CUE/BIN imports use the command line and additional tools described in
+their game guides. Imported games no longer need the original disc image to play.
 
-## Bring your own ISO
+Updating: quit the Windows tray app before running the new installer. Keep your
+game folders and back up your saves. Existing imports do not need rebuilding.
 
-Supply your own copy of one of these Japanese PS2 releases:
+[Windows instructions](docs/windows.md) · [Linux and importing](docs/setup.md) ·
+[Releases and checksums](https://github.com/sommepo/vn-library/releases)
 
-| Game | Disc serial | Version | Import method |
-| --- | --- | --- | --- |
-| CLANNAD | SLPM-66302 | 1.01 | App or command line |
-| Remember11 — the age of infinity | SLPM-65550 | 1.02 | App or command line |
-| Never7 — the end of infinity | SLPS-25256 | 1.01 | App or command line |
-| Ever17 — the out of infinity — Premium Edition | SLPM-65421 | 1.01 | App or command line |
-| Cartagra — 魂ノ苦悩 | SLPM-66231 | 1.01 | App or command line |
-| Higurashi Matsuri: Kakera Asobi (standalone) | SLPM-66913 | 1.01 | App or command line |
+## Games and platforms
 
-**New in v0.1.0-beta.4:** Yomitan can add the game’s scene image and original
-voice to Anki cards through the optional VN Library media add-on.
-See the [Anki setup guide](docs/anki.md).
+The library has three minimal console-inspired environments: **one** for PS1,
+**two** for PS2 and **portable** for PSP. Portable is included as an empty
+frontend; no PSP game is playable yet.
 
-**Added in v0.1.0-beta.3:** Ever17, Cartagra and Higurashi can be imported through Add game
-on Windows or Linux. The library has a compact, animated PS2-style menu, and
-save banks can be copied between local and shared storage.
+This is an early beta. Each game guide lists the exact supported edition,
+setup, implementation, tested coverage and remaining limitations.
 
-Higurashi's ten main chapter endings and five bad-ending variants have passed
-source-script replays. TIPS and the six after-party stories are supported.
-Native animations, some timing and gallery screens remain incomplete. This is
-the standalone Kakera Asobi disc, not the Append disc.
-See [Higurashi's setup and limits](docs/higurashi-runtime.md).
+| Platform | Game guide | Import |
+| --- | --- | --- |
+| one · PS1 | [Memories Off](docs/memoriesoff-runtime.md) | Local CUE/BIN CLI |
+| one · PS1 | [Otogirisou: Sosei-hen](docs/otogirisou-runtime.md) | Advanced local CUE/BIN CLI |
+| one · PS1 | [Kamaitachi no Yoru: Tokubetsu-hen](docs/kamaitachi-runtime.md) | Advanced local CUE/BIN CLI |
+| two · PS2 | [CLANNAD](docs/clannad-runtime.md) | Add game or CLI |
+| two · PS2 | [Remember11](docs/remember11-runtime.md) | Add game or CLI |
+| two · PS2 | [Never7](docs/never7-runtime.md) | Add game or CLI |
+| two · PS2 | [Ever17 Premium Edition](docs/ever17-runtime.md) | Add game or CLI |
+| two · PS2 | [Cartagra](docs/cartagra-runtime.md) | Add game or CLI |
+| two · PS2 | [Higurashi Matsuri: Kakera Asobi](docs/higurashi-runtime.md) | Add game or CLI |
 
-Ever17's five main routes, earned final-route unlock, extra epilogues and bad
-endings have passed source-script replays. Animations and native credits remain
-unfinished. See [Ever17's setup and test results](docs/ever17-runtime.md).
+[Platform environments](docs/platform-environments.md) ·
+[Compatibility](docs/compatibility.md) · [428 research status](docs/428-psp-investigation.md)
 
-Never7 is included in the Windows installer and Add game screen. Its ten main good-ending outcomes and
-33 extra Append stories have been tested from their starting points to their
-endings, including choices, flags and save restoration. This is not a check of
-every possible choice sequence or a comparison with original PS2 execution.
-Animations, credits and some presentation details remain unfinished.
-See [Never7's setup and limits](docs/never7-runtime.md).
+## Reading and learning
 
-Cartagra's sixteen source ending flags have passed route replays. The importer
-includes a reviewed character mapping for Japanese text, bound to this edition's
-font. It has not had an independent proofread. One framebuffer-capture command
-and some native menus remain unsupported; none blocked the tested ending paths.
-See [Cartagra's setup and limits](docs/cartagra-runtime.md).
+- Selectable Japanese for browser dictionaries such as [Yomitan](https://github.com/yomidevs/yomitan).
+- Optional [Anki media support](docs/anki.md) for the current scene and original voice.
+- Backlog, Auto, Skip read, Next choice, Previous line and global pause.
+- Autosave, 15 manual slots and optional shared saves across your devices.
+- Reading activity, exports, Live text and WebSocket text output.
+- Adjustable display/audio, optional CRT filters and sound tests where supported.
 
-Other editions, translations and patched discs are not supported yet. The importer
-checks the disc’s contents.
+Otogirisou and Kamaitachi retain their original full-scene text and inline choices.
+The platform menus have smooth transitions and sliding glass selection controls.
 
-Importing creates a playable copy on your computer or server. Your original ISO
-stays unchanged. Once the import finishes, the ISO is no longer needed to play.
+[Reader guide](docs/reader-guide.md) · [Saves](docs/shared-saves.md) ·
+[Reading statistics](docs/text-and-statistics.md) · [Remote access](docs/remote-access.md)
 
-The toolkit does not include or download game files.
+## Contribute
 
-<details>
-<summary>Check your ISO (SHA-256 hashes)</summary>
+Documentation, tests, reader improvements and edition-specific adapters are
+welcome, by hand or with any coding agent. Start with [Contributing](CONTRIBUTING.md)
+and the [contributor workflow](docs/contributor-workflow.md).
 
-```text
-CLANNAD
-35077758488971fc919b2afdadd4e9ebaad48ac67443cf281bbdbfed9bae81e9
+[Architecture](docs/architecture.md) · [Adapter development](docs/adapters.md) ·
+[Testing](docs/testing.md) · [Optional import skill](.agents/skills/vn-import/SKILL.md)
 
-Remember11
-5cfad772a6d320f2c96c5692e7813a971a045a451e49ba81e3a4402557bd612b
+## Licence and credits
 
-Never7
-52759964e8437da516827dc5ca28dc92a15c98940f5b9453131ca028a3b78c8b
-
-Ever17 Premium Edition
-45b7e194a205e761f1550dc5b728811f82dc91d72af95a14f5ab085e08c1ac4c
-
-Cartagra
-6534fc86c45780aadb58dc6013d47bbf9a87bf305d8742e230cba9004f0946d1
-
-Higurashi Matsuri: Kakera Asobi (standalone)
-0d7ff9509035cce07a9b06c8d2c813cadcf2c07adb97e4fa9da3041851f8f859
-```
-
-</details>
-
-## Setup
-
-### Windows setup
-
-1. Download and extract **VN-Library-Windows-v0.1.0-beta.4.zip** from
-   [Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.4).
-2. Run **Install.cmd**. Internet access is needed to download the required tools.
-3. Open **VN Library** from the Start menu or desktop shortcut. The reader
-   opens in your browser.
-
-Closing the app window leaves it running in the system tray. Right-click its tray
-icon to open the reader or quit. To start it again after quitting, use the Start
-menu or desktop shortcut.
-
-The app uses port **8891** by default. You can change this in the desktop app if
-another program on the same computer already uses it.
-
-Games and shared saves are stored in `%LOCALAPPDATA%\VN Import Toolkit`. Updating
-or uninstalling the app keeps this folder. Local browser saves and reading stats
-stay in your browser.
-
-Quit the tray app before updating, then run the new installer. This is an
-unsigned beta build. The newer Ever17, Cartagra and Higurashi imports still need full
-conversion tests on Windows hardware.
-
-### Linux setup
-
-You can also run the reader on a Linux computer or home server.
-
-You’ll need Python 3.11+, Node.js 22+, FFmpeg/ffprobe and the game’s conversion
-tools. The automatic tool setup currently targets Ubuntu 26.04 on x86-64; other
-distributions may need manual setup.
-
-Download **VN-Library-Linux-source-v0.1.0-beta.4.tar.gz** from
-[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.4), or clone
-the repository. The Linux download is source code, not a desktop installer.
-Extract it, open a terminal in the `vnkit` folder, then follow the
-[CLANNAD setup guide](docs/clannad-import.md) or
-[Remember11 setup guide](docs/remember11-import.md).
-Cartagra uses FFmpeg/ffprobe and the standard media tool setup; see the
-[Cartagra guide](docs/cartagra-runtime.md).
-Never7 and Ever17 use the same media tools as Remember11; see the
-[Never7 guide](docs/never7-runtime.md) or [Ever17 guide](docs/ever17-runtime.md).
-Higurashi uses the CLANNAD media tools; follow its
-[import guide](docs/higurashi-runtime.md#import-from-your-own-disc).
-
-Start the reader:
-
-```sh
-python3 -m vnkit serve --port 8891
-```
-
-Open **http://127.0.0.1:8891/** in your browser. Keep the terminal running while
-importing or playing. If the port is occupied, choose another with `--port`.
-
-Docker Compose is available for serving games you’ve already imported. It does
-not include the conversion tools.
-
-### Importing your game
-
-The Windows installer and Linux source version support all six editions in the table above.
-
-1. Open **Library → Add game / Import media**.
-2. Choose your ISO and click **Add game**.
-3. Wait for **Ready to play**, then click **Open game**.
-
-The app copies the ISO to the folder shown on screen, checks the edition and
-prepares the game automatically. Your original file stays unchanged.
-
-You can close the import panel while preparation continues, but keep the app or
-server running. If something stops, choose **Try again** to reuse the uploaded ISO
-and completed work.
-
-The uploaded ISO and temporary conversion files are kept after import. They are
-not automatically removed, so allow space for these as well as the finished game.
-Conversion requires at least **24 GiB free**, after the upload.
-
-To avoid copying an ISO already on the host, expand **Use an ISO already on the
-host** and select it there.
-
-By default, the server lists ISOs in the toolkit folder. To use another folder:
-
-```sh
-VNKIT_IMPORT_SOURCE_DIR=/path/to/isos python3 -m vnkit serve --port 8891
-```
-
-The CLI is also available. For example:
-
-```sh
-python3 -m vnkit inspect '/path/to/Clannad (Japan).iso' --fingerprint
-python3 -m vnkit import '/path/to/Clannad (Japan).iso' \
-  --adapter clannad-ps2 --work private/clannad \
-  --out private/library/clannad
-```
-
-Current imports can finish with exit code **3** because presentation support is
-incomplete. Read the report: this is different from a conversion failure, which
-uses exit code **2**.
-
-[GUI import and recovery](docs/import-gui.md) ·
-[CLI and adapter guide](docs/adapters.md)
-
-### Never7
-
-In the Windows app, use **Add game** as above. There are no extra tools to install
-for Never7. On Linux, install the media tools described in the
-[Never7 guide](docs/never7-runtime.md), then use Add game or the command line:
-
-```sh
-python3 -m vnkit import '/path/to/Never7.iso' \
-  --adapter never7-ps2 --work private/never7 \
-  --out private/library/never7
-```
-
-Once prepared, Never7 appears in the same browser library and uses the shared
-reader controls, 15 save slots, local/shared saves, stats, text output and display
-settings. The clean ISO-to-reader flow is tested on Linux. The updated Windows
-installer still needs a full conversion check on a Windows device.
-
-Finishing a route returns to the menu and keeps its unlocks. The original flags
-control access to Cure and the Append stories. **Route progress / debug** also
-lets you mark main routes complete if you finished them elsewhere.
-
-[Route test results](docs/never7-routes.md) ·
-[Read status and shared-save tests](docs/never7-read-status.md)
-
-### Browsers and remote play
-
-Read on a desktop, tablet or phone. Firefox and Chromium have automated reader
-tests; Safari and iOS have not been verified.
-
-For access away from home, **Tailscale** is suggested. Install it on the computer
-hosting the reader and the devices you want to read on, then configure
-**Tailscale Serve** to give the reader a private HTTPS address.
-
-Use that same address on each device. The host computer must stay running while
-you play.
-
-HTTPS also allows browser features such as clipboard access when connecting
-remotely. Dictionary extensions depend on your browser and device.
-
-See the [remote access guide](docs/remote-access.md) for setup.
-
-### Local and shared saves
-
-Choose **Saves → Save location** for each game:
-
-- **Local:** saves stay in the browser you’re using. This is the default.
-- **Shared:** saves and route progress are stored on the computer hosting the
-  reader, so you can continue on another device.
-
-To share saves, use the same server address and select **Shared** on each device.
-Local and shared saves stay separate. **Save location → Copy saves** can replace
-either bank with the other, including route progress. Copying asks for confirmation
-and keeps a backup of the destination; reading activity stays on each device.
-
-There are **15 manual save slots**, plus autosave. Saves can be deleted, exported
-and imported. A backup is also made before skipping to the next choice.
-
-Reading stats and display preferences stay on each device. Loading an earlier
-save does not erase your reading history.
-
-Export saves, route progress and activity from their menus to keep backups.
-Clearing browser data can remove local saves and stats.
-
-## Lookups and mining
-
-![Yomitan dictionary lookup over Japanese dialogue](docs/screenshots/dictionary-lookup.jpg)
-
-Use [Yomitan](https://github.com/yomidevs/yomitan) or another browser dictionary
-directly on the Japanese text. Looking up words and selecting text won’t advance
-the story.
-
-Yomitan can create Anki cards with the usual dictionary setup. Optional
-**[Anki media support](docs/anki.md)** adds the scene image and original voice
-clip when you click Add. It uses the game’s assets directly, with a small
-desktop Anki add-on. No screen recording is needed.
-
-Download the add-on from **Reading settings → Anki media**, install it in Anki,
-and set Yomitan’s AnkiConnect address to **http://127.0.0.1:8776**. AnkiConnect
-itself stays on **8765**. Enable Anki media in the reader and wait for
-**Anki: ready** before opening a word lookup. The setup guide covers note fields
-and card templates. The newer **media add-on 0.2.0** also supports mining on a
-phone into desktop Anki through Tailscale HTTPS; see
-[phone setup](docs/anki.md#mine-on-a-phone-add-cards-on-a-computer).
-The refreshed beta.4 download includes this add-on. If you installed the earlier
-0.1.0 add-on, download it again from the updated reader and reinstall it in Anki.
-Unvoiced lines get an image only; backlog and Live text mining are not supported
-yet. Media added to Anki follows your Anki sync settings.
-
-For external tools, enable **Publish newly presented text** in settings. This
-provides a **WebSocket stream** of dialogue as it appears. Plain text and JSON
-formats are available, including compatibility with
-[Renji’s Texthooker UI](https://github.com/Renji-XD/texthooker-ui).
-
-[GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner) can use a
-WebSocket text source alongside its capture tools and overlay. This workflow has
-not yet been tested with the reader.
-
-[Hachidori](https://github.com/bee-san/hachidori) can provide screenshots when
-mining through the browser. It has worked intermittently in testing with this
-reader, but is still under development.
-
-**Live text** opens a separate page showing encountered dialogue. You can also
-copy the current line with **Alt+C**, or enable automatic copying.
-
-## Customisation and bonuses
-
-![CLANNAD in fullscreen with an optional CRT filter](docs/screenshots/crt-reading.jpg)
-
-- **CRT filters:** six presets, with adjustable scanlines, phosphor masks, glow,
-  curvature and colour.
-- **Text and UI:** adjust textbox colour and opacity, font size, line spacing
-  and text speed.
-- **Display:** light or dark surroundings and fullscreen reading.
-- **Audio:** separate music, voice and sound-effect volumes.
-- **Sound test:** listen to the game’s music outside a playthrough.
-- **Menu music:** background music while browsing menus, with its own mute and
-  volume controls.
-
-Display and audio preferences stay on each device. CRT filters are optional;
-importing does not upscale the original artwork.
-
-## Stats
-
-![Reading activity showing daily characters and game statistics](docs/screenshots/reading-stats.jpg)
-
-Reading stats take inspiration from
-[GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner) and
-[Renji’s Texthooker UI](https://github.com/Renji-XD/texthooker-ui).
-
-Track today’s characters, total characters, active reading time, characters per
-hour, unique text and rereading.
-
-Breaks shorter than four hours stay within the same session. A reading day starts
-at **04:01 local time**.
-
-You can pause tracking, reset the current session, delete individual sessions
-and export your history as CSV or JSON.
-
-Skipped dialogue does not increase reading totals. Refreshing or loading a save
-does not count the current line again. Stats stay separate from saves, so loading
-an earlier position does not erase later activity.
-
-## Reader controls
-
-![Fullscreen reader controls](docs/screenshots/reader-controls.jpg)
-
-| Control | What it does |
-| --- | --- |
-| Click/tap the artwork, ▸, Space, Enter or → | Advance |
-| Previous line / Alt+← | Return to an earlier line from the current session |
-| Auto | Advance automatically, allowing voices to finish |
-| Skip read | Skip previously read text; stop at choices or unread text |
-| Next choice / Alt+N | Skip forward to the next choice, including unread text |
-| Pause | Pause playback, music and reading activity |
-| Backlog | Search encountered text and replay associated voices |
-| Route progress / debug | Mark routes complete if you finished them elsewhere |
-
-**Esc** cancels a Next choice jump. Previous-line history clears when you reload
-the page or load a save.
-
-Manually marking a route complete does not add reading stats. Where a verified
-route path is available, its text is also marked as read. Alternate branches are
-not all assumed read.
-
-Never7's optional completed-route read paths must be built locally; they are not
-bundled with the code. Ordinary Skip read works without them. See the
-[read-path guide](docs/never7-read-status.md).
-
-## Roadmap
-
-The next PS2 games planned for investigation are:
-
-- AIR
-- Tomoyo After
-- planetarian
-- Memories Off series
-
-Other platforms of interest: **PSP, PS Vita, PC-98 and Dreamcast**.
-
-These games and platforms are not supported yet. Existing import and engine code
-will be reused where compatible.
-
-Ongoing work also includes animations, presentation fixes, easier installation
-and broader testing. Never7's remaining work includes presentation details and
-native Windows testing.
-
-## Architecture
-
-VN Library has two parts: a local importer that prepares the game, and a browser
-reader that runs its story. The Windows tray app starts the same local server
-used on Linux.
-
-```mermaid
-flowchart LR
-    ISO[Your ISO] --> Import[Local importer]
-    Import --> Files[Private game library]
-    Files --> Adapter[Game script interpreter]
-    Adapter --> Reader[Browser reader]
-    Reader --> Local[Browser saves and activity]
-    Reader <--> Shared[Optional shared saves on your host]
-```
-
-The importer checks the edition, extracts resources and converts media where
-needed. It records source locations and fingerprints so a failed import can be
-checked and resumed. Finished games no longer need the ISO to run.
-
-The browser's game adapter follows the original script instructions: choices,
-conditions, variables, calls and endings. It sends text, scenes and media to the
-shared reader. Each game keeps its own instruction handling; a matching archive
-format does not mean two games run the same scripts. Unknown state-changing
-instructions stop with an error.
-
-| Location | What it does |
-| --- | --- |
-| `vnkit/disc.py`, `vnkit/source.py` | Read discs and extract files safely |
-| `vnkit/adapters/` | Identify exact editions and prepare their scripts and media |
-| `web/adapters/` | Execute each game's story and keep its state |
-| `web/` | Reader controls, graphics, text, audio, saves and reading activity |
-| `vnkit/server.py`, `vnkit/import_jobs.py` | Serve the library and run import jobs |
-| `windows/` | Installer, tray app and pinned tool setup |
-| `fixtures/synthetic/`, `tests/` | Original test game and automated checks |
-
-Game data, saves and reading history stay outside the distributed code. Activity
-history is separate from story saves, so loading an old position does not undo
-later reading. New games reuse the reader and any proven compatible extraction
-tools; they still need their own edition checks and execution tests.
-
-For the interfaces and format details, see the [adapter guide](docs/adapters.md),
-[content format](docs/adapters.md#current-content-contract) and [testing guide](docs/testing.md).
-
-## Contributing — people and AI agents
-
-Contributions are welcome for every part of the project: documentation, tests,
-reader features, safety fixes, import tooling and edition-specific adapters. You
-can work by hand or with any coding agent; no particular AI service is required.
-The [contributor workflow](docs/contributor-workflow.md) gives a tool-neutral
-starting point and a copyable agent prompt.
-
-Any lawful PS2 ISO can be proposed for investigation. Each contribution is scoped
-to its exact platform and edition: fingerprint/research and safe static recovery
-are useful outcomes, while browser-playable support requires source-driven
-execution and evidence. An ISO is never assumed supported merely because it is a
-PS2 disc, has familiar filenames or shares a publisher/engine label.
-
-Start with [Contributing](CONTRIBUTING.md). For ISO or adapter work, use the
-[new-game proposal](.github/ISSUE_TEMPLATE/new-game-proposal.yml) and read the
-[adapter contribution guide](docs/adapter-contributions.md). Public checks and
-the pull-request workflow run without a commercial game disc.
-
-## Development, licence and credits
-
-Original code is released under the [MIT licence](LICENSE). Third-party tools
-and music retain their own licences. Game content is not included or covered by
-the toolkit’s licence.
-
-The project includes import tools, game adapters, an original test game and a
-[reusable Codex skill](.agents/skills/vn-import/SKILL.md). The skill is optional;
-people and any coding agent can follow the public contributor workflow.
+Original code is [MIT](LICENSE). Game content is not included or covered by that
+licence. See [third-party notices](third_party/) and [provenance](docs/provenance.md)
+for conversion tools and reused components.
 
 Inspired by [Tsukiweb](https://github.com/requinDr/tsukiweb-public),
 [Renji’s Texthooker UI](https://github.com/Renji-XD/texthooker-ui) and
-[GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner). Credits for
-reused code and conversion tools are listed in the
-[third-party notices](third_party/).
-
-**Menu music:** “Nova Mistero” by **virabelo**, from
+[GameSentenceMiner](https://github.com/bpwhelan/GameSentenceMiner).
+Menu music: “Nova Mistero” by **virabelo**, from
 [Free Music Archive](https://freemusicarchive.org/music/virabelo/nova-mistero),
-licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
-The recording is unchanged.
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), recording unchanged.
 
-## AI usage
-
-This project was developed with substantial assistance from OpenAI Codex. AI
-assistance was used to investigate file formats, write and debug code, build the
-interface, create tests and draft documentation. The project owner directed the
-work, tested builds and reviewed the interface and documentation.
-
-AI is not used to generate or translate the game’s dialogue, artwork, music or
-voices. Those come from the supplied game files. The importer and reader do not
-need an AI service to run.
-
-AI-assisted development does not guarantee accuracy. Known limitations and test
-coverage are documented, and comparisons with the original games remain
-incomplete.
+Developed with substantial assistance from OpenAI Codex. Game dialogue, artwork,
+music and voices come from your supplied media; the importer and reader do not
+need an AI service. [Development and AI usage](docs/development.md)

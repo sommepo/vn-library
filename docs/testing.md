@@ -691,3 +691,45 @@ and a multi-gigabyte browser transfer remain unperformed.
 
 The normal empty library hides synthetic content. Use `/?fixture=1` explicitly
 for developer fixture browser tests; this is not an imported game.
+
+## PSP frontend (2026-09-28)
+
+The updated `tests/browser-platforms.mjs` passed in Chromium and Firefox with
+original synthetic content and isolated temporary state. It covers PS2 legacy
+metadata, the parked PC-98 preference, PSP filtering/persistence, category and
+platform keyboard focus, synthetic reading continuity, settings, the unavailable
+PSP import boundary, reduced motion and desktop/phone bounds. Screenshots are
+under `private/browser-tests/psp-xmb-{chromium,firefox}-final`. No commercial PSP
+ISO is supported or tested. The test server drains bounded stderr so repeated
+reloads cannot block its logging pipe.
+
+The existing eight actual-game Chromium console/rewind groups also passed in
+`private/browser-tests/psp-ps2-regression`, using a temporary save bank and clean
+profile. Public checks passed: 167 Python tests, 17 reader/adapter Node test files,
+and synthetic fixture validation. No physical handheld/phone check is claimed.
+
+## one / PSone frontend (2026-09-28)
+
+The synthetic platform browser suite passes Chromium and Firefox for all three
+menus, with new one checks for filtering/persistence, keyboard focus, settings,
+synthetic reading continuity after platform switching, unavailable import and
+360/390 portrait plus 844 landscape bounds. Reports/screenshots:
+`private/browser-tests/psone-chromium-verified` and `psone-firefox-verified`.
+Initial failed runs exposed deferred autofocus interrupting rapid keyboard input;
+initial menu focus is now synchronous for all three platforms.
+
+Public checks passed: 167 Python tests, 17 Node reader/adapter test files and
+fixture validation. Tests use temporary libraries/banks and clean profiles;
+no commercial PS1 execution or physical-device coverage is established.
+
+## System transitions / liquid glass (2026-09-28)
+
+The platform browser suite passed Chromium and Firefox with a persistent selector,
+measured moving/aligned glass highlight, rapid selection cancellation, closed-panel
+protection, reduced motion, synthetic reader continuity and mobile bounds. The
+final Chromium run additionally covers Escape during a switch. Reports:
+`private/browser-tests/platform-glass-chromium-final`, `platform-glass-firefox`.
+Fourteen reader Node test files passed; the existing eight actual-game Chromium
+console checks passed in `platform-glass-ps2` with a temporary bank. No live save
+writes or new commercial-game support. One initial startup timeout was not
+reproduced in later runs; no product startup exception was recorded.

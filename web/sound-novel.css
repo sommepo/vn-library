@@ -1,0 +1,65 @@
+/* Source-coordinate novel pages, isolated from the classic dialogue chrome. */
+.reader-page .stage[data-text-layout="full-scene"] .textbox {
+  display:contents;background:none;border:0;box-shadow:none;backdrop-filter:none;
+}
+.reader-page .stage[data-text-layout="full-scene"] .textbox[hidden] {display:none}
+.stage[data-text-layout="full-scene"] .textbox::before,
+.stage[data-text-layout="full-scene"] .textbox::after,
+.stage[data-text-layout="full-scene"] .speaker {display:none}
+.reader-page .stage[data-text-layout="full-scene"] .sentence,
+.reader-page .stage[data-text-layout="full-scene"] .choices {
+  position:absolute;inset:0;width:100%;height:100%;max-height:none;min-height:0;
+  margin:0;padding:0;overflow:hidden;display:block;background:none;border:0;
+  box-shadow:none;pointer-events:none;letter-spacing:0;
+}
+.stage[data-text-layout="full-scene"] .sentence {z-index:2}
+.stage[data-text-layout="full-scene"] .choices {z-index:3}
+.stage[data-text-layout="full-scene"] .sound-page-plane {
+  position:absolute;left:0;top:0;transform-origin:0 0;
+  transform:scale(var(--sound-scale-x),var(--sound-scale-y));
+  font-family:'Noto Serif CJK JP','Yu Mincho','Hiragino Mincho ProN',serif;
+  color:var(--sound-colour);text-shadow:1px 1px 0 #000;
+}
+.reader-page .stage[data-text-layout="full-scene"] .sound-page-block {
+  position:absolute;display:block;box-sizing:border-box;padding:0;margin:0;
+  max-width:none;min-height:0;border:0;border-radius:0;background:none;box-shadow:none;
+  font:inherit;letter-spacing:0;text-align:left;white-space:pre;overflow-wrap:normal;
+  color:var(--sound-colour);text-shadow:inherit;user-select:text;-webkit-user-select:text;
+  pointer-events:auto;transition:none;transform:none;
+}
+.reader-page .stage[data-text-layout="full-scene"] button.sound-selected,
+.reader-page .stage[data-text-layout="full-scene"] button.sound-page-block:hover,
+.reader-page .stage[data-text-layout="full-scene"] button.sound-page-block:focus-visible {color:var(--sound-choice-colour);background:none}
+.stage[data-text-layout="full-scene"] button.sound-page-block::before {
+  content:'▸';position:absolute;right:100%;padding-right:2px;color:var(--sound-colour);visibility:hidden;
+}
+.stage[data-text-layout="full-scene"] button.sound-selected::before {visibility:visible}
+.stage[data-text-layout="full-scene"] button.sound-page-block:focus-visible {outline:1px dotted currentColor;outline-offset:2px}
+.stage[data-text-layout="full-scene"] .text-footer {position:absolute;right:1%;bottom:1%;margin:0;z-index:4}
+.stage[data-text-layout="full-scene"] #position {display:none}
+.stage[data-text-layout="full-scene"] .sound-glyph-run {position:absolute;inset:0}
+.stage[data-text-layout="full-scene"] .sound-source-glyph {
+  position:relative;display:inline-block;vertical-align:top;color:transparent;text-shadow:none;line-height:1;
+  white-space:pre;overflow:visible;
+}
+.stage[data-text-layout="full-scene"] .sound-source-glyph::after {
+  content:'';position:absolute;inset:0;pointer-events:none;background:var(--sound-colour);
+  mask-image:var(--glyph-mask);mask-position:var(--glyph-u) var(--glyph-v);mask-repeat:no-repeat;
+  image-rendering:pixelated;filter:drop-shadow(1px 1px 0 #000);
+}
+.stage[data-text-layout="full-scene"] button.sound-selected .sound-source-glyph::after,
+.stage[data-text-layout="full-scene"] button.sound-page-block:hover .sound-source-glyph::after,
+.stage[data-text-layout="full-scene"] button.sound-page-block:focus-visible .sound-source-glyph::after {
+  background:var(--sound-choice-colour);
+}
+.source-input-form {
+  position: absolute; z-index: 5; left: 8%; right: 8%; bottom: 8%;
+  display: flex; gap: 1rem; align-items: end; color: white;
+  font-family: inherit; text-shadow: 0 1px 2px #000;
+}
+.source-input-form label { display: grid; gap: .3rem; min-width: 0; }
+.source-input-form input {
+  width: 10em; max-width: 100%; padding: .3em; color: inherit; font: inherit;
+  border: 0; border-bottom: 1px solid #ffffff90; background: #0006;
+}
+.source-input-form button { color: inherit; background: #0006; border: 1px solid #ffffff60; }

@@ -18,10 +18,10 @@ def main():
     if '..' in rel.parts or rel.is_absolute():raise ValueError('Unsafe package member')
     if str(rel)=='PACKAGE-MANIFEST.json':continue
     data=archive.extractfile(m).read()
-    if rel.suffix in {'.md','.txt','.py','.mjs','.js','.json','.yaml','.ps1','.cs','.sh','.html','.css'}:
+    if rel.suffix in {'.md','.txt','.py','.mjs','.js','.json','.yaml','.yml','.ps1','.cs','.sh','.html','.css'}:
      s=data.decode('utf-8')
-     s=s.replace('user@your-server.your-tailnet.ts.net','user@your-server.your-tailnet.ts.net').replace('your-server.your-tailnet.ts.net','your-server.your-tailnet.ts.net').replace('/path/to/vn-library','/path/to/vn-library').replace('/home/user','/home/user').replace('the development host','the development host').replace('on the development host, user jack','on the development host')
-     if str(rel) in ('docs/next-session.md','docs/pia-handoff-paused.md','docs/github-release-draft.md'):
+     s=s.replace('on the development host','on the development host').replace('user@your-server.your-tailnet.ts.net','user@your-server.your-tailnet.ts.net').replace('your-server.your-tailnet.ts.net','your-server.your-tailnet.ts.net').replace('/path/to/vn-library','/path/to/vn-library').replace('/home/user','/home/user').replace('the development host','the development host')
+     if str(rel) in ('docs/next-session.md','docs/pia-handoff-paused.md','docs/428-handoff-paused.md','docs/github-release-draft.md'):
       s='# Development notes\n\nLocal session notes are excluded from the public release. See [README](../README.md),\n[adapter guide](adapters.md) and [compatibility notes](compatibility.md).\n'
      data=s.encode()
     target=a.out/rel;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(data)
@@ -58,12 +58,12 @@ addresses, or select shared saves on the same host for cross-device use.
 
 This repository welcomes contributors working by hand or with any coding agent.
 Read `README.md`, `CONTRIBUTING.md`, and `docs/contributor-workflow.md` before
-changing code. For PS2/adapter work also read `docs/adapter-contributions.md` and
+changing code. For adapter work also read `docs/adapter-contributions.md` and
 `docs/adapters.md`.
 
 ## Contribution boundaries
 
-- Any lawful PS2 ISO may be investigated as an exact edition. It is never
+- Any lawfully dumped game media may be investigated as an exact edition. It is never
   presumed importable or playable because of its platform, publisher, filenames
   or an engine label.
 - Never commit, upload, request or link to game discs, executables, scripts,

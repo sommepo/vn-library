@@ -217,6 +217,9 @@ class IsoImage:
 
 def inspect(source, fingerprint=False):
     source = Path(source)
+    if source.suffix.lower() == '.cue':
+        from .psx_disc import Mode2Image
+        return Mode2Image(source).inspect(fingerprint)
     if source.is_dir():
         files = []
         for path in sorted(source.rglob('*')):

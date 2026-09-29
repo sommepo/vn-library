@@ -1,0 +1,91 @@
+/* Original XMB-inspired shell. All artwork is local CSS / SVG. */
+.console-library .panel-head {gap:20px;}
+.console-library .platform-navigation {display:flex;gap:5px;margin-left:auto;}
+.console-library .platform-navigation button {font:10px/1.4 Arial,sans-serif;letter-spacing:.1em;padding:8px 10px;min-height:36px;border:1px solid transparent;border-radius:20px;color:#8d96a6;}
+.console-library .platform-navigation button[aria-pressed=true] {color:#f5f4fc;border-color:#a9bfd530;background:#c5daf00a;}
+.console-library .platform-navigation button:focus-visible {outline:1px solid #b6d7ee;outline-offset:2px;}
+#panel.psp-library {
+  --paper:#f7f2ff;--muted:#d5c6de;--accent:#fff;
+  width:min(1120px,calc(100vw - 40px));height:min(700px,calc(100dvh - 40px));
+  overflow:hidden;border:1px solid #c3a7d044;border-radius:9px;color:#fff;
+  background:radial-gradient(ellipse at 83% 90%,#ba79966b,transparent 68%),radial-gradient(ellipse at 6% 2%,#77718a80,transparent 55%),linear-gradient(135deg,#352d4d,#553455 65%,#684056);
+  box-shadow:0 30px 100px #05020999,inset 0 1px #f0dfff20;font-family:Arial,'MS PGothic','Noto Sans CJK JP',sans-serif;
+}
+#panel.psp-library::backdrop {background:radial-gradient(ellipse at 60% 70%,#261f2b,#090910 85%);}
+#panel.psp-library::after {display:none;}
+#panel.psp-library .panel-head {padding:23px 30px;border:0;background:transparent;}
+#panel.psp-library .panel-head h1 {font-size:11px;font-weight:400;letter-spacing:.17em;color:#e5ddeb;text-shadow:none;}
+#panel.psp-library .panel-head button {color:#e9e0ee;}
+#panel.psp-library .platform-navigation button {font-size:10px;}
+#panel.psp-library .platform-navigation button[aria-pressed=true] {border-color:#f5e8ff55;background:#fff1;}
+#panel.psp-library #panelBody {display:block;position:static;padding:0;min-height:0;}
+#panel.psp-library #panelStatus:not(:empty) {position:relative;margin:0 30px;padding:10px 14px;max-height:70px;overflow:auto;background:#211626d9;border:0;border-radius:4px;color:#fff;}
+.xmb-waves {position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:-1;}
+.xmb-waves svg {position:absolute;width:130%;height:95%;left:-15%;top:11%;overflow:visible;animation:xmb-drift 22s ease-in-out infinite alternate;}
+.xmb-waves path:not([fill]) {fill:none;stroke:#f5dfff;stroke-width:1;opacity:.22;}
+.xmb-waves path:nth-child(3) {opacity:.12;}.xmb-waves path:nth-child(4) {opacity:.08;}
+@keyframes xmb-drift {from{transform:translate(-2%,-3%) rotate(-3deg);}to{transform:translate(3%,5%) rotate(3deg);}}
+.xmb-clock {position:absolute;right:36px;top:99px;font-size:12px;font-variant-numeric:tabular-nums;letter-spacing:.08em;color:#eee5f2b3;}
+.xmb {--xmb-step:128px;position:absolute;left:18%;right:9%;top:25%;bottom:88px;display:flex;flex-direction:column;}
+.xmb-categories {display:flex;gap:0;flex-shrink:0;padding:0 0 20px;}
+#panel.psp-library .xmb-category {flex:0 0 var(--xmb-step);display:flex;flex-direction:column;align-items:center;gap:16px;min-height:104px;padding:8px;border:0;background:none;border-radius:4px;box-shadow:none;color:#e8dbefa6;font:13px Arial,sans-serif;letter-spacing:.035em;transition:color .2s,transform .2s;}
+.xmb-icon {display:block;flex-shrink:0;width:42px;height:42px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+#panel.psp-library .xmb-category[aria-selected=true] {color:#fff;transform:translateY(-3px);text-shadow:0 1px 8px #ffffff50;}
+.xmb-category[aria-selected=true] .xmb-icon {filter:drop-shadow(0 0 9px #ffe9ff80);transform:scale(1.17);}
+#panel.psp-library .xmb-category:focus-visible {outline:none;}
+#panel.psp-library .xmb-category:focus-visible span {text-decoration:underline;text-underline-offset:8px;text-decoration-color:#fff9;}
+.xmb-content {margin-left:calc(var(--xmb-step) + 40px);overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#d4c6d14d transparent;padding:10px 16px 18px 0;min-height:0;}
+.xmb[data-category=settings] .xmb-content {margin-left:40px;}
+.xmb[data-category=add] .xmb-content {margin-left:calc(var(--xmb-step)*2 + 40px);}
+.xmb-empty {display:flex;align-items:center;gap:23px;min-height:64px;color:#f5ecf9c9;}
+.xmb-empty .xmb-icon {width:38px;height:38px;color:#e3cfeba6;}
+.xmb-empty p {font-size:15px;line-height:1.6;margin:0;max-width:220px;}
+#panel.psp-library .xmb-action {display:flex;align-items:center;gap:23px;min-height:48px;padding:9px 4px;background:none;border:0;border-radius:3px;box-shadow:none;text-align:left;font:15px/1.5 Arial,sans-serif;letter-spacing:.015em;color:#fff;}
+#panel.psp-library .xmb-empty + .xmb-action {margin:9px 0 0 61px;color:#e5d6ed;font-size:13px;}
+#panel.psp-library .xmb-action:hover,#panel.psp-library .xmb-action:focus-visible {color:#fff;text-shadow:0 0 12px #fff9;background:#ffffff0a;outline:1px solid #ffffff40;outline-offset:3px;}
+#panel.psp-library .xmb-game {margin:0 0 8px;color:#fff;font:16px/1.5 Arial,'MS PGothic',sans-serif;}
+#panel.psp-library .xmb-game > summary {display:flex;align-items:center;gap:23px;width:auto;min-height:66px;padding:5px 3px;list-style:none;outline-offset:3px;}
+.xmb-game > summary::-webkit-details-marker {display:none;}
+.xmb-game > summary span {overflow-wrap:anywhere;}
+.xmb-game > summary .xmb-icon {width:38px;height:38px;opacity:.8;}
+#panel.psp-library .xmb-game > summary:hover,#panel.psp-library .xmb-game > summary:focus-visible {color:#fff;text-shadow:0 0 14px #ffffff80;}
+.xmb-game-actions {margin:3px 0 16px 62px;}
+#panel.psp-library .xmb-game-actions .xmb-action {font-size:13px;min-height:40px;color:#e6d8ee;}
+.xmb-footer {position:absolute;left:36px;right:36px;bottom:28px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;color:#e8dce885;}
+.xmb-wordmark {font:15px Arial,sans-serif;letter-spacing:.3em;}.xmb-hint {font:10px Arial,sans-serif;letter-spacing:.045em;white-space:pre;}
+#panel.psp-library .menu-music-controls {position:static;margin:20px 0 0;gap:12px;color:#ebddef;flex-wrap:wrap;font-size:11px;}
+#panel.psp-library .menu-music-controls details {position:relative;margin:0;color:inherit;}
+#panel.psp-library .menu-music-controls details p {position:static;width:auto;max-width:250px;background:#31273e;border-color:#bd9edc40;}
+#panel.psp-library .menu-music-controls input {accent-color:#e9d8f7;}
+@media(max-width:700px){
+  .console-library .panel-head {gap:8px;}.console-library .platform-navigation {gap:0;}.console-library .platform-navigation button {font-size:9px;padding:6px 8px;}
+  #panel.psp-library {width:calc(100vw - 16px);height:calc(100dvh - 24px);max-height:calc(100dvh - 24px);}
+  #panel.psp-library .panel-head {padding:17px 18px;gap:8px;}
+  #panel.psp-library .panel-head h1 {font-size:10px;}
+  .xmb-clock {right:24px;top:83px;font-size:11px;}
+  .xmb {--xmb-step:90px;left:18px;right:18px;top:25%;bottom:76px;}
+  .xmb-categories {justify-content:center;padding-bottom:22px;}
+  #panel.psp-library .xmb-category {font-size:12px;gap:15px;min-height:92px;}
+  .xmb-icon {width:36px;height:36px;}
+  .xmb .xmb-content,.xmb[data-category=settings] .xmb-content,.xmb[data-category=add] .xmb-content {margin-left:17px;padding-right:8px;}
+  .xmb-empty {gap:22px;}.xmb-empty p {font-size:14px;max-width:200px;}
+  .xmb-footer {left:24px;right:24px;bottom:26px;}.xmb-hint {font-size:9px;}
+  .xmb-waves svg {height:70%;top:24%;width:200%;left:-50%;}
+}
+@media(max-height:500px){
+  #panel.psp-library .panel-head {padding:10px 20px;}
+  .xmb {top:74px;bottom:42px;left:12%;right:8%;--xmb-step:105px;}
+  .xmb-categories {padding-bottom:5px;justify-content:flex-start;}
+  #panel.psp-library .xmb-category {min-height:78px;gap:9px;font-size:11px;}
+  .xmb-category .xmb-icon {width:30px;height:30px;}
+  .xmb-clock {top:72px;right:24px;font-size:10px;}
+  .xmb-footer {bottom:15px;left:24px;right:24px;}
+  .xmb-empty {min-height:49px;}
+}
+@media(pointer:coarse){.xmb-hint {display:none;}}
+@media(prefers-reduced-motion:reduce){.xmb-waves svg {animation:none;}#panel.psp-library .xmb-category {transition:none;}}
+
+/* Transparent cutout of the supplied logo; white on the dark menus. */
+.console-library .platform-logo {display:block;width:114px;height:22px;object-fit:cover;max-width:100%;}
+.console-library:not(.psone-library) .platform-logo {filter:invert(1);}
+@media(max-width:700px){.console-library .platform-logo {width:85px;height:16.5px;}}

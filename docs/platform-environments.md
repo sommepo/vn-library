@@ -12,51 +12,79 @@ a running Python service still returns a catalogue without `platform`; known
 existing imports must remain visible in that case. Restart the reader service
 after backend changes. Do not label arbitrary unknown titles as PS2.
 
-`web/platforms.mjs` owns the two supported environment identities, filtering,
-selector and original PC-9800 library. The selector appears in the player toolbar
-and each panel header; left/right keys on it switch machines. Selection persists
-in `vnkit.platform.v1`. Direct game links use the game's platform. Leaving an
-active game's library returns its skin without discarding execution or saves.
-There was no existing gamepad layer to preserve; controller mapping is still
-unimplemented and is not covered by the keyboard tests.
+## Active library environments
 
-PS2 uses the existing orbit/towers and collapsing title list. PC-9800 uses a
-separate 640×400 two-pane composition: compact title list, details/actions panel,
-bottom command strip and hard-edged opaque frames. The composition and all its
-graphics are original CSS/DOM. It contains no game, NEC firmware or OS artwork.
-Small screens reflow the panels rather than hiding commands outside the viewport.
-`web/pc98.css` also styles shared settings, statistics and save panels. UI tint
-settings do not turn those panels back into translucent PS2 chrome.
+`web/platforms.mjs` owns platform identities and filtering. The library header
+switches between **one** (PS1), **two** (PS2) and **portable** (PSP); left/right keys on that selector
+switch platforms. Selection persists in `vnkit.platform.v1`. Direct game links
+use the game's platform. Closing the library returns to an active game's platform
+without changing its execution or saves. PC-98 presentation and research remain
+parked; a saved PC-98 preference falls back to PS2.
 
-The design uses measured source dimensions and period characteristics, including
-640×400 composition, restrained colour and compact framed panels. A contemporary
-software developer's [PC-98 CAD history](https://afsoft.jp/cad/cad/005.html)
-corroborates the display modes and transition from eight colours to sixteen out
-of 4096. The owner's native YU-NO display provides the game-specific reference;
-it is not copied into global menus. Public synthetic screenshots establish UI
-behaviour, not YU-NO visual equivalence.
+PS2 retains its compact BIOS-inspired orbit and collapsing title list.
+`web/psp-library.mjs` and `web/psp.css` add an original XMB-inspired PSP library:
+soft plum/lavender colour, slow SVG waves, white line icons and a local clock.
+Settings, Games and Add game form the horizontal row; games and their actions
+sit below it. Labels stay short, game actions collapse, and an empty collection
+shows no sample or invented titles. The header uses the user-supplied logo; the shell contains no firmware assets.
 
-Display preferences remain per device. PS2 retains `vnkit.crt.v1`; PC98 uses
-`vnkit.crt.pc98.v1`, starts unfiltered, and defaults to 400 rows with no curvature,
-overscan, convergence or mask. PC98 artwork uses nearest-neighbour display and
-whole source-size multiples where the available area permits. Smaller viewports
-fit the whole source frame. These settings do not touch story or learning state.
-More flexible PC98 scaling controls and a redistributed bitmap font remain work
-to do; the current shell uses available system fonts with compact metrics.
+The PSP view supports mouse, touch, Tab, left/right category navigation and
+up/down item navigation. Enter opens a title's actions. Reduced motion disables
+the waves and category transitions. Phone portrait and short landscape layouts
+keep the category row visible with a separately scrolling item list. Settings
+reuse the reader's display, reading and menu-music controls. Existing per-platform
+CRT preference storage stays separate from saves and learning history.
 
-The generic entry is **Add game / Import media**. PS2 still uses the tested ISO
-workflow. The PC98 panel explains CUE/BIN input and reports that playable import
-is not ready; it does not submit those files to the PS2 importer. See
-[YU-NO findings](yuno-pc98-investigation.md).
+**This is a frontend, not playable PSP game support.** The local `428-psp`
+registration is [static recovery only](428-psp-investigation.md); no PSP edition
+is admitted to browser import. Add game states that PSP imports are not supported yet and does
+not upload a PSP ISO to the PS2 importer. A later adapter must establish exact
+edition recovery, execution and validation before admitting a playable import.
+The shared reader can display original synthetic PSP-tagged content in tests;
+those checks do not establish commercial PSP compatibility.
+
+## one: PSone-inspired frontend
+
+`web/psone-library.mjs` / `web/psone.css` provide a minimal grey-grid menu with
+original CSS disc/card shapes, ochre/red labels and a purple selection pointer.
+The two categories are Games and Settings. Game actions collapse; the empty
+library shows only “No games yet” and Add game. Keyboard category/item navigation,
+touch, phone portrait/landscape and independent platform preference storage use
+the same shared reader contracts as portable. No animation is required.
+
+The visual reference is the grey-grid menu shown in this
+[PSone photograph](https://ameblo.jp/sasaplus1/entry-12857299244.html).
+The shell uses no firmware artwork. Its header includes the separately supplied
+logo, shared by one, two and portable; see provenance.md.
+
+Exact PS1 CUE/BIN readers are available for [Memories Off](memoriesoff-runtime.md),
+[Otogirisou](otogirisou-runtime.md) and [Kamaitachi](kamaitachi-runtime.md).
+Their guides explain local conversion dependencies and support limits. Add game explains the local
+import route and performs no upload. `ps1` metadata only selects the
+frontend; it does not admit an edition or choose an emulator. The default remains
+two, and existing saves/activity are unchanged. Synthetic PS1-tagged reader tests
+establish UI behavior only.
+
+The top-right selector uses translucent glass surfaces and a sliding selection
+indicator. Platform changes crossfade the environments; reduced-motion settings
+disable those transitions. The transparent logo is shared across all three.
 
 ## Checks
 
-`tests/browser-platforms.mjs` creates two original synthetic games in a temporary
-library, a separate save bank and clean browser profiles. It checks filtering,
-selection persistence, direct links, returning from a game, resume continuity,
-independent CRT settings, keyboard selection and portrait/landscape panel bounds.
-It also checks all three existing PS2 cards against an older catalogue response
-without platform metadata, using synthetic cards rather than private game data.
-It passed in Chromium and Firefox. `tests/reader-platforms.test.mjs` and
-`tests/test_platforms.py` cover metadata and invalid/missing platform input.
-Commercial PS2 regression tests remain separate from these synthetic checks.
+`tests/browser-platforms.mjs` uses original synthetic content in a temporary
+library, a separate save bank and a clean browser profile. It covers PS2 legacy
+metadata, the parked PC-98 preference, PSP filtering and persistence, keyboard
+navigation, synthetic reading continuity after switching platforms, settings,
+the unavailable PSP import boundary, reduced motion and mobile panel bounds.
+Set `VNKIT_BROWSER=firefox` for Firefox and `VNKIT_REPORT_DIR` for private output.
+`tests/reader-platforms.test.mjs` and `tests/test_platforms.py` cover metadata and
+invalid/missing platform input. Actual-game reader regressions are separate.
+
+## Parked PC-98 work
+
+`web/platforms.mjs` retains the original PC-9800 menu helper, and `web/pc98.css`
+retains the separate desktop styling. Neither is enabled in the active UI.
+PC-98 metadata and the 640×400 reader layout remain available for future work,
+with independent `vnkit.crt.pc98.v1` preferences and integer scaling where it fits.
+See [YU-NO findings](yuno-pc98-investigation.md). Do not equate the parked synthetic
+UI checks with a playable YU-NO adapter.

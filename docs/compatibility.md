@@ -1,5 +1,29 @@
 # Compatibility and evidence
 
+**Otogirisou SLPS-01645 and Kamaitachi SLPS-01794 have experimental local readers.**
+Original full-scene text, inline choices, source-driven execution, saves and
+media pass actual Chromium/Firefox reading checks. Earned campaigns and
+remaining native effects/audio/auxiliary control limits are recorded in
+[the runtime guide](chunsoft-ps1-runtime.md). Import and validation retain exit 3;
+these CUE/BIN editions are not admitted to browser ISO upload. Beta.5 includes
+the reader/importer source and the source-bound Otogirisou glyph correspondence;
+PS1 media converters still require separate local setup.
+
+**428 PSP ULJS-00219 v1.01 is paused with static recovery only.** Its 34 SNS scripts parse
+structurally. A control VM draft, bounded native probes, flow parser and GIM
+decoder are under development. Progress records and an exact-source native
+recalculation bridge have controlled tests; source-earned switching, complete
+saves and reader execution are not integrated. CLI import exits 3 and creates no playable library
+entry. See [the investigation](428-psp-investigation.md).
+
+**Memories Off PS1 SLPS-02296 has a local experimental CUE/BIN reader.**
+It is installed under **one** with source-driven choices, selectable Japanese,
+original media, a 16-track Sound test and shared reader saves. A 500-run campaign has zero stops and
+1,740 restore checks; Chromium/Firefox each cover 150 real text segments.
+Six end-of-buffer branches remain fail-closed, the sixth clear flag is untested,
+and native presentation is incomplete. This is local CLI support, not browser
+ISO upload. Beta.5 includes the reader; its PS1 converters require separate setup. See [coverage and setup](memoriesoff-runtime.md).
+
 **Higurashi Matsuri Kakera Asobi SLPM-66913 v1.01 has a source-driven reader.**
 All ten main chapter endings and five bad-ending variants finish in source
 replays; 309,298 instructions validate without unsupported sites. Chromium and

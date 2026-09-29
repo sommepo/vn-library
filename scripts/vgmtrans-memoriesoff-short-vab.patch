@@ -1,0 +1,25 @@
+diff --git a/src/main/formats/PS1/PS1SeqScanner.cpp b/src/main/formats/PS1/PS1SeqScanner.cpp
+index 65fc07d..90da4a6 100644
+--- a/src/main/formats/PS1/PS1SeqScanner.cpp
++++ b/src/main/formats/PS1/PS1SeqScanner.cpp
+@@ -20,6 +20,20 @@ ScannerRegistration<PS1SeqScanner> s_ps1seq("PS1");
+ void PS1SeqScanner::scan(RawFile* file, void* /*info*/) {
+   auto seqs = searchForPS1Seq(file);
+   auto vabs = searchForVab(file);
++  // VNKit local change: an explicit original VAB directory can describe a
++  // waveform shorter than the scanner's ten-frame heuristic (Memories Off SE10).
++  // Use bounded native size entries; do not substitute a different waveform.
++  for (auto* vab : vabs) {
++    const u32 base = vab->offset();
++    const u32 programs = file->readShort(base + 0x12);
++    const u32 count = file->readShort(base + 0x16);
++    const u32 table = base + 0x820 + programs * 512;
++    const u32 start = table + 512;
++    if (programs != 1 || count != 1 || start + 64 > file->size() ||
++        file->readShort(table + 2) != 8) continue;
++    std::vector<SizeOffsetPair> locations{SizeOffsetPair(0, 64)};
++    pRoot->loadVGMFile<PSXSampColl>(PS1Format::name, vab, start, 64, locations);
++  }
+   PSXSampColl::searchForPSXADPCMs(file, PS1Format::name);
+ }
+ 

@@ -1,6 +1,6 @@
 /* Execute the current route; never scan text or jump to a guessed script offset. */
 const passable = new Set(['text', 'pause', 'wait']);
-const stops = new Set(['choice', 'end', 'movie', 'sound', 'setup']);
+const stops = new Set(['choice', 'end', 'movie', 'sound', 'setup', 'input']);
 export class NavigationCancelled extends Error {
   constructor() { super('Next-choice navigation cancelled'); this.name = 'NavigationCancelled'; }
 }

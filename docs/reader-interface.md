@@ -1,5 +1,14 @@
 # Classic reader and next-choice navigation
 
+**Full-scene sound novels use a separate presentation.** Otogirisou and
+Kamaitachi preserve selectable text directly over the scene, retained paragraphs
+and inline choices. `sound-novel.mjs` / `sound-novel.css` provide source-coordinate
+pages with original glyph masks. Adjacent glyphs stay inline for word lookup;
+relative offsets retain native positions. Anchor whole runs, never each character
+separately: absolute characters break dictionary scanners' word boundaries.
+The box/opacity/font-clamp rules below apply to the classic reader. See
+[current browser evidence and limits](chunsoft-ps1-runtime.md).
+
 The reader uses original CSS inspired by the user's CLANNAD screenshot:
 translucent slate/lavender dialogue, pale gold inset borders, white Japanese text,
 a separate speaker nameplate. The surrounding player now matches the fixed blue
@@ -232,3 +241,35 @@ taps retarget from the painted position; closing actions are inert. Resize
 retargets the measurement, leaving the panel cancels its animation work, and
 reduced-motion settings use immediate transitions. Nested progress and disc
 information disclosures remain independent inside the one open title.
+
+## PSP library frontend (2026-09-28)
+
+Library → PSP opens the minimal XMB-inspired shell. Three icon categories show
+Games, Add game and Settings, with flowing original SVG waves and short labels.
+Platform selection persists; closing the library returns to the active game's
+platform. Keyboard and touch controls and reduced-motion mode are supported.
+The existing PS2 BIOS menu remains available from the same header selector.
+PSP ISO execution is not implemented; Add game says so and performs no upload.
+See [platform environments](platform-environments.md) for the boundary and checks.
+
+## one menu (2026-09-28)
+
+Library → one opens the PSone-inspired grey grid with two large icon categories,
+Games and Settings. Disc/card artwork and the purple pointer are original CSS.
+Labels and actions stay minimal. one, two and portable select PS1, PS2 and PSP
+presentation respectively; two remains the default. PS1 import is not implemented.
+
+## System transitions and glass selector (2026-09-28)
+
+The top-right system selector stays mounted across one / two / portable changes.
+A shared frosted-glass highlight slides beneath the selected button, with a
+matching glass close control. All three library frames use the same outer size
+and header spacing, preventing the selector from moving when the skin changes.
+A short content fade and background crossfade soften the system change. Rapid
+selections cancel old fades and settle on the latest request; closing via the
+button or Escape cancels pending work. Reduced motion skips fades and highlight
+travel. Settings/import panels dispose the selector's resize observer.
+
+Implementation: web/platform-glass.css, platformNavigation in web/platforms.mjs,
+and revision-guarded platform changes in web/app.mjs. No save/activity/adapter
+format changes. CSS is included by the existing code-only package allowlist.

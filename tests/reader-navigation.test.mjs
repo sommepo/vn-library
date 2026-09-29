@@ -24,7 +24,7 @@ test('next choice follows both real fixture branches, calls, variables and media
   }
 });
 test('existing choices and movie/setup/end boundaries never advance automatically', async () => {
-  for (const kind of ['choice', 'movie', 'sound', 'setup', 'end']) {
+  for (const kind of ['choice', 'movie', 'sound', 'setup', 'input', 'end']) {
     const engine = { current: { kind, id: 'boundary' }, advance() { throw new Error('Must not advance'); } };
     const r = await seekNextChoice(engine); assert.equal(r.pending.kind, kind); assert.equal(r.steps, 0);
   }

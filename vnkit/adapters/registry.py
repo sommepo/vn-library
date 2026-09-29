@@ -42,6 +42,31 @@ class AdapterSpec:
 # explicit playable-support decision; static recovery must leave it unset.
 ADAPTERS = (
     AdapterSpec(
+        'otogirisou-ps1', 'vnkit.adapters.otogirisou_ps1',
+        importer_module='vnkit.adapters.chunsoft_import',
+        setup_guide='chunsoft-ps1-runtime.md',
+        edition_label='PS1 Otogirisou SLPS-01645 (experimental reader)',
+    ),
+    AdapterSpec(
+        'kamaitachi-ps1', 'vnkit.adapters.kamaitachi_ps1',
+        importer_module='vnkit.adapters.chunsoft_import',
+        setup_guide='chunsoft-ps1-runtime.md',
+        edition_label='PS1 Kamaitachi SLPS-01794 (experimental reader)',
+    ),
+    AdapterSpec(
+        '428-psp', 'vnkit.adapters.shibuya428_psp',
+        setup_guide='428-psp-investigation.md',
+        edition_label='PSP 428 ULJS-00219 v1.01 (static recovery only)',
+        # SNS/flow execution is unimplemented. Never admit this to Add game.
+    ),
+    AdapterSpec(
+        'memoriesoff-ps1', 'vnkit.adapters.memoriesoff_ps1',
+        importer_module='vnkit.adapters.memoriesoff_import',
+        setup_guide='memoriesoff-runtime.md',
+        edition_label='PS1 Memories Off SLPS-02296 (exact executable)',
+        # Local CUE/BIN importer only. Browser ISO upload cannot represent XA pairs.
+    ),
+    AdapterSpec(
         'cartagra-ps2', 'vnkit.adapters.cartagra_ps2',
         importer_module='vnkit.adapters.cartagra_import',
         gui_game_id='cartagra-slpm66231-1.01',

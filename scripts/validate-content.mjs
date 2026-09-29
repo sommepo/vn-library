@@ -5,6 +5,17 @@ try {
   const content = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
   const errors = await validateReaderContent(content);
   let scriptValidation;
+  if(['kamaitachi-ps1','otogirisou-ps1'].includes(content.runtime?.id)){
+    const {validateDirectory}=await import('./validate-chunsoft-ps1.mjs');
+    const result=await validateDirectory(path.dirname(path.resolve(process.argv[2])));
+    scriptValidation=result.scriptValidation;errors.push(...result.errors);
+  }
+  if(content.runtime?.id==='memoriesoff-ps1'){
+    const {validateDirectory}=await import('./validate-memoriesoff.mjs');
+    scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));
+    errors.push(...scriptValidation.errors);
+    errors.push(`Memories Off native presentation remains incomplete: ${scriptValidation.sourceTargets.length} source end-of-buffer targets remain fail-closed; animations, calendar and SPU synthesis are incomplete.`);
+  }
   if(content.runtime?.id==='higurashi-ps2-shin'){
     const {validateDirectory}=await import('./validate-higurashi.mjs');
     scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));

@@ -4,6 +4,7 @@ export function snapshotEffects(effects, savedPaused) {
   return [...effects].filter(audio => !audio.ended).map(audio => ({
     asset: audio.vnAsset,
     ...(audio.vnChannel ? { channel: audio.vnChannel } : {}),
+    ...(audio.vnGain != null && audio.vnGain !== 1 ? {volume:audio.vnGain} : {}),
     time: audio.currentTime || 0,
     paused: savedPaused(audio),
     loop: snapshotLoop(audio),
@@ -23,8 +24,9 @@ export function startEffect(effects, effect, services) {
   const audio = services.createAudio(services.mediaURL(effect.asset));
   audio.vnAsset = effect.asset;
   audio.vnChannel = effect.channel;
+  audio.vnGain = Number.isFinite(effect.volume) ? Math.max(0,Math.min(1,effect.volume)) : 1;
   services.configure(audio, effect.asset, effect.loop === true);
-  audio.volume = services.volume;
+  audio.volume = services.volume * audio.vnGain;
   effects.add(audio);
   if (effect.time != null) services.seek(audio, effect.time);
   if (isOneShot(effect.loop)) audio.addEventListener('ended', () => effects.delete(audio), { once: true });

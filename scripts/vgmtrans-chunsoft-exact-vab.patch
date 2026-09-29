@@ -1,0 +1,51 @@
+--- a/src/main/formats/PS1/PS1SeqScanner.cpp
++++ b/src/main/formats/PS1/PS1SeqScanner.cpp
+@@ -20,6 +20,23 @@
+ void PS1SeqScanner::scan(RawFile* file, void* /*info*/) {
+   auto seqs = searchForPS1Seq(file);
+   auto vabs = searchForVab(file);
++  // VNKit private external-tool patch: authoritative contiguous VAB lengths.
++  for (auto* vab : vabs) {
++    const u32 base = vab->offset(), programs = file->readShort(base + 0x12);
++    const u32 count = file->readShort(base + 0x16);
++    const u32 table = base + 0x820 + programs * 512, start = table + 512;
++    if (!programs || programs > 128 || !count || count > 255 ||
++        start > file->size() || file->readShort(table)) continue;
++    std::vector<SizeOffsetPair> locations;
++    u32 total = 0; bool valid = true;
++    for (u32 i = 1; i <= count; i++) {
++      const u32 size = file->readShort(table + i*2) * 8;
++      if (!size || size % 16 || size > file->size() - start - total) {valid=false; break;}
++      locations.emplace_back(total, size); total += size;
++    }
++    if (valid && total == file->readWord(base + 12) - (start-base))
++      pRoot->loadVGMFile<PSXSampColl>(PS1Format::name, vab, start, total, locations);
++  }
+   PSXSampColl::searchForPSXADPCMs(file, PS1Format::name);
+ }
+ 
+--- a/src/main/formats/common/PSXSPU.cpp
++++ b/src/main/formats/common/PSXSPU.cpp
+@@ -171,8 +171,20 @@
+   else {
+     u32 sampleIndex = 0;
+ 
+-    if (!isValidSampleStart(rawFile(), offset(), true))
+-      return false;
++    // Explicit source directories may begin with sustained silence. Validate
++    // bounded ADPCM frames, not the scanner's waveform-entropy heuristic.
++    for (const auto& loc : vagLocations) {
++      if (!loc.size || loc.size % 16 || offset() > rawFile()->size() ||
++          loc.offset > rawFile()->size()-offset() ||
++          loc.size > rawFile()->size()-offset()-loc.offset) return false;
++      bool ended = false;
++      for (u32 i=0; i<loc.size; i+=16) {
++        const u32 pos=offset()+loc.offset+i;
++        if (!isValidFilterShiftByte(readByte(pos)) || !isValidFlagByte(readByte(pos+1))) return false;
++        if (readByte(pos+1)&1) {ended=true; break;}
++      }
++      if (!ended) return false;
++    }
+ 
+     for (std::vector<SizeOffsetPair>::iterator it = vagLocations.begin(); it != vagLocations.end(); ++it) {
+       if (it->offset == 0 && it->size == 0)

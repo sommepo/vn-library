@@ -1,6 +1,8 @@
 // Platform is content metadata, independent of the story interpreter.
 export const PLATFORMS = Object.freeze([
-  Object.freeze({id:'ps2',name:'PlayStation 2',label:'PLAYSTATION 2'}),
+  Object.freeze({id:'ps1',name:'PlayStation',label:'one'}),
+  Object.freeze({id:'ps2',name:'PlayStation 2',label:'two'}),
+  Object.freeze({id:'psp',name:'PlayStation Portable',label:'portable'}),
   // PC-98 presentation is parked; metadata/research below is retained.
 ]);
 export const PLATFORM_KEY='vnkit.platform.v1';
@@ -19,14 +21,27 @@ export function storedPlatform(storage){
 }
 export function platformNavigation(id,onSelect){
   const nav=document.createElement('nav');nav.className='platform-navigation';nav.setAttribute('aria-label','Platform');
+  const glass=document.createElement('span');glass.className='platform-glass';glass.setAttribute('aria-hidden','true');nav.append(glass);
+  const measure=()=>{
+    const active=nav.querySelector('[aria-pressed=true]');if(!active)return;
+    nav.style.setProperty('--platform-left',`${active.offsetLeft}px`);
+    nav.style.setProperty('--platform-width',`${active.offsetWidth}px`);
+  };
+  nav.update=next=>{
+    id=next;for(const button of nav.querySelectorAll('button'))button.setAttribute('aria-pressed',String(button.dataset.platform===id));measure();
+  };
   for(const platform of PLATFORMS){
     const button=document.createElement('button');button.type='button';button.textContent=platform.label;button.dataset.platform=platform.id;
     button.setAttribute('aria-pressed',String(platform.id===id));button.onclick=()=>onSelect(platform.id);nav.append(button);
   }
   nav.addEventListener('keydown',e=>{
-    if(!['ArrowLeft','ArrowRight'].includes(e.key))return;e.preventDefault();
-    const next=PLATFORMS[(PLATFORMS.findIndex(p=>p.id===id)+1)%PLATFORMS.length];onSelect(next.id,true);
-  });return nav;
+    if(!['ArrowLeft','ArrowRight'].includes(e.key)||e.altKey||e.ctrlKey||e.metaKey)return;e.preventDefault();
+    const next=PLATFORMS[(PLATFORMS.findIndex(p=>p.id===id)+(e.key==='ArrowRight'?1:-1)+PLATFORMS.length)%PLATFORMS.length];onSelect(next.id,true);
+  });
+  const observer=new ResizeObserver(measure);observer.observe(nav);
+  const frame=requestAnimationFrame(()=>{measure();nav.classList.add('glass-ready');});
+  nav.dispose=()=>{cancelAnimationFrame(frame);observer.disconnect();nav.remove();};
+  return nav;
 }
 
 // A fixed 640×400 desktop composition; small screens use an accessible reflow.

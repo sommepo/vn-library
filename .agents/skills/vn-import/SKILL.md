@@ -5,6 +5,71 @@ description: Inspect authorised Japanese visual-novel discs, run the local VN Im
 
 # VN import
 
+Otogirisou SLPS-01645 and Kamaitachi SLPS-01794 PS1 have experimental local
+CUE/BIN readers. Read [the runtime guide](../../../docs/chunsoft-ps1-runtime.md)
+and [format investigation](../../../docs/chunsoft-ps1-investigation.md). Ordinary
+CLI import creates playable content with exit 3 for documented native limits;
+browser ISO upload stays closed. Actual Chromium/Firefox each cover 100 source
+segments per game, inline choices, original audio, save/resume and mobile bounds.
+Earned simulated campaigns are bounded evidence, not exhaustive route coverage.
+
+The user requires original full-scene pages and inline choices, never a bottom
+textbox. Preserve 320×240 source geometry, original font masks/selectable Unicode,
+page retention and the distinction between displayText and newly counted text.
+Otogirisou's bundled Unicode correspondence is source-bitmap reviewed but not
+independently proofread. The user authorized publishing its glyph-ID/codepoint
+facts and source hashes in beta.5; original font/review images remain private.
+Its loose SNB/SBB/GSF and SLPS_018.45 belong to the bundled Machi demo.
+Auxiliary bank45 exists via scenes205–209; its loading path remains unsupported.
+Kamaitachi's 20 remaining auxiliary control sites stay fail-closed. Read the
+guide for media limitations and exact source fingerprints. All original bytes,
+annotated reviews, saves, recipes and reports stay private. Preserve existing readers.
+
+**428 is paused at the user's request on 2026-09-29. Do not resume without a new
+request.** Its [dedicated handoff](../../../docs/428-handoff-paused.md) and
+`private/428/HANDOFF.md` preserve the workspace and next steps. The following
+428 findings are retained history, not the active implementation target.
+
+428 PSP ULJS-00219 v1.01 currently has **static recovery only**, not a playable
+portable library entry. Read [its investigation](../../../docs/428-psp-investigation.md).
+Use `--adapter 428-psp` for local recovery; it exits 3 and emits no content.json.
+The 34 SNS 01.82 scripts structurally parse. A control VM draft, FLO parser,
+GIM decoder and bounded integer Allegrex probe now exist, but reader execution,
+JUMP/KEEP OUT gates, cross-character state and saves are not integrated. Read
+the investigation’s runtime-foundations section before extending them. Native
+branch comparisons cover 4,734 controlled cases; flow lookup covers 1,199 nodes.
+The progress-record implementation matches 10,939 native IDs and 3,001
+primitive operations. The exact-input progress kernel checks private ELF/SNS/FLO
+hashes before bounded native replay. Its 158 empty and 24 visited hypothetical
+cases include six controlled choice reversals, not earned routes or PSP-device
+evidence. The draft VM's explicit resolveRecompute needs verified source context;
+ordinary advance and unsupported tutorials still stop. Opaque native transactions
+are temporary, not reader saves; non-empty source call stacks remain rejected.
+Never seed user progress from the diagnostic prefix histories. Private artwork-v2
+contains 6,123 decoded pictures; the dummy archive’s 87 opaque GIMs remain opaque.
+CPK extraction preserves numeric member IDs and never follows original ../
+directory strings. Keep the exact dummy archive's 129 headerless compressed
+members as opaque stored bytes; do not repair signatures. Private outputs are
+under private/428, and no browser import/installer/public support is admitted.
+The external GPL pspdecrypt tool is for static research only, never bundled.
+Preserve Memories Off and all six installed PS2 readers and their save banks.
+
+
+Memories Off original PS1 SLPS-02296 now has a local experimental CUE/BIN
+reader under **one**. Its Sound test plays all 16 imported tracks in numeric
+order; inactive use must not start a story, autosave or count activity. Both
+Chromium and Firefox check playback and cleanup. Read [the runtime guide](../../../docs/memoriesoff-runtime.md)
+and [engine fingerprint](../../../docs/memoriesoff-investigation.md). Use the
+ordinary CLI with `--adapter memoriesoff-ps1`; browser ISO upload and an updated
+Windows installer are not implemented. The 46-script bytecode VM is separate
+from PS2 MAC/oscr/HuneX. Keep Form 1 filesystem and Form 2 XA data distinct.
+Six EOF targets stay fail-closed. A 500-run simulated campaign has no stops and
+1,740 restore checks; five of six clears are earned, not all-route coverage.
+Chromium/Firefox each check 150 real segments and reader controls. Native effects,
+calendar and SPU synthesis remain incomplete. The exact font has 36 visually
+reviewed custom Unicode slots, without an independent proofread. Retain the
+short-VAB tool patch's zlib notice and keep all recovered data/evidence private.
+
 Locate the repository containing `vnkit/__main__.py` and read `AGENTS.md` and
 [the current handoff](../../../docs/next-session.md). The skill references runnable
 code; it does not replace the toolkit or depend on information from prior chats.
