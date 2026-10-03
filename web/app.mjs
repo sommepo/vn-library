@@ -19,6 +19,7 @@ import { decodeSceneImages } from './scene-images.mjs';
 import { CRTDisplay } from './crt.mjs';
 import { MiningMedia } from './mining.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
+import { renderSessionHud } from './session-hud.mjs';
 import { ReaderLayout } from './layout.mjs';
 import { SoundNovelPage, validateSoundPage } from './sound-novel.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
@@ -26,7 +27,7 @@ import { applyLoop, releaseLoop } from './audio-loop.mjs';
 import { clearEffects, restoreEffects, snapshotEffects, startEffect, stopEffects } from './audio-effects.mjs';
 
 const $ = id => document.getElementById(id);
-const defaults = { ankiMedia: false, readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
+const defaults = { ankiMedia: false, readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, sessionHud: false, ...THEME_DEFAULTS };
 let settings;
 try { settings = { ...defaults, ...JSON.parse(localStorage.getItem('vnkit.settings') || '{}') }; } catch { settings = { ...defaults }; }
 const store = new SaveStore(new Store());
@@ -740,7 +741,10 @@ function applySettings() {
   $('dimButton').setAttribute('aria-pressed', String(settings.dimSurroundings));
   $('dimButton').innerHTML=settings.dimSurroundings?'☀ <span>Light</span>':'☾ <span>Dim</span>';
   $('dimButton').title=$('dimButton').ariaLabel=settings.dimSurroundings?'Light surroundings':'Dim surroundings';
-  localStorage.setItem('vnkit.settings', JSON.stringify(settings)); volumes();
+  localStorage.setItem('vnkit.settings', JSON.stringify(settings)); volumes(); updateSessionHud();
+}
+function updateSessionHud() {
+  renderSessionHud($('sessionHud'), activity?.session, settings.sessionHud === true && Boolean(engine) && !libraryMode && !choiceSeek && !$('panel').open);
 }
 async function libraryContext(item) {
   if(item.id===game?.id)return {engine,game,contentBase,active:true};
@@ -882,6 +886,7 @@ async function settingsPanel() {
   range('Pause after inactivity', 'inactivity', 60, 1200, 30, v => `${v / 60} min`);
   const check = (label, name) => { const text = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.checked = settings[name]; input.onchange = () => { settings[name] = input.checked; applySettings(); if (name === 'websocket') guard(settingsPanel)(); }; text.append(input, document.createTextNode(` ${label}`)); body.append(row(text)); };
   check('Darken the area surrounding the game', 'dimSurroundings');
+  check('Show session stats in the upper right', 'sessionHud');
   check('Automatically copy new narrative text on this device', 'autoCopy');
   check('Include speaker name in copied and streamed text', 'includeSpeaker');
   check('Publish newly presented text to the local WebSocket relay', 'websocket');
@@ -1213,7 +1218,7 @@ for (const event of ['pointerdown', 'keydown', 'wheel', 'touchstart']) document.
 document.addEventListener('selectionchange', () => { if (selected()) { clearTimeout(autoTimer); pauseWait(); } else schedule(); });
 document.addEventListener('visibilitychange', guard(async () => { if (document.hidden) { clearTimeout(autoTimer); pauseWait(); await persistCurrent(); } else { if (activity) { activity.lastTick = Date.now(); activity.interact(); } if (scriptMedia?.ended) await advance('media'); else schedule(); } }));
 window.addEventListener('pagehide', () => { persistCurrent().catch(() => {}); });
-setInterval(guard(async () => { if (!activity || !gameLease?.owned()) return; activity.tick({ visible: !document.hidden, reading: !globalPause.paused && !busy && !choiceSeek && !$('panel').open && Boolean(currentReadable()?.text) && !skip, inactivityMs: settings.inactivity * 1000 }); if (++heartbeat % 15 === 0) await persistCurrent(); }), 1000);
+setInterval(guard(async () => { updateSessionHud(); if (!activity || !gameLease?.owned()) return; activity.tick({ visible: !document.hidden, reading: !globalPause.paused && !busy && !choiceSeek && !$('panel').open && Boolean(currentReadable()?.text) && !skip, inactivityMs: settings.inactivity * 1000 }); if (++heartbeat % 15 === 0) await persistCurrent(); }), 1000);
 voice.addEventListener('ended', schedule);
 
 await guard(async () => {
