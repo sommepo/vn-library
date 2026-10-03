@@ -60,6 +60,27 @@ ADAPTERS = (
         # SNS/flow execution is unimplemented. Never admit this to Add game.
     ),
     AdapterSpec(
+        'gs1-gba', 'vnkit.adapters.gs1_gba',
+        importer_module='vnkit.adapters.gs1_import',
+        setup_guide='gs1-gba-runtime.md',
+        edition_label='GBA Gyakuten Saiban AGB-ASBJ (experimental native runtime)',
+        # Local CLI import only; the cartridge runs on the original-code GBA machine.
+    ),
+    AdapterSpec(
+        'gs3-gba', 'vnkit.adapters.gs3_gba',
+        importer_module='vnkit.adapters.gs3_import',
+        setup_guide='gs3-gba-runtime.md',
+        edition_label='GBA Gyakuten Saiban 3 AGB-A3JJ (experimental native runtime)',
+        # Local CLI import only; the cartridge runs on the original-code GBA machine.
+    ),
+    AdapterSpec(
+        'gs2-gba', 'vnkit.adapters.gs2_gba',
+        importer_module='vnkit.adapters.gs2_import',
+        setup_guide='gs2-gba-investigation.md',
+        edition_label='GBA Gyakuten Saiban 2 AGB-A3GJ (experimental native runtime)',
+        # Local CLI import only; the cartridge runs on the original-code GBA machine.
+    ),
+    AdapterSpec(
         'memoriesoff-ps1', 'vnkit.adapters.memoriesoff_ps1',
         importer_module='vnkit.adapters.memoriesoff_import',
         setup_guide='memoriesoff-runtime.md',

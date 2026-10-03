@@ -27,14 +27,23 @@ uniform sampler2D image, glow;
 uniform vec2 sourceSize, outputSize;
 uniform float scanlines, rows, beam, maskStrength, maskPitch, bloom, halation;
 uniform float convergence, sharpness, inputGamma, outputGamma, brightness, saturation, warmth;
-uniform float curvature, overscan, vignette, corners, grain;
+uniform float curvature, overscan, vignette, corners, grain, pixelEdge;
 uniform int maskType;
+// A low-resolution source (a handheld's own screen, magnified many times) would smear across
+// each of its pixels under plain linear sampling. pixelEdge > 1 keeps the inside of a source
+// pixel flat and narrows the blend between neighbours by that factor; 1 is plain linear.
+vec2 edge(vec2 p){
+ if(pixelEdge<=1.0)return p;
+ float t=p.x*sourceSize.x-0.5,i=floor(t);
+ return vec2((i+0.5+clamp((t-i-0.5)*pixelEdge+0.5,0.0,1.0))/sourceSize.x,p.y);
+}
 vec3 linearAt(vec2 p){
- vec2 d=vec2(convergence/sourceSize.x,0.0);
- vec3 c=vec3(texture(image,p+d).r,texture(image,p).g,texture(image,p-d).b);
+ vec3 c;
+ if(convergence>0.0){vec2 d=vec2(convergence/sourceSize.x,0.0);c=vec3(texture(image,edge(p+d)).r,texture(image,edge(p)).g,texture(image,edge(p-d)).b);}
+ else c=texture(image,edge(p)).rgb;
  if(sharpness>0.0){
   vec2 q=1.0/sourceSize;
-  vec3 soft=(texture(image,p+vec2(q.x,0)).rgb+texture(image,p-vec2(q.x,0)).rgb+texture(image,p+vec2(0,q.y)).rgb+texture(image,p-vec2(0,q.y)).rgb)*0.25;
+  vec3 soft=(texture(image,edge(p+vec2(q.x,0))).rgb+texture(image,edge(p-vec2(q.x,0))).rgb+texture(image,edge(p+vec2(0,q.y))).rgb+texture(image,edge(p-vec2(0,q.y))).rgb)*0.25;
   c=clamp(c+(c-soft)*sharpness,0.0,1.0);
  }
  return pow(max(c,vec3(0)),vec3(inputGamma));

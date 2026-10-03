@@ -623,6 +623,81 @@ Existing external-tool licence notices apply; no third-party tool becomes MIT
 merely because it is called by the importer. No game content was uploaded and
 no public release or updated installer was produced.
 
+## Gyakuten Saiban 2 GBA static recovery (2026-09-30)
+
+- [atasro2/pwaa2](https://github.com/atasro2/pwaa2), commit `91cd5f6`: a
+  decompilation that builds the exact AGB-A3GJ ROM. **No licence is published**
+  (GitHub reports none), so it is a reading reference only. Native behaviour
+  (script loading, token dispatch, per-command pointer arithmetic, font
+  location) was studied; `gs2_gba.py` is original code, discovers all tables
+  from the user's ROM and contains no copied code, symbol tables or data. The
+  clone is kept privately under `private/gs2/` and never distributed.
+- The GBA BIOS LZ77 decoder is an original implementation of the documented
+  public format.
+- The glyph map is an original visual review of the user's ROM (published from
+  v0.2.0; see the GS1 and GS3 section below).
+  Nametag and court-record names are likewise visual transcriptions of the
+  ROM's own images (`private/gs2/names-review-v1.json`).
+- `web/adapters/gs2-engine.mjs` is original code. Native process behaviour
+  (cross-examination input, present lookup, penalties, `Random()` formula)
+  was learned by reading pwaa2; no code was copied.
+  JmdictFurigana (a local read-only copy already on the host) was used only as
+  a word list to flag suspicious readings; none of it is shipped.
+
+## Gyakuten Saiban 1 and 3 GBA native readers (2026-10-01)
+
+- [atasro2/pwaa1](https://github.com/atasro2/pwaa1), commit
+  `744219a74f9d92d1dcd3ea10f502ca270ab9fda2`: a decompilation whose target
+  matches the supplied AGB-ASBJ dump's SHA-1. **No licence is published**, so it
+  is a reading reference only, for RAM layout and native behaviour facts.
+- [atasro2/pwaa3demo](https://github.com/atasro2/pwaa3demo), commit
+  `a3f3aad75a6c9e70c64e5644e1d4d3e12b0405ab`: a decompilation of an earlier
+  Gyakuten Saiban 3 build, not the retail AGB-A3JJ cartridge. **No licence is
+  published**; reading reference only. Its layouts were treated as hints and
+  each fact was measured again on the retail ROM.
+- `gyakuten_series.py`, `gs1_gba.py`, `gs3_gba.py`, the shared series engine
+  `web/adapters/gyakuten-native.mjs` and the per-edition profiles
+  (`gs1-native.mjs`, `gs2-native.mjs`, `gs3-native.mjs`) are original MIT code.
+  They contain addresses, offsets and structure facts about the exact ROMs and
+  no copied code, symbol tables, scripts, text or graphics. Both clones are kept
+  privately and never distributed.
+- The glyph and name-tag maps for all three cartridges are original visual
+  transcriptions of the supplied ROMs' own images, bound to each ROM and not
+  proofread. From v0.2.0 they are published, with the owner's authorization, as
+  `vnkit/adapters/gs1_charset.py`, `gs2_charset.py` and `gs3_charset.py` under
+  MIT: glyph-ID/Unicode-codepoint facts, the speaker name on each name-tag image,
+  the GS3 speaker-to-name-tag index, and the font hash and ROM SHA-1 they are
+  bound to. They contain no font bitmaps, name-tag images, script text or
+  dialogue. The GS2 court-record item names, labelled glyph sheets and review
+  images stay private. Statements elsewhere that these maps are "kept private"
+  describe the state before v0.2.0.
+- The cartridge, its derived `case.json` and every saved machine state used by
+  the touch and playthrough checks are private. Public tests run on a blank
+  machine or original synthetic programs.
+
+## Home page, statistics and session box (2026-10-01 to 2026-10-03)
+
+`web/home.mjs`, `web/home.css`, `web/session-hud.mjs` and `web/session-hud.css`
+are original MIT DOM/CSS. The Home page imitates the general manner of an
+early-2000s personal homepage with local font stacks and CSS-drawn tiles; no
+template, image, font, counter graphic or code from any hosting service or
+existing site is used.
+
+## Original GBA machine (2026-09-30)
+
+`web/adapters/gba/` (CPU, memory map, DMA, timers, interrupts, BIOS services,
+PPU, APU, snapshot packer) is original code written from public ARM and GBA
+hardware documentation. No BIOS image is used: SWIs run in JavaScript and a
+six-instruction IRQ dispatcher is assembled here. gbajs2 (BSD-2-Clause) was
+cloned for evaluation, not executed, and deleted; none of its code is used.
+GS2 RAM addresses and structure offsets were read from pwaa2's symbol files and
+headers (facts about the exact ROM); no pwaa2 code is used.
+
+## Original GBA frontend (2026-09-30)
+
+`web/gba-library.mjs` and `web/gba.css` are original CSS/DOM work inspired by
+the general shape of an indigo handheld. No firmware, logos or product artwork.
+
 ## 428 PSP static recovery (2026-09-28)
 
 The owner supplied ULJS-00219 v1.01. Original Python CPK/SNS recovery keeps source
@@ -662,6 +737,17 @@ are independently written. No proprietary Sony SDK is used. Existing MIT PNG
 encoding is reused without modifying or resuming the paused Pia adapter.
 
 
+## 428 opening presentation continuation (2026-09-29)
+
+Numeric media operands, effect11, character cadence and per-glyph fade behavior
+were independently implemented from the owner's exact ULJS-00219 executable
+consumers. The finite float32 probe subset is original code and explicit opt-in;
+it is not a full PSP emulator. Native bytes, source scripts, font/media inputs,
+comparison traces and browser screenshots remain private. No upstream renderer
+or commercial script was copied into public code/tests. The isolated opening
+build invokes the already pinned external vgmstream r2117 for verified CSB audio;
+no new tool is bundled. See the investigation for scope and remaining limits.
+
 ## 428 progress continuation (2026-09-29)
 
 The progress-record implementation and checked native bridge are original toolkit
@@ -672,6 +758,14 @@ three SHA-256 gates precede native setup. No OS/firmware execution interface is
 provided, and no upstream implementation was copied. The existing private GPL
 pspdecrypt dependency remains external and unbundled. Controlled graph/choice
 checks are research evidence, not original-console or earned-route coverage.
+
+The resumed source-context and system-decision modules are also independently
+written from bounded inspection of the same private executable. They embed no
+source label, tutorial text, artwork or original bytecode. Comparisons execute
+the audited original context/record/selector helpers privately; system
+presentation calls are intercepted and do not establish UI fidelity. No new
+upstream code or runtime dependency was adopted. Private context tables and
+reports remain excluded by the existing package allowlist.
 
 Memories Off's Sound test reuses its existing SEQ/VAB-derived music. Numbered
 track labels do not claim original song titles or new independent audio fidelity.

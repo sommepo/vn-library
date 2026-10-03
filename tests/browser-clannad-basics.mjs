@@ -2,11 +2,13 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';import path from 'node:path';import {pathToFileURL} from 'node:url';
 import {ClannadEngine} from '../web/adapters/clannad-engine.mjs';
+import {saveToSlot} from './browser-save-slot.mjs';
 import {pollBrowser} from './browser-poll.mjs';
 const root=path.resolve(import.meta.dirname,'..'),base=process.env.VNKIT_URL||'http://127.0.0.1:8891',game='clannad-slpm66302-1.01';
 const input=path.resolve(process.env.VNKIT_CHECKPOINTS||'private/clannad/basics-audit/campaign2'),out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/clannad-basics');await fs.mkdir(out,{recursive:true});
 const {chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));
 const browser=await chromium.launch({headless:true,args:process.env.VNKIT_CRT_PRESET?['--enable-unsafe-swiftshader']:[]}),report={coverage:'Real reached checkpoints and 100 consecutive text pages after the old event-41 boundary; distinct from entry coverage',checks:[],errors:[],pages:0};
+const clannadCard=async()=>{const card=page.locator('.game-card').filter({hasText:'CLANNAD'}),d=card.locator('details.console-title');if(!(await d.evaluate(e=>e.open)))await card.locator('summary').first().click();return card;};
 const pass=name=>{report.checks.push(name);console.log('PASS '+name);},sleep=ms=>new Promise(r=>setTimeout(r,ms));
 const loadJSON=async u=>JSON.parse(await fs.readFile(path.join(root,'private/library/clannad-live',u)));
 const ref=await ClannadEngine.create(await loadJSON('content.json'),{loadJSON});let page;
@@ -41,7 +43,7 @@ try{
  assert.equal(branchStates.length,2);assert.notEqual(JSON.stringify(branchStates[0]),JSON.stringify(branchStates[1]));pass('Next choice executes source state; both alternatives and restoring the choice match subsequent VM text/variables');
  // Source-linked movie plays, saves a real media position, then resumes script.
  await importSave(path.join(input,'feature-MVPL.json'));await page.locator('video.script-media').waitFor();await page.locator('video').evaluate(v=>v.play());await page.waitForFunction(()=>document.querySelector('video')?.currentTime>.5);
- await page.keyboard.press('Alt+s');await pollBrowser(async()=>(await get('quicksave'))?.media.scriptMedia?.time>.4,'movie quicksave');const movie=await get('quicksave');
+ await saveToSlot(page);await pollBrowser(async()=>(await get('slot 1'))?.media.scriptMedia?.time>.4,'movie slot save');const movie=await get('slot 1');
  await page.evaluate(()=>dispatchEvent(new Event('pagehide')));await pollBrowser(async()=>(await get())?.media.scriptMedia?.time>.4,'movie autosave');
  await page.reload();await page.locator('video.script-media').waitFor();assert.ok(await page.locator('video').evaluate(v=>v.currentTime>=.3));
  await page.locator('video').evaluate(async v=>{if(!Number.isFinite(v.duration))await new Promise(r=>v.addEventListener('loadedmetadata',r,{once:true}));v.currentTime=v.duration-.2;await v.play();});
@@ -61,7 +63,7 @@ try{
  // Importing an actual earned progress backup is explicit, not fabricated unlock flags.
  const pf=path.join(out,'earned-progress.json');await fs.writeFile(pf,JSON.stringify(progress),{flag:'wx'});page.on('dialog',d=>d.accept());await page.locator('#progressFile').setInputFiles(pf);await pollBrowser(async()=>JSON.stringify((await get('progress'))?.globals)===JSON.stringify(progress.globals),'earned progress import');
  await importSave(choiceFile);assert.deepEqual((await get('progress')).globals,progress.globals);
- await page.locator('#libraryButton').click();await page.locator('.game-card').filter({hasText:'CLANNAD'}).getByRole('button',{name:'Start again',exact:true}).click();await ready();
+ await page.locator('#libraryButton').click();await (await clannadCard()).getByRole('button',{name:'Start again',exact:true}).click();await ready();
  const newer=await get('progress');for(const[k,v]of Object.entries(progress.globals))if(k!=='73')assert.equal(newer.globals[k],v);pass('Earned global progress survives old-save restoration and Start again');
  await page.setViewportSize({width:412,height:915});await page.screenshot({path:path.join(out,'mobile.png')});assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));pass('Mobile layout retains the game and controls without horizontal overflow');
  assert.deepEqual(report.errors,[]);

@@ -1,9 +1,11 @@
-/* Bounded integer Allegrex probe for privately recovered native routines.
+/* Bounded Allegrex probe for privately recovered native routines.
+ * Single-precision operations are a separate explicit opt-in for media probes;
+ * this is not a complete FPU or a hardware floating-point fidelity claim.
  * Research only: no PSP system calls, firmware, files, media or host execution.
  * Code ranges, mapped memory and intercepted helpers are explicit. Unknown
  * instructions/accesses fail, and a failed call rolls back writable memory. */
 export class NativeProbe {
-  constructor({segments, ranges, hooks = new Map(), observers = new Map(), stackTop, globalPointer = 0}) {
+  constructor({segments, ranges, hooks = new Map(), observers = new Map(), stackTop, globalPointer = 0, float32 = false}) {
     if (!Array.isArray(segments) || segments.length > 32 ||
         segments.reduce((n,s)=>n+s.bytes.length,0)>32*1024*1024) throw Error('Native probe memory budget');
     this.segments = segments.map(s=>({...s, bytes:new Uint8Array(s.bytes), view:null}));
@@ -16,6 +18,8 @@ export class NativeProbe {
     }
     if(!Number.isInteger(globalPointer)||globalPointer<0||globalPointer>0xffffffff)throw Error('Native probe global pointer');
     this.globalPointer=globalPointer;
+    if (typeof float32 !== 'boolean') throw Error('Native probe float32 option');
+    this.float32Enabled = float32;
     this.ranges=ranges;this.hooks=hooks;this.observers=observers;this.stackTop=stackTop;this.trace=new Set();this.pc=0;
   }
   fail(message){throw Error(`428 native ${this.pc.toString(16)}: ${message}`);}
@@ -32,7 +36,11 @@ export class NativeProbe {
     if(!Number.isInteger(limit)||limit<1||limit>10000000||args.length>4)throw Error('Native probe call budget');
     const backups=this.segments.filter(s=>s.writable).map(s=>[s,s.bytes.slice()]);
     const r=new Uint32Array(32);for(let i=0;i<args.length;i++)r[4+i]=args[i];r[29]=this.stackTop;r[28]=this.globalPointer;
-    let pc=entry,delay=null,hi=0,lo=0;
+    const fbits=new Uint32Array(32),floats=new Float32Array(fbits.buffer);
+    const finite = value => {if(!Number.isFinite(value))this.fail('Non-finite floating-point operand/result');return value;};
+    const float = index => finite(floats[index]);
+    const setFloat = (index,value) => {floats[index]=Math.fround(finite(value));finite(floats[index]);};
+    let pc=entry,delay=null,hi=0,lo=0,fcondition=false;
     try{
       for(let steps=0;steps<limit;steps++){
         this.pc=pc;
@@ -40,7 +48,10 @@ export class NativeProbe {
         this.trace.add(pc);
         if(this.hooks.has(pc)){
           if(delay!==null)this.fail('Helper in delay slot');
-          const result=this.hooks.get(pc)(this,[r[4],r[5],r[6],r[7]],{stackPointer:r[29]});
+          const result=this.hooks.get(pc)(this,[r[4],r[5],r[6],r[7]],{stackPointer:r[29],
+            integerArguments:Array.from(r.slice(4,12)),
+            float32:index=>{if(!this.float32Enabled||!Number.isInteger(index)||index<0||index>31)this.fail('Invalid float hook register');return float(index);},
+            setFloat32:(index,value)=>{if(!this.float32Enabled||!Number.isInteger(index)||index<0||index>31)this.fail('Invalid float hook register');setFloat(index,value);}});
           r[2]=result??0;pc=r[31];continue;
         }
         if(pc%4||!this.ranges.some(([start,end])=>pc>=start&&pc<end))this.fail('Execution outside audited ranges');
@@ -80,6 +91,10 @@ export class NativeProbe {
           else if(fn===0x27)r[rd]=~(a|b);
           else if(fn===0x2a)r[rd]=Number((a|0)<(b|0));
           else if(fn===0x2b)r[rd]=Number(a<b);
+          else if(fn===0x2c||fn===0x2d){
+            if(sh)this.fail('Invalid min/max');
+            r[rd]=fn===0x2c?Math.max(a|0,b|0):Math.min(a|0,b|0);
+          }
           else this.fail(`Unsupported ALU ${fn.toString(16)}`);
         }else if(op===1){
           if(![0,1,2,3].includes(rt))this.fail('Unsupported REGIMM');
@@ -94,11 +109,38 @@ export class NativeProbe {
         else if(op===13)r[rt]=a|(w&65535);
         else if(op===14)r[rt]=a^(w&65535);
         else if(op===15)r[rt]=(w&65535)<<16;
+        else if(op===17&&this.float32Enabled){
+          const fs=rd,ft=rt,fd=sh;
+          if(rs===0){if(w&2047)this.fail('Invalid MFC1');r[rt]=fbits[fs];}
+          else if(rs===4){if(w&2047)this.fail('Invalid MTC1');fbits[fs]=r[rt];}
+          else if(rs===8){if(rt>3)this.fail('Unsupported floating-point condition code');branch((rt&1)?fcondition:!fcondition,!!(rt&2));}
+          else if(rs===20&&fn===32&&ft===0)setFloat(fd,fbits[fs]|0);
+          else if(rs===16){
+            if(fn===0)setFloat(fd,float(fs)+float(ft));
+            else if(fn===1)setFloat(fd,float(fs)-float(ft));
+            else if(fn===2)setFloat(fd,float(fs)*float(ft));
+            else if(fn===3){if(float(ft)===0)this.fail('Floating-point division by zero');setFloat(fd,float(fs)/float(ft));}
+            else if(fn===5&&ft===0)setFloat(fd,Math.abs(float(fs)));
+            else if(fn===6&&ft===0)fbits[fd]=fbits[fs];
+            else if(fn===7&&ft===0)setFloat(fd,-float(fs));
+            else if(fn===13&&ft===0){const value=Math.trunc(float(fs));if(value< -2147483648||value>2147483647)this.fail('Floating-point integer conversion bound');fbits[fd]=value;}
+            else if(fn>=48&&fd===0){const a=float(fs),b=float(ft);fcondition=!!((fn&4)&&a<b||(fn&2)&&a===b);}
+            else this.fail('Unsupported single-precision operation');
+          }else this.fail('Unsupported floating-point format/control');
+        }
+        else if((op===49||op===57)&&this.float32Enabled){
+          const address=(a+imm)>>>0;
+          if(op===49)fbits[rt]=this.read(address);else this.write(address,fbits[rt]);
+        }
         else if(op===31&&fn===32&&sh===16)r[rd]=b<<24>>24;
         else if(op===31&&fn===32&&sh===24)r[rd]=b<<16>>16;
         else if(op===31&&fn===0){
           const size=rd+1;if(sh+size>32)this.fail('Invalid EXT');
           r[rt]=(a>>>sh)&(size===32?0xffffffff:2**size-1);
+        }else if(op===31&&fn===4){
+          const size=rd-sh+1;if(size<1||sh+size>32)this.fail('Invalid INS');
+          const mask=size===32?0xffffffff:((2**size-1)<<sh)>>>0;
+          r[rt]=(b&~mask)|((a<<sh)&mask);
         }else if([32,33,35,36,37].includes(op)){
           const size=op===35?4:op===33||op===37?2:1;let value=this.read((a+imm)>>>0,size);
           if(op===32)value=value<<24>>24;if(op===33)value=value<<16>>16;r[rt]=value;

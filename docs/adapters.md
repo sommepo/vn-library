@@ -4,7 +4,7 @@
 | --- | --- | --- |
 | otogirisou-ps1 | SLPS-01645 / exact PS-X EXE | CDIMG source-driven full-scene reader; local CUE/BIN only; native presentation/auxiliary limits; see chunsoft-ps1-runtime.md |
 | kamaitachi-ps1 | SLPS-01794 / exact PS-X EXE | Source SCE reader with original font/inline choices/media; local CUE/BIN only; native presentation/auxiliary limits; see chunsoft-ps1-runtime.md |
-| 428-psp | ULJS-00219 v1.01 / SNS 01.82 | Paused: recovery, GIM conversion and tested progress research bridge; no playable reader or GUI admission; see 428-psp-investigation.md |
+| 428-psp | ULJS-00219 v1.01 / SNS 01.82 | Recovery plus a private source-driven browser experiment with bounded timeline/JUMP/TIP paths; no playable library reader or GUI admission; see 428-psp-investigation.md |
 | clannad-ps2 | SLPM-66302 v1.01 / HuneX | Incomplete playable runtime; see CLANNAD reports |
 | remember11-ps2 | SLPM-65550 v1.02 / KID | Incomplete playable script runtime with original media; import/validation exit 3 |
 | never7-ps2 | SLPS-25256 v1.01 / KID oscr/MWo3 | Add game and CLI; main routes/Cure/Append endings tested; optional completed-route read paths; animations incomplete; validation exits 3 |

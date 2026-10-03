@@ -20,3 +20,5 @@ __pycache__/
 node_modules/
 test-results/
 .env
+*.gba
+*.GBA

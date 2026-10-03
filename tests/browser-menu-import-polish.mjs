@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
+import {enterLibrary} from './browser-library.mjs';
 const root=process.cwd(),out=path.join(root,'private/browser-tests/menu-import-polish');await fs.mkdir(out,{recursive:true});
 const temp=await fs.mkdtemp('/tmp/vn-menu-');
 const server=spawn('python3',['-u','-c','import sys\nfrom vnkit.server import ReaderServer\ns=ReaderServer(("127.0.0.1",0),sys.argv[1],sys.argv[2])\nprint(s.server_address[1],flush=True)\ns.serve_forever()',temp+'/library',temp+'/state'],{stdio:['ignore','pipe','pipe']});
@@ -11,7 +12,7 @@ try{
  const {chromium}=await import('../private/tooling/playwright/package/index.mjs');browser=await chromium.launch({headless:true});
  const page=await browser.newPage({viewport:{width:1100,height:850}});const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{const Original=window.Audio;window.__testAudio=[];window.Audio=function(...args){const a=new Original(...args);window.__testAudio.push(a);return a;};});
- await page.goto(`http://127.0.0.1:${port}`);await page.getByText('No games imported yet.',{exact:false}).waitFor();
+ await page.goto(`http://127.0.0.1:${port}`);await enterLibrary(page);await page.getByText('No games imported yet.',{exact:false}).waitFor();
  const slider=page.getByRole('slider',{name:'Menu music volume',exact:true});assert.equal(await slider.inputValue(),'20');
  const controls=await page.locator('.menu-music-controls').boundingBox(),panel=await page.locator('#panel').boundingBox();assert.ok(controls.x-panel.x<60);assert.ok(panel.y+panel.height-controls.y<100);
  assert.equal(await page.locator('#gameTitle').textContent(),'');
@@ -21,7 +22,7 @@ try{
  assert.equal(await page.locator('#panelTitle').textContent(),'Reading settings');
  await page.waitForFunction(()=>window.__testAudio.some(a=>a.src.endsWith('/media/nova-mistero.mp3')&&!a.paused));
  await page.locator('#closePanel').click();await page.locator('#libraryButton').click();
- await page.getByRole('button',{name:'Add game / Import ISO',exact:true}).click();await page.locator('#isoFile').waitFor();
+ await page.getByRole('button',{name:'Add game / Import media',exact:true}).click();await page.locator('#isoFile').waitFor();
  assert.ok(await page.locator('#panel').evaluate(e=>e.classList.contains('console-library')&&e.classList.contains('console-import')));
  await page.getByText('A copy of the game will be made in',{exact:false}).waitFor();assert.match(await page.locator('.import-destination').textContent(),new RegExp(temp));
  assert.equal(await page.getByRole('slider',{name:'Menu music volume',exact:true}).count(),1);
@@ -29,7 +30,7 @@ try{
  await page.getByRole('button',{name:'Mute menu music',exact:true}).click();assert.equal(await page.getByRole('button',{name:'Unmute menu music',exact:true}).count(),1);
  await page.screenshot({path:out+'/import.png'});
  await page.goto(`http://127.0.0.1:${port}/?fixture=1`);
- await page.getByRole('button',{name:'Unmute menu music',exact:true}).click();
+ await page.getByRole('button',{name:'Unmute menu music',exact:true}).click();await enterLibrary(page);
  await page.locator('.console-title > summary').click();
  await page.getByRole('button',{name:'Start again',exact:true}).click();
  await page.waitForFunction(()=>document.querySelector('#sentence').textContent.length>0);

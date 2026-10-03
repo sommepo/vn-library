@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Operands, compare, condition, decodeBranch, decodeChoice, decodeLink, evaluate, choiceText, validateControl} from '../web/adapters/shibuya428-control.mjs';
+import {Operands, compare, condition, decodeBranch, decodeChoice, decodeCheckpoint, decodeSystem, decodeLink, evaluate, choiceText, validateControl} from '../web/adapters/shibuya428-control.mjs';
 const i = (code,args=[]) => ({id:'fixture:0:10',code,args});
 const label = text => [...Buffer.from(text),0];
 const flags = () => Array(2048).fill(0);
@@ -40,6 +40,20 @@ test('choice preview uses native restricted dispatch without executing branches 
     {code:0x1b},{code:1,text:'Option'},{code:0xbc},{code:0x5e},{code:1,text:'unselected story'}];
   assert.deepEqual(choiceText({tokens},0),{text:'漢字\nOption',recommended:true});
   assert.throws(()=>choiceText({tokens:tokens.slice(0,9)},0),/terminator/);
+});
+test('choice preview accepts only the verified inert system delimiter',()=>{
+  const tokens=[{offset:0,...i(0xc0,[1,3])},{code:1,text:'Original synthetic option'},{code:0x5e}];
+  assert.deepEqual(choiceText({tokens},0),{text:'Original synthetic option',recommended:false});
+  for (const args of [[1,255],[2,3],[0,3],[1,3,0],[1]]) {
+    assert.throws(()=>choiceText({tokens:[{offset:0,...i(0xc0,args)},...tokens.slice(1)]},0));
+  }
+});
+test('checkpoint and system operands reject unknown and truncated forms',()=>{
+  assert.deepEqual(decodeCheckpoint(i(0x22,[1])),{restart:true});
+  assert.deepEqual(decodeCheckpoint(i(0x22,[0])),{restart:false});
+  assert.deepEqual(decodeSystem(i(0xc0,[2,20])),{type:2,code:20});
+  for(const args of [[],[2],[1,0]])assert.throws(()=>decodeCheckpoint(i(0x22,args)));
+  for(const args of [[],[2],[3,0],[2,20,0]])assert.throws(()=>decodeSystem(i(0xc0,args)));
 });
 test('all control targets must resolve even when their branch would be false',()=>{
   const tokens=[i(0x57,[0,1,7,0,0,1,...label('missing')])];

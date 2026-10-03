@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';
 import{pollBrowser}from'./browser-poll.mjs';
+import {enterLibrary, gameCard} from './browser-library.mjs';
 const root=path.resolve(import.meta.dirname,'..'),base=process.env.VNKIT_URL||'http://127.0.0.1:8891',game='clannad-slpm66302-1.01';
 const out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/crt'),input=path.resolve(process.env.VNKIT_CHECKPOINTS||'private/clannad/menu-audit/checkpoints-final');await fs.mkdir(out,{recursive:true});
 const{chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));
@@ -11,10 +12,10 @@ const get=async(k='autosave')=>page.evaluate(async([g,k])=>{const{Store}=await i
 const ready=async()=>page.waitForFunction(()=>!document.querySelector('#nextButton').disabled||document.querySelector('#choices button'),null,{timeout:60000});
 async function pixels(){return page.locator('.crt-preview').evaluate(c=>{const d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let sum=0,hash=2166136261;for(let i=0;i<d.length;i+=4){sum+=d[i]+d[i+1]+d[i+2];hash=Math.imul(hash^d[i],16777619)>>>0;}return{mean:sum/(d.length/4*3),hash,width:c.width,height:c.height};});}
 try{
- const context=await browser.newContext({viewport:{width:1440,height:1100}});page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base);
- await page.waitForSelector('#panel.console-library[open]');assert.equal(await page.locator('.game-card').count(),1);assert.match(await page.locator('.game-card h2').innerText(),/CLANNAD/);assert.doesNotMatch(await page.locator('#panelBody').innerText(),/Pia Carrot/i);
- await page.getByRole('button',{name:'Read / resume',exact:true}).focus();await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Start again');
- await page.screenshot({path:path.join(out,'library-desktop.png')});pass('Console menu shows only CLANNAD and supports arrow-key selection');
+ const context=await browser.newContext({viewport:{width:1440,height:1100}});page=await context.newPage();page.on('pageerror',e=>report.errors.push(e.message));await page.goto(base);await enterLibrary(page);
+ await page.waitForSelector('#panel.console-library[open]');const clannad=await gameCard(page,'CLANNAD');assert.doesNotMatch(await page.locator('#panelBody').innerText(),/Pia Carrot/i);
+ await clannad.getByRole('button',{name:'Read / resume',exact:true}).focus();await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.textContent),'Start again');
+ await page.screenshot({path:path.join(out,'library-desktop.png')});pass('Console menu shows CLANNAD, not Pia, and supports arrow-key selection');
  await page.getByRole('button',{name:'Read / resume',exact:true}).click();await ready();
  const file=path.join(input,'source-portrait.json'),portrait=JSON.parse(await fs.readFile(file));await page.locator('#saveFile').setInputFiles(file);await pollBrowser(async()=>(await get())?.state.pending?.id===portrait.state.pending.id,'portrait restore',60000);await ready();
  const saved=await get(),activity=await get('activity');

@@ -15,6 +15,13 @@ export class Store {
       request.onerror = () => reject(request.error);
     });
   }
+  async keys() {
+    return new Promise((resolve, reject) => {
+      const request = this.db.transaction('records').objectStore('records').getAllKeys();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
   async put(key, value) {
     return new Promise((resolve, reject) => {
       const tx = this.db.transaction('records', 'readwrite');

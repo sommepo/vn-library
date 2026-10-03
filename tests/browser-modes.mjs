@@ -4,6 +4,8 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { plainText } from '../web/engine.mjs';
+import {saveToSlot, loadSlot} from './browser-save-slot.mjs';
+import {enterLibrary, gameCard} from './browser-library.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const { chromium } = await import(pathToFileURL(process.env.VNKIT_PLAYWRIGHT_MODULE || path.join(root, 'private/tooling/playwright/package/index.mjs')));
 const base = process.env.VNKIT_URL || 'http://127.0.0.1:8891';
@@ -28,7 +30,7 @@ async function game(settings = {}, init) {
   await page.addInitScript(settings => localStorage.setItem('vnkit.settings', JSON.stringify(settings)), settings);
   if (init) await page.addInitScript(init);
   await page.goto(base + '/?fixture=1');
-  return { context, page, start: async () => { await page.locator('.game-card').filter({ hasText: '小さな読書の道' }).getByRole('button', { name: 'Read / resume', exact: true }).click(); await expectId(page, 'opening'); } };
+  return { context, page, start: async () => { await enterLibrary(page); await (await gameCard(page, '小さな読書の道')).getByRole('button', { name: 'Read / resume', exact: true }).click(); await expectId(page, 'opening'); } };
 }
 const narrativeTotal = data => data.sessions.reduce((sum, session) => sum + session.characters, 0);
 const activeTotal = data => data.sessions.reduce((sum, session) => sum + session.activeMs, 0);
@@ -55,10 +57,10 @@ try {
   }
   {
     const { context, page, start } = await game(); await start();
-    await page.locator('#quickSaveButton').click(); await sleep(100);
+    await saveToSlot(page); await sleep(100);
     await page.locator('#nextButton').click(); await expectId(page, 'repeat-a');
     const prior = narrativeTotal(await store(page));
-    await page.locator('#quickLoadButton').click(); await expectId(page, 'opening');
+    await loadSlot(page); await expectId(page, 'opening');
     await page.locator('#skipButton').click(); await expectId(page, 'repeat-b');
     await page.waitForFunction(() => document.querySelector('#skipButton').getAttribute('aria-pressed') === 'false');
     assert.equal(await page.locator('#skipButton').getAttribute('aria-pressed'), 'false');
@@ -100,7 +102,7 @@ try {
   {
     const { context, page, start } = await game(); await start();
     const before = await store(page), other = await context.newPage();
-    await other.goto(base); await other.locator('.game-card').filter({ hasText: '小さな読書の道' }).getByRole('button', { name: 'Read / resume', exact: true }).click();
+    await other.goto(base + '/?fixture=1'); await enterLibrary(other); await (await gameCard(other, '小さな読書の道')).getByRole('button', { name: 'Read / resume', exact: true }).click();
     await other.waitForFunction(() => document.querySelector('#status').textContent.includes('already open in another reader tab'));
     assert.equal((await store(other)).sessions.length, before.sessions.length);
     assert.equal((await current(other)).occurrenceId, (await current(page)).occurrenceId);
@@ -112,8 +114,8 @@ try {
     await sleep(2200); await flush(page);
     assert.equal(activeTotal(await store(page)), activeBeforePause);
     const previous = await current(page), previousTotal = narrativeTotal(await store(page));
-    await page.reload(); await page.locator('.game-card').filter({ hasText: '小さな読書の道' }).getByRole('button', { name: 'Read / resume', exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('#status').textContent.includes('Resumed'));
+    await page.reload(); await enterLibrary(page); await (await gameCard(page, '小さな読書の道')).getByRole('button', { name: 'Read / resume', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#status').textContent.includes('resumed'));
     assert.equal((await current(page)).occurrenceId, previous.occurrenceId); assert.equal(narrativeTotal(await store(page)), previousTotal);
     pass('Manual pause stops active time; reload retains presentation identity and narrative totals');
     await page.locator('#statsButton').click();
@@ -129,7 +131,7 @@ try {
     pass('Activity backup export/import restores study history independently from current game state');
     await page.locator('#closePanel').click();
     await page.locator('#fullscreenButton').click();
-    if (await page.evaluate(() => Boolean(document.fullscreenElement))) { pass('Fullscreen enters and exits in headless Chromium'); await page.locator('#fullscreenButton').click(); assert.equal(await page.evaluate(() => Boolean(document.fullscreenElement)), false); }
+    if (await page.evaluate(() => Boolean(document.fullscreenElement))) { pass('Fullscreen enters and exits in headless Chromium'); await page.evaluate(() => document.exitFullscreen()); await page.waitForFunction(() => !document.fullscreenElement); assert.equal(await page.evaluate(() => Boolean(document.fullscreenElement)), false); }
     else limitations.push('Headless Chromium did not expose fullscreen; real-device fullscreen remains unverified.');
     await context.close();
   }

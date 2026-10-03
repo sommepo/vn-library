@@ -145,6 +145,12 @@ export class Activity {
     if (!Number.isSafeInteger(count) || count < 0) throw new Error('Invalid skipped-segment count');
     this.add({ skippedSegments: count });
   }
+  // Reset reading statistics (time, characters, sessions, daily totals) to zero.
+  // Read markers, occurrences, backlog and bookmarks are kept.
+  clearStats() {
+    this.data.sessions = []; this.data.days = {}; this.session = null;
+    this.ensureSession(); this.lastTick = this.lastInteraction = this.now();
+  }
   totals() {
     return this.data.sessions.reduce((a, s) => { for (const k of Object.keys(a)) a[k] += s[k] || 0; return a; }, { activeMs: 0, characters: 0, uniqueCharacters: 0, rereadCharacters: 0, segments: 0, skippedSegments: 0, choiceCharacters: 0 });
   }
@@ -152,4 +158,39 @@ export class Activity {
     const keys = ['id', 'startedAt', 'updatedAt', 'activeMs', 'characters', 'uniqueCharacters', 'rereadCharacters', 'segments', 'skippedSegments', 'choiceCharacters'];
     return [keys.join(','), ...this.data.sessions.map(s => keys.map(k => JSON.stringify(s[k] ?? '')).join(','))].join('\r\n');
   }
+}
+
+// Stored activity records, summarised without constructing a live Activity (no
+// session is opened and nothing is written).
+export function summarizeActivity(data, at = Date.now()) {
+  const totals = emptyTotals(), sessions = Array.isArray(data?.sessions) ? data.sessions : [];
+  for (const s of sessions) for (const k of Object.keys(totals)) totals[k] += Number.isFinite(s[k]) ? s[k] : 0;
+  const today = { ...emptyTotals(), ...(data?.days?.[readingDay(at)] || {}) };
+  const last = sessions.reduce((n, s) => Math.max(n, Number.isFinite(s.lastActivityAt) ? s.lastActivityAt : Date.parse(s.updatedAt || s.startedAt) || 0), 0);
+  const days = {};
+  for (const [day, v] of Object.entries(data?.days || {})) days[day] = { characters: Number.isFinite(v?.characters) ? v.characters : 0, activeMs: Number.isFinite(v?.activeMs) ? v.activeMs : 0 };
+  return { totals, today, days, sessions: sessions.filter(s => s.activeMs > 0 || s.characters > 0).length, lastActivityAt: last || null };
+}
+export function addSummaries(list) {
+  const out = { totals: emptyTotals(), today: emptyTotals(), days: {}, sessions: 0, lastActivityAt: null };
+  for (const s of list) {
+    for (const k of Object.keys(out.totals)) { out.totals[k] += s.totals[k]; out.today[k] += s.today[k]; }
+    for (const [day, v] of Object.entries(s.days || {})) { const d = out.days[day] ||= { characters: 0, activeMs: 0 }; d.characters += v.characters; d.activeMs += v.activeMs; }
+    out.sessions += s.sessions; if (s.lastActivityAt && s.lastActivityAt > (out.lastActivityAt || 0)) out.lastActivityAt = s.lastActivityAt;
+  }
+  return out;
+}
+export const hasStatistics = summary => summary.sessions > 0 || Object.values(summary.totals).some(v => v > 0);
+// A cleared copy of stored activity: statistics removed, reading history kept.
+export function clearedActivity(data, gameId) {
+  if (!validateActivity(data, gameId)) throw new Error('Stored activity is malformed; it was left unchanged.');
+  const activity = new Activity(gameId, structuredClone(data));
+  activity.data.sessions = []; activity.data.days = {};
+  return activity.data;
+}
+// The last n reading days (04:01 boundary), oldest first.
+export function recentDays(n, at = Date.now()) {
+  const [y, m, d] = readingDay(at).split('-').map(Number), out = [];
+  for (let i = n - 1; i >= 0; i--) out.push(dayKey(new Date(y, m - 1, d - i)));
+  return out;
 }

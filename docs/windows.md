@@ -5,16 +5,18 @@ conversion tools for CLANNAD, Remember11, Never7, Ever17, Cartagra and Higurashi
 Node or FFmpeg yourself. It is a test build for Windows 10/11 x64; testing on a
 real Windows device is still required for the newer Ever17, Cartagra and Higurashi imports.
 
-The **v0.1.0-beta.5** release adds the **one / two / portable** frontends, PS1
-reader code, Memories Off sound test and the sound-novel word-lookup fix. Portable
+The **v0.2.0** release adds the Home page with reading statistics, the
+**advance** (GBA) frontend, the experimental Gyakuten Saiban 1–3 readers and an
+optional session stats box; see the [changelog](changelog.md). Portable still
 starts empty; no PSP title is playable. The installer still automates conversion
-for the six PS2 editions above. PS1 CUE/BIN imports require separate command-line
-tools; Otogirisou's reviewed character mapping is included. See [setup](setup.md).
+for the six PS2 editions above. PS1 CUE/BIN and GBA cartridge imports are local
+command-line workflows and are not automated by the installer. See [setup](setup.md).
 
-Quit VN Library from the tray, extract `VN-Library-Windows-v0.1.0-beta.5.zip`
+Quit VN Library from the tray, extract `VN-Library-Windows-v0.2.0.zip`
 and run `Install.cmd`. Games and saves stay in the same data folder. Existing
-imports need no rebuild. This release does not add native Windows conversion
-evidence; the newer imports still need full tests on Windows hardware.
+imports need no rebuild. This release was not retested on Windows and adds no
+native Windows conversion evidence; the newer imports still need full tests on
+Windows hardware.
 
 ## Install
 

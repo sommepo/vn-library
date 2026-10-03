@@ -9,11 +9,31 @@ these CUE/BIN editions are not admitted to browser ISO upload. Beta.5 includes
 the reader/importer source and the source-bound Otogirisou glyph correspondence;
 PS1 media converters still require separate local setup.
 
-**428 PSP ULJS-00219 v1.01 is paused with static recovery only.** Its 34 SNS scripts parse
+**Gyakuten Saiban 2 GBA AGB-A3GJ runs natively (experimental).** The cartridge
+executes on an original-code GBA machine: all episodes, graphics, animation and
+sound are the game's own. Its text is DOM in the native text box, driven by
+touch on the game screen. Timing and sound are not compared with hardware.
+Local CLI import only (exit 3). See [the runtime guide](gs2-gba-runtime.md).
+
+**Gyakuten Saiban GBA AGB-ASBJ and Gyakuten Saiban 3 GBA AGB-A3JJ run natively
+(experimental)** on the same machine and the same series reader, one profile per
+cartridge. Every episode of all three games has been played through to its ending
+by an automated player using native input only. Touch on the game's own screens is
+checked with real touch events in a browser; the court record has had one informal
+phone check. Text reviews are ROM-bound and not proofread. Local CLI import only (exit
+3). See the guides for [the first game](gs1-gba-runtime.md) and
+[the third](gs3-gba-runtime.md).
+
+**428 PSP ULJS-00219 v1.01 has recovery and a private reader experiment.** Its 34 SNS scripts parse
 structurally. A control VM draft, bounded native probes, flow parser and GIM
 decoder are under development. Progress records and an exact-source native
-recalculation bridge have controlled tests; source-earned switching, complete
-saves and reader execution are not integrated. CLI import exits 3 and creates no playable library
+recalculation bridge, checkpoint context and system decisions have controlled
+native comparisons. A private Chromium campaign passes 900 reading stops with
+earned timeline switching, choice reversals, original font and media. Bounded
+JUMP/TIP and background-scene paths work in the experiment; full routes, KEEP OUT,
+later hours, complete saves and shared-reader integration remain unfinished.
+CPU comparisons do not establish native GPU/device fidelity. CLI import exits 3
+and creates no playable library
 entry. See [the investigation](428-psp-investigation.md).
 
 **Memories Off PS1 SLPS-02296 has a local experimental CUE/BIN reader.**

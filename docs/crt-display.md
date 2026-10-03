@@ -57,6 +57,37 @@ Movies retain their original player and controls without CRT, then filtering
 resumes. The library menu uses its own subtle CSS texture and original blue
 orb/tower decoration; the game-art WebGL renderer does not capture dialog UI.
 
+## Live game screens (2026-10-01)
+
+Games that run original cartridge code (the GBA Gyakuten Saiban readers) draw their
+own picture on a canvas instead of placing images in the art plane, so the capture
+above found nothing to filter and the CRT never switched on for them. The display
+now takes that canvas as its source:
+
+- `CRTDisplay.refreshLive` engages when the art plane holds a `canvas.live-screen`;
+  the live host calls `frameReady()` after each frame it draws, and the three passes
+  run on that frame. The GPU is asked for errors only on the first frame of a run.
+- The live canvas stays in place under the CRT picture, unseen (`opacity:0`), and
+  keeps taking taps; the CRT canvas never takes pointer input.
+- The raster has one scanline per line of the game's picture (160 for GBA), whatever
+  the Rows setting says, and the geometry stays flat whatever curvature and overscan
+  say: the game's text is DOM laid over the picture and has to stay in its box.
+- A handheld picture is magnified many times, so plain linear sampling would smear
+  each of its pixels. The screen shader's `pixelEdge` keeps the inside of a source
+  pixel flat and narrows the blend between neighbours to about 1.5 output pixels.
+  For every other source it is 1 (plain linear, as before).
+- Platform defaults live in `crt-settings.mjs` (`platformCRT`). The GBA ones are off
+  until enabled, then scanlines 0.75 with a tight beam, a light aperture grille and
+  glow, no convergence error. The first GBA defaults (flat, no mask, no glow) only
+  blurred once the filter ran; settings still equal to them are replaced, tuned ones
+  are kept. All six presets work on a live screen with the same two overrides.
+
+Checked in Chromium with software WebGL 2 (`tests/browser-gyakuten-native.mjs`): the
+filter switches on, the game keeps drawing and taking taps under it, and switching it
+off shows the plain screen again. GPU cost on a phone is not measured; if a device
+struggles, the Quality setting lowers the output resolution, and the live host drops
+drawn frames before sound.
+
 ## Limits and troubleshooting
 
 This is an original three-pass CRT treatment, **not a port of CRT-Royale or a

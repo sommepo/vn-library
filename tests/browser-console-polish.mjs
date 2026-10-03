@@ -1,6 +1,7 @@
 // Real reached CLANNAD save, temporary server/bank, fresh device profiles only.
 import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';import{spawn}from'node:child_process';
 import{pollBrowser}from'./browser-poll.mjs';
+import {enterLibrary} from './browser-library.mjs';
 const root=path.resolve(import.meta.dirname,'..'),out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/console-polish'),game='clannad-slpm66302-1.01';
 await fs.mkdir(out,{recursive:true});
 const server=spawn('python3',['-u','-c','import sys\nfrom vnkit.server import ReaderServer\ns=ReaderServer(("127.0.0.1",0),sys.argv[1],sys.argv[2])\nprint(s.server_address[1],flush=True)\ns.serve_forever()',path.join(root,'private/library'),path.join(out,'server-state')],{cwd:root,stdio:['ignore','pipe','pipe']});
@@ -20,7 +21,7 @@ const metrics=['activeMs','characters','uniqueCharacters','rereadCharacters','se
 try{
  const context=await browser.newContext({viewport:{width:1280,height:900},hasTouch:true});
  a=await context.newPage();a.on('pageerror',e=>report.errors.push(e.message));
- await a.goto(base);await a.locator('.console-title').first().waitFor();
+ await a.goto(base);await enterLibrary(a);await a.locator('.console-title').first().waitFor();
  assert.equal(await a.locator('.console-title[open]').count(),0);
  assert.equal(await a.locator('.console-footer').textContent(),'LOCAL MEMORY ');
  const clannad=a.locator('.game-card').filter({hasText:'CLANNAD'});

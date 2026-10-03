@@ -3,6 +3,10 @@
 .art .crt-screen{position:absolute;inset:0;width:100%;height:100%;z-index:100;pointer-events:none;visibility:visible}
 .art.native-active > :not(.native-screen){visibility:hidden}
 .art .native-screen{position:absolute;inset:0;width:100%;height:100%;z-index:100;pointer-events:none;visibility:visible}
+/* A live game screen is the controller: unlike the composed artwork it takes taps, and it
+   keeps taking them from under the CRT picture, where it is left in place but not shown. */
+.art .native-screen.live-screen{pointer-events:auto}
+.art.crt-active > .native-screen.live-screen{visibility:visible;opacity:0}
 #crtButton[aria-pressed=true]{color:var(--accent);box-shadow:inset 0 -2px 0 var(--accent)}
 .crt-preview{display:block;width:100%;max-height:280px;object-fit:contain;background:#05060b;border:1px solid #9b927155;border-radius:3px;aspect-ratio:10/7;margin:12px 0}
 .crt-state{font-size:12px;line-height:1.6;padding:10px 14px;background:hsl(var(--ui-hue) var(--ui-saturation) 18% / var(--ui-opacity));border-left:2px solid #d2be94;color:#e5dbcd}

@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
+import {enterLibrary} from './browser-library.mjs';
 const root=path.resolve(import.meta.dirname,'..'),tmp=await fs.mkdtemp(path.join(os.tmpdir(),'vnkit-copy-'));
 const name=process.env.VNKIT_BROWSER||'chromium',out=path.join(root,'private/browser-tests/save-copy',name);
 await fs.mkdir(out,{recursive:true});
@@ -19,8 +20,8 @@ try{
  const base=`http://127.0.0.1:${port}`,bank=async()=>await(await fetch(`${base}/api/saves/${game}`)).json();
  const api=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));browser=await api[name].launch({headless:true});
  const a=await browser.newPage({viewport:{width:1280,height:800}}),b=await browser.newPage();
- for(const page of [a,b]){page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await page.locator('.console-title').first().waitFor();}
- const titles=a.locator('.console-title > summary');assert.equal(await titles.count(),6);assert.equal(await a.locator('.console-title[open],.platform-navigation').count(),0);
+ for(const page of [a,b]){page.on('pageerror',e=>errors.push(e.message));await page.goto(base);await enterLibrary(page);await page.locator('.console-title').first().waitFor();}
+ const titles=a.locator('.console-title > summary');assert.equal(await titles.count(),6);assert.equal(await a.locator('.console-title[open]').count(),0);
  assert.doesNotMatch(await a.locator('.console-catalogue').textContent(),/VISUAL NOVEL|PC-98/);
  let boxes=await titles.evaluateAll(nodes=>nodes.map(n=>{const b=n.getBoundingClientRect();return {top:b.top,bottom:b.bottom,height:b.height};}));
  assert.ok(boxes.at(-1).bottom-boxes[0].top<400);assert.ok(boxes.every(b=>b.height>=44));
@@ -41,7 +42,7 @@ try{
  };
  await copy(a,'shared',false);assert.equal((await bank()).revision,0);assert.equal(await local(a,'before-copy-shared'),undefined);
  await copy(a,'shared');assert.deepEqual((await bank()).records['slot 1'],checkpoint);assert.equal((await local(a,'slot 1')).state.pc,checkpoint.state.pc);
- const source=await bank();await a.goto(base);await a.locator('.console-title').first().waitFor();
+ const source=await bank();await a.goto(base);await enterLibrary(a);await a.locator('.console-title').first().waitFor();
  pass('Cancel makes no copy; local → shared copies an actual save and resumes it');
  await openLocation(b);await copy(b,'local');
  assert.deepEqual(await local(b,'slot 1'),checkpoint);assert.equal(await local(b,'slot 15'),undefined);
@@ -50,7 +51,7 @@ try{
  assert.equal((await local(b,'activity')).sessions.reduce((n,s)=>n+s.characters,0),0);
  pass('Shared → local removes absent slots, keeps a destination backup, preserves server and does not recount restored text');
  // Exercise real IndexedDB CAS and rollback independent of UI leases.
- await b.goto(base);await b.locator('.console-title').first().waitFor();
+ await b.goto(base);await enterLibrary(b);await b.locator('.console-title').first().waitFor();
  const transaction=await b.evaluate(async game=>{
   const{Store}=await import('/storage.mjs');const s=new Store();await s.open();
   try{

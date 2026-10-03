@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {saveToSlot, loadSlot} from './browser-save-slot.mjs';
+import {enterLibrary, gameCard} from './browser-library.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 const {chromium} = await import(pathToFileURL(process.env.VNKIT_PLAYWRIGHT_MODULE || path.join(root, 'private/tooling/playwright/package/index.mjs')));
 const base = process.env.VNKIT_URL || 'http://127.0.0.1:8891';
@@ -29,13 +31,12 @@ async function next() {
   }, before);
 }
 try {
-  await page.goto(base + '/?fixture=1');
-  await page.getByRole('button',{name:'Read / resume',exact:true}).first().waitFor();
-  const fixtureCard = page.locator('.game-card').filter({hasText:'小さな読書の道'});
+  await page.goto(base + '/?fixture=1'); await enterLibrary(page);
+  const fixtureCard = await gameCard(page,'小さな読書の道');
   await fixtureCard.getByRole('button',{name:'Read / resume',exact:true}).click();
   await page.waitForFunction(()=>document.querySelector('#sentence').textContent.includes('これは'));
   await page.waitForFunction(async()=>{const {Store}=await import('/storage.mjs');const s=new Store();await s.open();return Boolean(await s.get('original-synthetic:autosave'));});
-  assert.match(await page.locator('#gameBadge').textContent(),/SYNTHETIC/);
+  assert.match(await page.locator('#gameBadge').textContent(),/test fixture/i);
   assert.equal(await page.locator('#sentence ruby rt').textContent(),'どくしょ');
   assert.equal(await page.locator('#sentence span').count(),0);
   await page.locator('.background').evaluate(img=>img.decode());
@@ -58,14 +59,14 @@ try {
   assert.equal((await stored('autosave')).state.pending.id,'opening');
   pass('Selection, textbox clicks and synthetic touch events do not advance');
 
-  await page.locator('#quickSaveButton').click();
-  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Quicksave'));
+  await saveToSlot(page);
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('slot 1 saved'));
   await next(); await next();
   assert.equal((await stored('autosave')).state.pending.id,'repeat-b');
   assert.equal((await stored()).backlog.filter(p=>p.text==='風が、静かに吹いている。').length,2);
   pass('Identical sentences at different source locations are retained');
   const beforeRestore = total(await stored());
-  await page.locator('#quickLoadButton').click();
+  await loadSlot(page);
   await page.waitForFunction(()=>document.querySelector('#sentence').textContent.includes('これは'));
   assert.equal(total(await stored()),beforeRestore);
   assert.deepEqual((await stored('autosave')).state, opening.state);
@@ -78,8 +79,8 @@ try {
   const choiceSave = await stored('autosave');
   pass('Skip-read contributes zero characters and stops at a choice');
 
-  await page.locator('#quickSaveButton').click();
-  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Quicksave'));
+  await saveToSlot(page);
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('slot 1 saved'));
   await page.locator('#choices button').first().click();
   await page.waitForFunction(()=>document.querySelector('#sentence').textContent.includes('木々'));
   const forestSave = await stored('autosave');
@@ -87,7 +88,7 @@ try {
   assert.equal(forestSave.state.scene.background,'forest');
   await next(); assert.equal((await stored('autosave')).state.stack.length,1);
   await next(); assert.match(await page.locator('#sentence').textContent(),/森を選んだ/);
-  await page.locator('#quickLoadButton').click();
+  await loadSlot(page);
   await page.waitForFunction(()=>document.querySelectorAll('#choices button').length===2);
   assert.deepEqual((await stored('autosave')).state,choiceSave.state);
   await page.locator('#choices button').last().click();
@@ -98,8 +99,8 @@ try {
   pass('Both choice paths, conditions, call/return and scene composition match restored state');
 
   const activityBeforeReload = total(await stored()); const stateBeforeReload=(await stored('autosave')).state;
-  await page.reload(); await page.locator('.game-card').filter({hasText:'小さな読書の道'}).getByRole('button',{name:'Read / resume',exact:true}).click();
-  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('Resumed'));
+  await page.reload(); await enterLibrary(page); await (await gameCard(page,'小さな読書の道')).getByRole('button',{name:'Read / resume',exact:true}).click();
+  await page.waitForFunction(()=>document.querySelector('#status').textContent.includes('resumed'));
   assert.equal(total(await stored()),activityBeforeReload);
   assert.deepEqual((await stored('autosave')).state,stateBeforeReload);
   pass('Reload/resume preserves current segment and study history without recounting');
@@ -115,7 +116,7 @@ try {
   await next(); await wait(150);
   assert.equal(messages.length,1);assert.equal(messages[0].format,'vnkit.text-event');assert.equal(typeof messages[0].sentence,'string');
   await companion.waitForFunction(()=>document.querySelectorAll('#liveEntries .entry').length===1);
-  await page.locator('#quickSaveButton').click();await wait(100);await page.locator('#quickLoadButton').click();await wait(200);
+  await saveToSlot(page);await wait(100);await loadSlot(page);await wait(200);
   assert.equal(messages.length,1);
   pass('External native WebSocket and live page receive one logical event; restoration does not republish');
   ws.close(); await companion.close();
@@ -154,7 +155,7 @@ try {
 
   await page.screenshot({path:path.join(output,'desktop.png'),fullPage:true});
   await page.setViewportSize({width:390,height:844});
-  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.waitForFunction(()=>document.documentElement.scrollWidth<=innerWidth,null,{timeout:3000});
   await page.screenshot({path:path.join(output,'mobile.png'),fullPage:true});
   await page.setViewportSize({width:820,height:1180});
   assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
@@ -162,7 +163,7 @@ try {
 
   const failureContext=await browser.newContext();const failurePage=await failureContext.newPage();
   await failurePage.addInitScript(()=>{Object.defineProperty(navigator,'clipboard',{value:{writeText:()=>Promise.reject(new DOMException('Denied','NotAllowedError'))},configurable:true});document.execCommand=()=>false;localStorage.setItem('vnkit.settings',JSON.stringify({autoCopy:true}));});
-  await failurePage.goto(base);await failurePage.locator('.game-card').filter({hasText:'小さな読書の道'}).getByRole('button',{name:'Read / resume',exact:true}).click();
+  await failurePage.goto(base+'/?fixture=1');await enterLibrary(failurePage);await (await gameCard(failurePage,'小さな読書の道')).getByRole('button',{name:'Read / resume',exact:true}).click();
   await failurePage.waitForFunction(()=>document.querySelector('#sentence').textContent.includes('これは'));
   await failurePage.locator('#nextButton').click();
   await failurePage.waitForFunction(()=>document.querySelector('#status').textContent.includes('Automatic copy unavailable'));

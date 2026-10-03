@@ -1,0 +1,9 @@
+/* Tiny session statistics, pinned inside the artwork's upper right. The type follows the
+   fitted picture width so the box stays small on a 240-pixel handheld screen. */
+.session-hud {position:absolute;top:1.5%;right:1.5%;z-index:90;padding:2px 7px;pointer-events:none;user-select:none;
+  font:600 clamp(7px,calc(var(--fit-width,600px) * .022),11.5px)/1.45 Arial,'MS PGothic',sans-serif;font-variant-numeric:tabular-nums;letter-spacing:.02em;white-space:nowrap;color:#fffaf1;
+  background:hsl(var(--ui-hue) var(--ui-saturation) 27% / calc(var(--ui-opacity) * .62));border:1px solid #ecdfbd66;border-radius:2px;text-shadow:0 1px 2px #0009}
+.session-hud[hidden] {display:none}
+.session-hud span:first-child::before {content:'⏱ ';font-weight:400}
+.reader-fullscreen .session-hud {right:max(1.5%,52px)}
+@media(max-width:700px) {.session-hud {padding:1px 5px}}

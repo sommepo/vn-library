@@ -99,7 +99,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     try:
         if args.command == 'inspect':
-            report = disc.inspect(args.source, fingerprint=args.fingerprint)
+            # Cartridge dumps have no ISO9660 volume; the adapter reports the source.
+            cartridge = args.source.is_file() and args.source.suffix.lower() == '.gba'
+            report = {'path': str(args.source)} if cartridge else disc.inspect(args.source, fingerprint=args.fingerprint)
             adapter,identification=detected_adapter(args.source)
             report['identification'] = identification
             if identification['supported']:

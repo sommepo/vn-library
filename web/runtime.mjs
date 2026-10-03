@@ -2,6 +2,22 @@
 import { Engine, validateContent } from './engine.mjs';
 export async function createEngine(content, options = {}) {
   if (!content.runtime) return new Engine(content, options);
+  if (content.runtime.id === 'gs2-gba-native') {
+    const {GS2NativeEngine} = await import('./adapters/gs2-native.mjs');
+    return GS2NativeEngine.create(content, options);
+  }
+  if (content.runtime.id === 'gs1-gba-native') {
+    const {GS1NativeEngine} = await import('./adapters/gs1-native.mjs');
+    return GS1NativeEngine.create(content, options);
+  }
+  if (content.runtime.id === 'gs3-gba-native') {
+    const {GS3NativeEngine} = await import('./adapters/gs3-native.mjs');
+    return GS3NativeEngine.create(content, options);
+  }
+  if (content.runtime.id === 'gs2-gba') {
+    const {GS2Engine} = await import('./adapters/gs2-engine.mjs');
+    return GS2Engine.create(content, options);
+  }
   if (content.runtime.id === 'kamaitachi-ps1') {
     const {KamaitachiEngine} = await import('./adapters/kamaitachi-engine.mjs');
     return KamaitachiEngine.create(content, options);
@@ -44,6 +60,22 @@ export async function createEngine(content, options = {}) {
 }
 export async function validateReaderContent(content) {
   if (!content.runtime) return validateContent(content);
+  if (content.runtime.id === 'gs2-gba-native') {
+    const {validateGS2NativeContent} = await import('./adapters/gs2-native.mjs');
+    return validateGS2NativeContent(content);
+  }
+  if (content.runtime.id === 'gs1-gba-native') {
+    const {validateGS1NativeContent} = await import('./adapters/gs1-native.mjs');
+    return validateGS1NativeContent(content);
+  }
+  if (content.runtime.id === 'gs3-gba-native') {
+    const {validateGS3NativeContent} = await import('./adapters/gs3-native.mjs');
+    return validateGS3NativeContent(content);
+  }
+  if (content.runtime.id === 'gs2-gba') {
+    const {validateGS2Content} = await import('./adapters/gs2-engine.mjs');
+    return validateGS2Content(content);
+  }
   if (content.runtime.id === 'kamaitachi-ps1') {
     const {validateKamaitachiContent} = await import('./adapters/kamaitachi-engine.mjs');
     return validateKamaitachiContent(content);

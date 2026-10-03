@@ -21,7 +21,7 @@ export class MiningMedia {
   history.replaceState(history.state,'',u);
  }
  invalidate(){this.serial++;this.key=null;this.context=null;this.update(this.enabled?'unavailable':'off',this.enabled?'No game line is available for mining.':'Anki media is off.');}
- async present({game,p,art,viewport,visualKey,skipping=false}){
+ async present({game,p,art,viewport,visualKey,frame=null,skipping=false}){
   if(!this.enabled)return;
   const line=miningLine(p);
   if(!line||skipping){this.invalidate();return;}
@@ -32,7 +32,8 @@ export class MiningMedia {
   try{
    // Copy the complete decoded graphics plane at source resolution, before
    // any asynchronous work. No dictionary popup, desktop or CRT filter.
-   const image=this.capture.draw(art,[viewport?.width||640,viewport?.height||448]).toDataURL('image/png').split(',')[1];
+   // Engines that render live (original cartridge code) hand over their current frame.
+   const image=(frame||this.capture.draw(art,[viewport?.width||640,viewport?.height||448])).toDataURL('image/png').split(',')[1];
    const context=[...crypto.getRandomValues(new Uint8Array(32))].map(b=>b.toString(16).padStart(2,'0')).join('');
    if(!this.token){const r=await fetch('/api/mining/session',{signal:AbortSignal.timeout(10000)});if(!r.ok)throw Error('Media service unavailable');this.token=(await r.json()).token;}
    const r=await fetch('/api/mining/contexts',{method:'POST',headers:{'Content-Type':'application/json','X-VNKit-Mining-Token':this.token},body:JSON.stringify({context,gameId:game.id,segmentId:line.id,occurrenceId:line.occurrenceId,sentence:line.text,voice:line.voice||null,image}),signal:AbortSignal.timeout(10000)});

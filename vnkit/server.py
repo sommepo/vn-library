@@ -196,6 +196,10 @@ class ReaderServer(ThreadingHTTPServer):
                               'platform': content_platform(content),
                               'compatibility': content.get('compatibility', {'status': 'untested'}),
                               'replaces': content.get('replaces', []),
+                              # Optional independent starting points (e.g. episodes), labels only.
+                              'entries': [{'id': str(x.get('id'))[:40], 'label': str(x.get('label'))[:80]}
+                                          for x in (content.get('runtime') or {}).get('entries', [])[:16]
+                                          if isinstance(x, dict) and x.get('id') and x.get('label')],
                               'fixture': folder == fixture})
             except (ValueError, KeyError, OSError, TypeError):
                 continue
@@ -344,7 +348,7 @@ class ReaderHandler(BaseHTTPRequestHandler):
             self.reply(200, self.server.shared_saves.read(game))
             return
         if parsed.path == '/api/health':
-            self.reply(200, {'ok': True, 'version': '0.1.0'})
+            self.reply(200, {'ok': True, 'version': '0.2.0'})
             return
         try:
             path = unquote(parsed.path)

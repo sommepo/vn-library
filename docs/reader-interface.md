@@ -64,6 +64,14 @@ under **Aa → Darken the area surrounding the game**. Textbox opacity, Japanese
 font size and line spacing remain adjustable. Existing personal settings remain
 intact; new profiles default to 68% textbox opacity.
 
+**Aa → Show session stats in the upper right** (off by default) puts a tiny box
+inside the artwork's upper right with this session's reading time, characters
+read and characters per hour (`web/session-hud.mjs`, `web/session-hud.css`). It
+only reads Activity, takes no input, hides in menus and during a jump to the
+next choice, and its type follows the picture width so it stays small on a
+240-pixel handheld screen. `tests/reader-session-hud.test.mjs` covers its
+formatting.
+
 ## Library and previous-line controls (2026-09-21)
 
 Title actions are collapsed by default; click/tap a title or focus it and press
@@ -273,3 +281,32 @@ travel. Settings/import panels dispose the selector's resize observer.
 Implementation: web/platform-glass.css, platformNavigation in web/platforms.mjs,
 and revision-guarded platform changes in web/app.mjs. No save/activity/adapter
 format changes. CSS is included by the existing code-only package allowlist.
+
+## Home page (2026-10-01, restyled 2026-10-03)
+
+The reader opens on **Home**, a small personal homepage in the manner of the
+early-2000s web, before the systems (original design): a serif title over a
+ruled line and one slow scrolling line, a row of raised link buttons
+(**resume**, **one**, **two**, **portable**, **advance**, **stats**) and a
+status line for the selected link. The top bar holds a **Today** digit counter,
+menu music ♪, **Aa** (Reading settings, with a **Back to Home** row when opened
+from here) and a light/dark toggle. Light mode is a cream page on a dotted blue
+tile; dark mode (the reader's existing Dim setting, shared with the toolbar) is a
+navy page on a starfield. Local font stacks and CSS-drawn tiles only; the
+scrolling line is static under reduced motion.
+
+It is one screen with no page scrolling: a 16:9 card on desktop and the whole
+screen on phones and handhelds. The row stacks vertically in narrow portrait
+screens and the day line drops out on very short ones. Arrow keys move through
+the row from anywhere on Home; Enter opens the selection; Escape leaves stats.
+**stats** replaces the title block with four totals, a 30-reading-day line and every
+game's characters and time (the list scrolls inside itself). Clearing sits
+behind **Clear…**; see [text and statistics](text-and-statistics.md).
+
+Every system library has a **◂ Home** button in its header. The toolbar
+**Library** button still goes straight to a system menu (the open game's, or the
+last one used); only opening the reader lands on Home. `tests/browser-home.mjs`
+covers Home, entering a system, statistics after reading, per-game and global
+clearing, dark mode, Escape, and one-screen fit at desktop, phone, handheld and
+640×360 sizes. `tests/browser-library.mjs` provides `enterLibrary()` for tests
+that start from the bare reader.

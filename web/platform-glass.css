@@ -47,3 +47,4 @@
  #panel.console-library:not(.console-import) {transition:none;}
  #panel.console-library .glass-ready .platform-glass,#panel.console-library .platform-navigation button {transition:none;}
 }
+#panel.console-library .panel-ending {margin-left:14px;font:11px/1.4 Arial,sans-serif;letter-spacing:.06em;vertical-align:middle;opacity:.85;}

@@ -21,6 +21,22 @@ export function normalizeCRT(value={}){
  if(value.preset==='custom'||Object.hasOwn(CRT_PRESETS,value.preset))result.preset=value.preset;
  return result;
 }
+// Starting points per platform. A handheld's own screen through the filter: one scanline per
+// line of its picture (set when it is drawn), a tight beam so the lines show at that
+// magnification, a light aperture grille and glow, no convergence error or extra sharpening
+// (its pixels keep their edges), and no bend (the game's text is laid over the picture).
+const PLATFORM_CRT=Object.freeze({
+ gba:{...CRT_DEFAULTS,enabled:false,preset:'custom',scanlines:.75,beam:.3,maskType:1,maskStrength:.16,maskPitch:3,bloom:.08,halation:.03,glowRadius:1.4,convergence:0,sharpness:0,brightness:1.16,curvature:0,overscan:0,vignette:0,corners:0},
+ pc98:{...CRT_DEFAULTS,rows:400,curvature:0,corners:0,overscan:0,convergence:0,maskStrength:0,bloom:0,halation:0,enabled:false},
+});
+// A platform's settings from what the browser has stored for it.
+export function platformCRT(id,stored={}){
+ if(!stored||typeof stored!=='object'||Array.isArray(stored))stored={};
+ // The first handheld defaults were a flat screen that only blurred once enabled (and never ran:
+ // the filter did not take a live picture then). Where they were left as they were, the new ones apply.
+ if(id==='gba'&&stored.rows===320&&stored.maskStrength===0&&stored.bloom===0&&stored.halation===0)stored={enabled:stored.enabled===true};
+ return normalizeCRT({...(PLATFORM_CRT[id]||CRT_DEFAULTS),...stored});
+}
 export function crtPreset(name,current=CRT_DEFAULTS){
  if(!Object.hasOwn(CRT_PRESETS,name))throw new Error('Unknown CRT preset');
  return normalizeCRT({...CRT_DEFAULTS,...CRT_PRESETS[name].values,enabled:current.enabled,preset:name});

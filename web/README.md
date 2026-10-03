@@ -63,7 +63,7 @@ downloads on the reading device; browser storage is not the Linux server's disk.
 The Japanese textbox is always reserved for text selection and dictionary use.
 Click/tap artwork or Next, or use Space/Enter/Right Arrow to advance. Existing
 selection, input controls and open panels block advancement. Alt+C copies current
-text; Alt+S and Alt+L quicksave/load. Explicit Copy attempts a browser fallback when
+text; use the Saves panel for slots (quicksave shortcuts were removed). Explicit Copy attempts a browser fallback when
 the Clipboard API is unavailable. Automatic copy is opt-in and requires a secure
 context and permission; failure is shown instead of copying on the server.
 

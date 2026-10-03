@@ -1,6 +1,7 @@
 // Real reached CLANNAD save, temporary server/bank, fresh device profiles only.
 import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import{pathToFileURL}from'node:url';import{spawn}from'node:child_process';
 import{pollBrowser}from'./browser-poll.mjs';
+import {enterLibrary} from './browser-library.mjs';
 const root=path.resolve(import.meta.dirname,'..'),out=path.resolve(process.env.VNKIT_REPORT_DIR||'private/browser-tests/import-ui'),game='clannad-slpm66302-1.01';
 await fs.mkdir(out,{recursive:true});
 const server=spawn('python3',['-u','-c','import sys\nfrom vnkit.server import ReaderServer\ns=ReaderServer(("127.0.0.1",0),sys.argv[1],sys.argv[2])\nprint(s.server_address[1],flush=True)\ns.serve_forever()',path.join(root,'private/library'),path.join(out,'server-state')],{cwd:root,stdio:['ignore','pipe','pipe']});
@@ -19,17 +20,17 @@ const advance=async p=>{await p.locator('#nextButton').click();await ready(p);};
 const metrics=['activeMs','characters','uniqueCharacters','rereadCharacters','segments','skippedSegments','choiceCharacters'];
 try{
  const context=await browser.newContext({viewport:{width:1100,height:800}});a=await context.newPage();a.on('pageerror',e=>report.errors.push(e.message));
- await a.goto(base);await a.locator('.console-title').first().waitFor();await a.locator('#closePanel').click();
+ await a.goto(base);await enterLibrary(a);await a.locator('.console-title').first().waitFor();await a.locator('#closePanel').click();
  assert.equal(await a.locator('#stage').evaluate(e=>getComputedStyle(e).visibility),'hidden');
  await a.locator('.idle-orbit').waitFor();assert.equal(await a.locator('.empty-art').count(),0);
  const light=await a.locator('body').evaluate(e=>getComputedStyle(e).background);await a.locator('#dimButton').click();const dark=await a.locator('body').evaluate(e=>getComputedStyle(e).background);assert.notEqual(light,dark);assert.equal(await a.locator('#dimButton').textContent(),'☀ Light');await a.locator('#dimButton').click();assert.equal(await a.locator('body').evaluate(e=>getComputedStyle(e).background),light);
  await a.screenshot({path:path.join(out,'idle-light.png')});pass('Empty reader shows orbit without splash/textbox; Light and Dim visibly differ');
  for(const id of ['settingsButton','crtButton']){await a.locator('#'+id).click();assert.doesNotMatch(await a.locator('#panelBody').textContent(),/selectable|reserved for selection|stays? clear/i);await a.locator('#closePanel').click();}pass('Settings and CRT copy omit text-selection explanations');
- await a.locator('#libraryButton').click();await a.getByRole('button',{name:'Add game / Import ISO',exact:true}).click();await a.locator('#isoFile').waitFor();
+ await a.locator('#libraryButton').click();await a.getByRole('button',{name:'Add game / Import media',exact:true}).click();await a.locator('#isoFile').waitFor();
  await a.locator('#isoFile').setInputFiles({name:'original-test.iso',mimeType:'application/octet-stream',buffer:Buffer.alloc(65536,71)});
  await a.getByRole('button',{name:'Upload / resume',exact:true}).click();await a.waitForFunction(()=>[...document.querySelectorAll('.import-badge')].some(e=>e.textContent==='ISO uploaded'));
  let row=a.locator('.import-card').filter({hasText:'original-test.iso'});await row.getByRole('button',{name:'Inspect disc',exact:true}).click();await a.waitForFunction(()=>[...document.querySelectorAll('.import-card')].some(e=>e.textContent.includes('original-test.iso')&&/stopped|No playable|volume|ISO|descriptor/.test(e.textContent)));
- await a.reload();await a.locator('.console-title').first().waitFor();await a.getByRole('button',{name:'Add game / Import ISO',exact:true}).click();await a.locator('#isoFile').waitFor();await row.locator('.import-badge').waitFor();assert.equal(await row.locator('.import-badge').textContent(),'ISO uploaded');
+ await a.reload();await enterLibrary(a);await a.locator('.console-title').first().waitFor();await a.getByRole('button',{name:'Add game / Import media',exact:true}).click();await a.locator('#isoFile').waitFor();await row.locator('.import-badge').waitFor();assert.equal(await row.locator('.import-badge').textContent(),'ISO uploaded');
  assert.equal(await row.getByRole('button',{name:'Import game',exact:true}).count(),0);pass('Real HTTP upload survives reload and invalid ISO never becomes importable');
  const source=a.locator('.import-card').filter({hasText:'Clannad (Japan).iso'});await source.getByRole('button',{name:'Use this ISO',exact:true}).click();
  const pending=a.locator('article.import-card').filter({hasText:'Clannad (Japan).iso'});await pending.getByRole('button',{name:'Inspect disc',exact:true}).click();

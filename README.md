@@ -6,26 +6,31 @@ tablet or phone. No game files are included or downloaded.
 
 ## Get started
 
-- **Windows:** download [the beta.5 installer](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.5), extract it and run `Install.cmd`.
-- **Linux:** download the source from [the same release](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.5) or clone this repository, then follow [setup](docs/setup.md).
+- **Windows:** download [the v0.2.0 installer](https://github.com/sommepo/vn-library/releases/tag/v0.2.0), extract it and run `Install.cmd`.
+- **Linux:** download the source from [the same release](https://github.com/sommepo/vn-library/releases/tag/v0.2.0) or clone this repository, then follow [setup](docs/setup.md).
 
 Open the library, choose **Add game / Import media** and select a supported PS2
-ISO. PS1 CUE/BIN imports use the command line and additional tools described in
-their game guides. Imported games no longer need the original disc image to play.
+ISO. PS1 CUE/BIN and GBA cartridge imports use the command line and the extra
+steps described in their game guides. Imported games no longer need the original
+disc image to play.
 
 Updating: quit the Windows tray app before running the new installer. Keep your
 game folders and back up your saves. Existing imports do not need rebuilding.
 
 [Windows instructions](docs/windows.md) · [Linux and importing](docs/setup.md) ·
+[Changelog](docs/changelog.md) ·
 [Releases and checksums](https://github.com/sommepo/vn-library/releases)
 
 ## Games and platforms
 
-The library has three minimal console-inspired environments: **one** for PS1,
-**two** for PS2 and **portable** for PSP. Portable is included as an empty
-frontend; no PSP game is playable yet.
+The reader opens on a small **Home** page with today's reading and overall
+statistics. From there the library has four minimal console-inspired
+environments: **one** for PS1, **two** for PS2, **portable** for PSP and
+**advance** for GBA. Portable is included as an empty frontend; no PSP game is
+playable yet.
 
-This is an early beta. Each game guide lists the exact supported edition,
+Support is per exact edition, and several readers are experimental. Each game
+guide lists the exact supported edition,
 setup, implementation, tested coverage and remaining limitations.
 
 | Platform | Game guide | Import |
@@ -39,9 +44,18 @@ setup, implementation, tested coverage and remaining limitations.
 | two · PS2 | [Ever17 Premium Edition](docs/ever17-runtime.md) | Add game or CLI |
 | two · PS2 | [Cartagra](docs/cartagra-runtime.md) | Add game or CLI |
 | two · PS2 | [Higurashi Matsuri: Kakera Asobi](docs/higurashi-runtime.md) | Add game or CLI |
+| advance · GBA | [Gyakuten Saiban](docs/gs1-gba-runtime.md) | Experimental local CLI |
+| advance · GBA | [Gyakuten Saiban 2](docs/gs2-gba-runtime.md) | Experimental local CLI |
+| advance · GBA | [Gyakuten Saiban 3](docs/gs3-gba-runtime.md) | Experimental local CLI |
+
+The three Gyakuten Saiban cartridges run on an original-code GBA machine in the
+browser (no BIOS image, no third-party emulator), with the game's own graphics
+and sound, its text as selectable Japanese, touch on the game screen and saves.
+Their text uses the included glyph and name-tag maps, which are bound to each
+ROM and have not been proofread; see each guide.
 
 [Platform environments](docs/platform-environments.md) ·
-[Compatibility](docs/compatibility.md) · [428 research status](docs/428-psp-investigation.md)
+[Compatibility](docs/compatibility.md) · [428 research status](docs/428-psp-investigation.md) (experimental, not playable)
 
 ## Reading and learning
 
@@ -49,7 +63,7 @@ setup, implementation, tested coverage and remaining limitations.
 - Optional [Anki media support](docs/anki.md) for the current scene and original voice.
 - Backlog, Auto, Skip read, Next choice, Previous line and global pause.
 - Autosave, 15 manual slots and optional shared saves across your devices.
-- Reading activity, exports, Live text and WebSocket text output.
+- Reading activity, Home statistics, an optional session stats box, exports, Live text and WebSocket text output.
 - Adjustable display/audio, optional CRT filters and sound tests where supported.
 
 Otogirisou and Kamaitachi retain their original full-scene text and inline choices.

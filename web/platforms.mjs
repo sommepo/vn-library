@@ -3,6 +3,7 @@ export const PLATFORMS = Object.freeze([
   Object.freeze({id:'ps1',name:'PlayStation',label:'one'}),
   Object.freeze({id:'ps2',name:'PlayStation 2',label:'two'}),
   Object.freeze({id:'psp',name:'PlayStation Portable',label:'portable'}),
+  Object.freeze({id:'gba',name:'Game Boy Advance',label:'advance'}),
   // PC-98 presentation is parked; metadata/research below is retained.
 ]);
 export const PLATFORM_KEY='vnkit.platform.v1';

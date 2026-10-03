@@ -31,9 +31,11 @@ export class ReaderLayout {
     const h=this.area.clientHeight-px(area.paddingTop)-px(area.paddingBottom);
     const bx=px(stage.borderLeftWidth)+px(stage.borderRightWidth),by=px(stage.borderTopWidth)+px(stage.borderBottomWidth);
     const ratio=this.viewport.width/this.viewport.height;
-    const maximum=this.platform==='pc98'||document.body.classList.contains('reader-fullscreen')?Infinity:1200;
+    // Whole-number pixel scaling when windowed; fullscreen fills the screen.
+    const integer=['pc98','gba'].includes(this.platform)&&!document.body.classList.contains('reader-fullscreen');
+    const maximum=integer||document.body.classList.contains('reader-fullscreen')?Infinity:1200;
     let width=Math.max(1,Math.min(w-bx,(h-by)*ratio,maximum));
-    if(this.platform==='pc98'&&width>=this.viewport.width)width=this.viewport.width*Math.floor(width/this.viewport.width);
+    if(integer&&width>=this.viewport.width)width=this.viewport.width*Math.floor(width/this.viewport.width);
     this.stage.style.setProperty('--fit-width',`${width+bx}px`);
     this.stage.style.setProperty('--fit-height',`${width/ratio+by}px`);
     this.stage.style.setProperty('--text-scale',String(Math.min(1,width/this.viewport.width)));

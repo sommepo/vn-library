@@ -125,6 +125,27 @@ This grouping interval is separate from the five-minute active-time timeout.
 **04:01 browser-local time**; through 04:00:59 belongs to the previous day. A
 session can span multiple reading days without being split.
 
+### Home: global statistics and clearing (2026-10-01)
+
+**Home → stats** (the page before the systems) totals activity for every game on this
+device across all systems: characters, active time, characters per hour (after a
+minute of reading), today's characters, a 30-reading-day line and each game's
+characters and time. It reads each game's stored `<game>:activity` record without
+opening a session or writing anything; games hidden from the library but with
+stored activity are included.
+
+**Clear…** on Home reveals clearing per game (×), per system (chips) and **Clear
+all**; Activity also has **Clear all statistics for this game**. Each asks for
+confirmation. Clearing removes the sessions and daily ledger, so time, characters
+and sessions return to zero. Seen and occurrence IDs, backlog, bookmarks, saves
+and route progress are kept, so later encounters of passed text still count as
+rereading and Skip read still works. Before clearing, the previous record is kept
+as `<game>:activity-before-clear` (one level, per game); **Backups ↓** downloads
+them and Activity → **Restore activity backup…** accepts one game's record. The
+open game is cleared in memory and saved at once. A game open in another reader
+tab (held by its lock) is skipped and named, because that tab would write its own
+copy back. Statistics remain device-local.
+
 Activity history lists every session with **Delete session** and confirmation.
 Deletion subtracts that session's daily/overall counters and preserves saves,
 backlog, bookmarks, seen and occurrence IDs. Deleting the current session starts

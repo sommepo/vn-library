@@ -11,8 +11,8 @@ You’ll need Python 3.11+, Node.js 22+, FFmpeg/ffprobe and the game’s convers
 tools. The automatic tool setup currently targets Ubuntu 26.04 on x86-64; other
 distributions may need manual setup.
 
-Download **VN-Library-Linux-source-v0.1.0-beta.5.tar.gz** from
-[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.1.0-beta.5), or clone
+Download **VN-Library-Linux-source-v0.2.0.tar.gz** from
+[Releases](https://github.com/sommepo/vn-library/releases/tag/v0.2.0), or clone
 the repository. The Linux download is source code, not a desktop installer.
 Extract it, open a terminal in the `vnkit` folder, then follow the
 [CLANNAD setup guide](clannad-import.md) or

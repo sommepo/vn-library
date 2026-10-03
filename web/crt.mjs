@@ -1,5 +1,5 @@
 import {vertex,blur,screen} from './crt-shaders.mjs';
-import {CRT_KEY,CRT_DEFAULTS,CRT_RANGES,normalizeCRT,crtOutputSize} from './crt-settings.mjs';
+import {CRT_KEY,CRT_DEFAULTS,CRT_RANGES,normalizeCRT,crtOutputSize,platformCRT} from './crt-settings.mjs';
 
 // Capture the reader's graphics plane, never dialogue or hidden script content.
 // The supported graphics contract is positioned image/div trees, clipped atlases,
@@ -87,8 +87,8 @@ export class CRTDisplay {
  setPlatform(id){
   if(this.platform===id)return;
   this.platform=id;this.storageKey=id==='ps2'?CRT_KEY:`vnkit.crt.${id}.v1`;
-  const defaults=id==='pc98'?{...CRT_DEFAULTS,rows:400,curvature:0,corners:0,overscan:0,convergence:0,maskStrength:0,bloom:0,halation:0,enabled:false}:CRT_DEFAULTS;
-  try{this.settings=normalizeCRT({...defaults,...JSON.parse(localStorage.getItem(this.storageKey)||'{}')});}catch{this.settings=normalizeCRT(defaults);}
+  let stored={};try{stored=JSON.parse(localStorage.getItem(this.storageKey)||'{}');}catch{}
+  this.settings=platformCRT(id,stored);
   this.refresh();
  }
  set(values){
@@ -123,7 +123,7 @@ export class CRTDisplay {
   const gl=canvas.getContext('webgl2',{alpha:false,antialias:false,depth:false,stencil:false,powerPreference:'low-power',preserveDrawingBuffer:false});
   if(!gl)throw new Error('WebGL 2 is unavailable. Original artwork is shown; try enabling browser hardware acceleration.');
   this.gl=gl;
-  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.lost=true;this.original('CRT paused: graphics context lost. Original artwork is shown.');});
+  canvas.addEventListener('webglcontextlost',event=>{event.preventDefault();this.lost=true;this.liveRunning=false;this.original('CRT paused: graphics context lost. Original artwork is shown.');});
   canvas.addEventListener('webglcontextrestored',()=>{this.lost=false;try{this.resources();this.refresh();}catch(error){this.original(`CRT unavailable: ${error.message}`);}});
   this.resources();
  }
@@ -142,11 +142,15 @@ export class CRTDisplay {
   this.blurProgram=program(blur);this.screenProgram=program(screen);
   const texture=()=>{const t=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,t);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MIN_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_MAG_FILTER,gl.LINEAR);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE);gl.texParameteri(gl.TEXTURE_2D,gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE);return t;};
   this.sourceTexture=texture();this.targets=[0,1].map(()=>({texture:texture(),framebuffer:gl.createFramebuffer()}));this.targetSize='';
-  this.float=Boolean(gl.getExtension('EXT_color_buffer_float'));gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);
+  this.float=Boolean(gl.getExtension('EXT_color_buffer_float'));gl.disable(gl.DEPTH_TEST);gl.disable(gl.BLEND);this.maxTexture=gl.getParameter(gl.MAX_TEXTURE_SIZE);
  }
- render(source){
+ // `live`: the source is a game's own screen, drawn again every frame. Its geometry stays flat
+ // (the game's text is DOM laid over the picture and must stay in its box), the raster has one
+ // scanline per line of that screen, its pixels keep their edges, and the GPU is only asked
+ // for errors on the first frame of a run, not sixty times a second.
+ render(source,live=false,check=true){
   const gl=this.gl,s=this.settings;
-  const [w,h]=crtOutputSize(this.root.clientWidth,this.root.clientHeight,devicePixelRatio,s.quality,gl.getParameter(gl.MAX_TEXTURE_SIZE));
+  const [w,h]=crtOutputSize(this.root.clientWidth,this.root.clientHeight,devicePixelRatio,s.quality,this.maxTexture);
   if(this.canvas.width!==w||this.canvas.height!==h){this.canvas.width=w;this.canvas.height=h;}
   gl.activeTexture(gl.TEXTURE0);gl.bindTexture(gl.TEXTURE_2D,this.sourceTexture);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,true);
   gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,source);gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL,false);
@@ -171,20 +175,45 @@ export class CRTDisplay {
   gl.activeTexture(gl.TEXTURE1);gl.bindTexture(gl.TEXTURE_2D,this.targets[1].texture);gl.uniform1i(output.uniforms.glow,1);
   gl.uniform2f(output.uniforms.sourceSize,source.width,source.height);gl.uniform2f(output.uniforms.outputSize,w,h);gl.uniform1i(output.uniforms.maskType,s.maskType);
   for(const name of Object.keys(CRT_RANGES))if(output.uniforms[name]!==undefined)gl.uniform1f(output.uniforms[name],s[name]);
+  gl.uniform1f(output.uniforms.pixelEdge,live?Math.max(1,w/source.width/1.5):1);
+  if(live){gl.uniform1f(output.uniforms.curvature,0);gl.uniform1f(output.uniforms.overscan,0);gl.uniform1f(output.uniforms.rows,source.height);}
   gl.drawArrays(gl.TRIANGLES,0,3);
-  if(gl.getError()!==gl.NO_ERROR)throw new Error('The GPU could not finish the CRT frame. Original artwork is shown.');
+  if(check&&gl.getError()!==gl.NO_ERROR)throw new Error('The GPU could not finish the CRT frame. Original artwork is shown.');
   this.drawPreview(this.canvas);
-  this.notify(`CRT active · ${w} × ${h} pixels · ${this.float?'16-bit float':'8-bit'} glow · Japanese text stays selectable`);
+  this.notify(live?`CRT active · ${w} × ${h} pixels · live game screen: one scanline per line, flat geometry · Japanese text stays selectable`:`CRT active · ${w} × ${h} pixels · ${this.float?'16-bit float':'8-bit'} glow · Japanese text stays selectable`);
  }
  drawPreview(source){
   if(!this.preview)return;
   this.preview.width=source.width;this.preview.height=source.height;
   this.preview.getContext('2d',{alpha:false}).drawImage(source,0,0);
  }
+ // A live engine (original cartridge code) draws its own picture on a canvas in the art plane.
+ // That canvas is the CRT's source, frame by frame; it stays in place underneath, unseen, to
+ // take taps.
+ liveScreen(){return this.root.querySelector(':scope > canvas.live-screen');}
+ refreshLive(live){
+  this.nativeCanvas?.remove();this.root.classList.remove('native-active');
+  const off=message=>{this.root.classList.remove('crt-active');this.canvas?.remove();this.liveRunning=false;this.notify(message);if(this.preview)this.drawPreview(live);};
+  if(!this.settings.enabled)return off('CRT is off · game screen');
+  if(this.lost)return off('CRT paused: graphics context lost. The game screen is shown.');
+  try{
+   this.init();this.render(live,true,true);this.liveRunning=true;
+   if(this.canvas.parentElement!==this.root)this.root.append(this.canvas);
+   this.root.classList.add('crt-active');
+  }catch(error){off(`CRT unavailable: ${error.message}`);}
+ }
+ // The live host has drawn a new frame on its canvas.
+ frameReady(){
+  if(!this.liveRunning||document.hidden)return;
+  const live=this.liveScreen();if(!live)return;
+  try{this.render(live,true,false);}catch(error){this.liveRunning=false;this.root.classList.remove('crt-active');this.canvas?.remove();this.notify(`CRT unavailable: ${error.message}`);}
+ }
  refresh(){
   cancelAnimationFrame(this.frame);this.frame=0;
   if(document.hidden)return;
   if(!this.root.clientWidth||!this.root.clientHeight)return;
+  const live=this.liveScreen();if(live){this.refreshLive(live);return;}
+  this.liveRunning=false;
   if(this.root.querySelector('video,audio.script-media')){this.original('Movie / media playback uses the original player; CRT resumes afterwards.');return;}
   if(!this.root.querySelector('img')){this.original('Load a scene to preview its artwork. CRT preferences are saved for play.');return;}
   try{

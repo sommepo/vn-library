@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {saveToSlot, loadSlot} from './browser-save-slot.mjs';
 const root=path.resolve(import.meta.dirname,'..');
 const {chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));
 const base=process.env.VNKIT_URL||'http://127.0.0.1:8891';
@@ -58,13 +59,13 @@ try {
   if(current.kind==='choice'){
    report.choices++;
    if(!checkedChoice){
-    await page.locator('#quickSaveButton').click();await pause(80);const before=await stored(page,'quicksave');
+    await saveToSlot(page);await pause(80);const before=await stored(page,'slot 1');
     await page.locator('#choices button').first().click();await ready(page);const a=await stored(page);
-    await page.locator('#quickLoadButton').click();await pause(80);assert.equal((await stored(page)).state.pending.id,before.state.pending.id);
+    await loadSlot(page);await pause(80);assert.equal((await stored(page)).state.pending.id,before.state.pending.id);
     await page.locator('#choices button').first().click();await ready(page);const b=await stored(page);
     assert.equal(a.state.pending.id,b.state.pending.id);assert.equal(a.state.pending.text,b.state.pending.text);assert.deepEqual(a.state.vars,b.state.vars);
-    await page.locator('#quickLoadButton').click();await pause(80);await page.locator('#choices button').nth(1).click();await ready(page);const other=await stored(page);assert.notEqual(other.state.pending.id,a.state.pending.id);
-    await page.locator('#quickLoadButton').click();await pause(80);checkedChoice=true;
+    await loadSlot(page);await pause(80);await page.locator('#choices button').nth(1).click();await ready(page);const other=await stored(page);assert.notEqual(other.state.pending.id,a.state.pending.id);
+    await loadSlot(page);await pause(80);checkedChoice=true;
     pass('Both first-choice branches execute in browser; choice quicksave reproduces text and variables');
    }
    await page.locator('#choices button').first().click();
@@ -73,10 +74,10 @@ try {
  }
  assert.ok(checkedChoice&&seenVoice);await ready(page);
  const beforeSave=(await stored(page)).state.pending;
- await page.locator('#quickSaveButton').click();await pause(80);
+ await saveToSlot(page);await pause(80);
  await page.locator('#nextButton').click();await ready(page);const afterSave=(await stored(page)).state.pending;
  const historyBefore=await stored(page,'activity'),eventCount=events.length;
- await page.locator('#quickLoadButton').click();await pause(150);
+ await loadSlot(page);await pause(150);
  assert.equal((await stored(page)).state.pending.id,beforeSave.id);assert.equal(total(await stored(page,'activity')),total(historyBefore));assert.equal(events.length,eventCount);
  await page.locator('#nextButton').click();await ready(page);assert.equal((await stored(page)).state.pending.id,afterSave.id);
  pass('Text quicksave/load preserves subsequent source text; restored text is not recounted or emitted');

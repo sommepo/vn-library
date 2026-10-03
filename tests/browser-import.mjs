@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {enterLibrary} from './browser-library.mjs';
 const root=path.resolve(import.meta.dirname,'..');
 const {chromium}=await import(pathToFileURL(process.env.VNKIT_PLAYWRIGHT_MODULE || path.join(root,'private/tooling/playwright/package/index.mjs')));
 const base=process.env.VNKIT_URL || 'http://127.0.0.1:8891';
@@ -14,7 +15,7 @@ const content=await (await fetch(new URL(game.url,base))).json();
 const browser=await chromium.launch({headless:true});
 const checks=[];
 try {
-  const page=await browser.newPage();await page.goto(base);
+  const page=await browser.newPage();await page.goto(base);await enterLibrary(page);
   const card=page.locator('.game-card').filter({hasText:game.title});await card.waitFor();
   assert.equal(game.compatibility.status,'blocked');
   assert.equal(await card.getByRole('button',{name:'Read / resume',exact:true}).count(),0);

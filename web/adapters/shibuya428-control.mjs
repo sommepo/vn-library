@@ -84,6 +84,20 @@ export function decodeChoice(i) {
   return {presentation, options, restartLabel, timeoutFrames: i.code === 0x55 ? 0 : presentation[2] * 60};
 }
 
+export function decodeCheckpoint(instruction) {
+  const operands = new Operands(instruction), restart = operands.uint();
+  operands.end();
+  if (restart > 1) operands.fail('Unknown source checkpoint mode');
+  return {restart: restart === 1};
+}
+
+export function decodeSystem(instruction) {
+  const operands = new Operands(instruction), type = operands.uint(), code = operands.uint();
+  operands.end();
+  if (type > 2) operands.fail('Unknown source system command');
+  return {type, code};
+}
+
 export function decodeLink(i) {
   const r = new Operands(i), mode = r.uint();
   if (i.code === 0x70) {
@@ -100,8 +114,11 @@ export function decodeLink(i) {
 
 // 0x088983f0's restricted dispatcher is used while composing choice labels.
 // Branches and writes outside this list are deliberately not executed there.
-const CHOICE_RENDER_CODES = new Set([0x2d,1,0x1b,0x5e,0x4c,0x28,0x0e,0x3b,0x1c,0x22,
+export const CHOICE_RENDER_CODES = new Set([0x2d,1,0x1b,0x5e,0x4c,0x28,0x0e,0x3b,0x1c,0x22,
   0x5f,0x0f,0x31,0x45,0x46,0x47,0x2b,0x2c,0x23,0xbc,0x43,0xc0]);
+// 0x0886d874 uses this source code point as a suppressible half-width space.
+// Keep the recovered CP932 string and raw bytes intact; normalize display only.
+export const source428StoryText=text=>text.replaceAll('\u4edd',' ');
 export function choiceText(script, offset) {
   const index = script.tokens.findIndex(t => t.offset === offset);
   if (index < 0) throw Error('Choice target outside decoded source');
@@ -111,10 +128,14 @@ export function choiceText(script, offset) {
     if (ruby) { if (t.code === 0x1d) ruby = false; continue; }
     if (!CHOICE_RENDER_CODES.has(t.code)) continue;
     if (t.code === 0x1c) { ruby = true; continue; }
-    if (t.code === 1) { text += t.text; continue; }
+    if (t.code === 1) { text += source428StoryText(t.text); continue; }
     if (t.code === 0x1b) { text += '\n'; continue; }
     if (t.code === 0xbc) { recommended = true; continue; }
     if (t.code === 0x5e) return {text: text.trimEnd(), recommended};
+    if (t.code === 0xc0) {
+      const system = decodeSystem(t);
+      if (system.type === 1 && system.code === 3) continue;
+    }
     // Known menu text styling/delimiters. Native tutorials require their own UI.
     if ([0x2d,0x22,0x23,0x28,0x0f,0x31,0x3b,0x43].includes(t.code)) continue;
     throw Error(`${t.id}: Unsupported choice presentation command 0x${t.code.toString(16)}`);
@@ -123,14 +144,18 @@ export function choiceText(script, offset) {
 }
 
 export function validateControl(scripts) {
-  const errors = [], counts = {branches: 0, choices: 0, options: 0, links: 0, threads: 0, targets: 0};
+  const errors = [], counts = {branches: 0, choices: 0, options: 0, links: 0, threads: 0, targets: 0, checkpoints: 0, systems: 0};
   function target(t, i) {
     if (!scripts[t.script]?.labels[t.label]) throw Error(`${i.id}: Missing source label`);
     counts.targets++;
   }
   for (const script of Object.values(scripts)) for (const i of script.tokens) {
     try {
-      if ([0x52,0x56,0x59,0x5a].includes(i.code)) {
+      if (i.code === 0x22) {
+        decodeCheckpoint(i); counts.checkpoints++;
+      } else if (i.code === 0xc0) {
+        decodeSystem(i); counts.systems++;
+      } else if ([0x52,0x56,0x59,0x5a].includes(i.code)) {
         const r = new Operands(i); target(r.target(), i); r.end();
       } else if (i.code === 0x57) {
         const branch = decodeBranch(i); target(branch.target, i); counts.branches++;

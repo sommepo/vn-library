@@ -1,0 +1,134 @@
+/* Home: a small personal homepage in the manner of the early-2000s web. Original design;
+   local font stacks and CSS-drawn tiles only. Light: a cream page on a dotted blue tile.
+   Dark (the reader's Dim setting): a navy page on a starfield. */
+#panel.home-page {
+  --home-tile: #c3d0e6; --home-bg: #fdfdf4; --home-ink: #1b1f4b; --home-soft: #5b6288; --home-line: #a9b2d0;
+  --home-link: #0a2fd0; --home-hot: #c40000; --home-hot-bg: #ffffc4; --home-face: #e9ecf5; --home-light: #ffffff; --home-dark: #7c85a8;
+  --home-font: Verdana, Geneva, Tahoma, "DejaVu Sans", "Noto Sans", sans-serif;
+  --home-serif: "Times New Roman", Times, "Liberation Serif", "Noto Serif", serif;
+  --home-mono: "Courier New", Courier, "Liberation Mono", "DejaVu Sans Mono", monospace;
+  width: min(960px, calc(100vw - 24px), calc((100dvh - 24px) * 16 / 9)); aspect-ratio: 16 / 9; height: auto; max-height: none;
+  background: var(--home-tile) radial-gradient(#ffffffb0 1px, transparent 1.6px) 0 0 / 14px 14px;
+  color: var(--home-ink); border: 0; border-radius: 0; box-shadow: 0 30px 90px #0007; overflow: hidden;
+}
+.dim-surroundings #panel.home-page {
+  --home-tile: #000008; --home-bg: #070b24; --home-ink: #e9ecff; --home-soft: #98a2d2; --home-line: #2f3a78;
+  --home-link: #7fd0ff; --home-hot: #ffe45c; --home-hot-bg: #1b2466; --home-face: #111844; --home-light: #4a58a8; --home-dark: #02030f;
+  background: var(--home-tile) radial-gradient(#ffffffd0 .7px, transparent 1.2px) 11px 17px / 67px 59px, radial-gradient(#b9c8ffb0 .6px, transparent 1.1px) 43px 5px / 97px 83px, radial-gradient(#ffffff80 .5px, transparent 1px) 23px 61px / 41px 113px;
+  box-shadow: 0 30px 90px #000c;
+}
+#panel.home-page::backdrop { background: #0a0c18b3; }
+/* :not(#_) lifts these above the reader's light/dim panel-head themes. Only ✕ shows. */
+#panel.home-page:not(#_) .panel-head { position: absolute; top: 12px; right: 12px; left: auto; z-index: 6; padding: 8px 10px; background: transparent; border: 0; text-shadow: none; }
+#panel.home-page:not(#_) .panel-head h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+#panel.home-page:not(#_) .panel-head button { width: 34px; height: 30px; padding: 0; color: var(--home-ink); background: var(--home-face); border: 2px outset var(--home-light); border-right-color: var(--home-dark); border-bottom-color: var(--home-dark); border-radius: 0; box-shadow: none; font: bold 13px var(--home-font); }
+#panel.home-page:not(#_) .panel-head button:hover { color: var(--home-hot); }
+#panel.home-page:not(#_) .panel-head button:focus-visible { outline: 1px dotted var(--home-ink); outline-offset: -5px; }
+#panel.home-page #panelStatus:not(:empty) {
+  position: absolute; z-index: 6; top: 58px; left: 50%; bottom: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 48px); height: auto;
+  padding: 5px 12px; font: 11px/1.3 var(--home-font); color: var(--home-ink); background: var(--home-hot-bg); border: 1px solid var(--home-line);
+}
+#panel.home-page #panelBody { box-sizing: border-box; height: 100%; padding: 12px; overflow: hidden; container-type: size; }
+
+.home-view { box-sizing: border-box; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; width: min(100%, 780px); height: 100%; margin: 0 auto; padding: 8px 18px 10px;
+  font: 12px/1.4 var(--home-font); color: var(--home-ink); background: var(--home-bg); border: 3px ridge var(--home-line); }
+.home-view button, .home-view button:hover, .home-view button:active { box-shadow: none; border-radius: 0; background: none; }
+.home-view button:focus-visible { outline: 1px dotted var(--home-ink); outline-offset: -5px; }
+/* The raised button of the period: every control that is not a plain link. */
+.home-view .home-tool, .home-view .home-item, .home-view .home-chip, .home-view .home-clear-all {
+  color: var(--home-link); background: var(--home-face); border: 2px solid; border-color: var(--home-light) var(--home-dark) var(--home-dark) var(--home-light); cursor: pointer; }
+.home-view .home-tool:active, .home-view .home-item:active, .home-view .home-chip:active, .home-view .home-clear-all:active:not(:disabled) { background: var(--home-face); border-color: var(--home-dark) var(--home-light) var(--home-light) var(--home-dark); }
+
+.home-view .home-top { display: flex; align-items: center; gap: 12px; min-height: 30px; padding-right: 44px; }
+.home-view .home-readout { display: flex; align-items: center; gap: 8px; margin: 0; font: bold 11px/1 var(--home-font); color: var(--home-soft); }
+.home-view .home-readout-value { display: inline-flex; gap: 1px; padding: 2px; background: #000; border: 2px inset var(--home-line); }
+.home-view .home-readout-value i { min-width: .78em; padding: 2px 1px 1px; font: bold 14px/1 var(--home-mono); text-align: center; color: #5dff4f; background: linear-gradient(#1c1c1c, #000 55%, #161616); }
+.home-view .home-tools { display: flex; gap: 4px; margin-left: auto; }
+.home-view .home-tool { width: 34px; height: 30px; padding: 0; font: bold 12px/1 var(--home-font); color: var(--home-ink); }
+.home-view .home-tool:hover { color: var(--home-hot); }
+
+.home-view .home-stage { position: relative; min-height: 0; }
+.home-view .home-front { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(4px, 2.4cqh, 14px); }
+.home-view .home-front[hidden] { display: none; }
+.home-view .home-title { margin: 0; font: italic bold clamp(26px, min(13cqh, 9cqw), 60px)/1 var(--home-serif); letter-spacing: -.01em; color: var(--home-ink); white-space: nowrap; }
+.home-view .home-title::before, .home-view .home-title::after { content: '✦'; margin: 0 .5em; font: normal .42em/1 var(--home-font); vertical-align: middle; color: var(--home-hot); }
+.home-view .home-rule { width: min(100%, 520px); height: 0; margin: 0; border: 0; border-top: 2px groove var(--home-line); }
+.home-view .home-marquee { width: min(100%, 520px); overflow: hidden; white-space: nowrap; font: 11px/1.6 var(--home-font); color: var(--home-soft); }
+.home-view .home-marquee span { display: inline-block; padding-left: 100%; animation: home-marquee 22s linear infinite; }
+@keyframes home-marquee { to { transform: translateX(-100%); } }
+
+.home-view .home-menu { display: flex; flex-wrap: nowrap; justify-content: center; gap: 5px; margin-top: 6px; }
+.home-view .home-item { flex: 1 1 0; min-width: 0; min-height: 44px; padding: 4px 2px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: bold clamp(11px, calc(11cqw / var(--count, 5)), 15px)/1.2 var(--home-font); text-decoration: underline; text-underline-offset: .18em; }
+.home-view .home-item.is-selected, .home-view .home-item:hover, .home-view .home-item[aria-pressed=true] { color: var(--home-hot); background: var(--home-hot-bg); }
+.home-view .home-item[aria-pressed=true] { border-color: var(--home-dark) var(--home-light) var(--home-light) var(--home-dark); }
+/* The status line of the period's browser. */
+.home-view .home-caption { min-height: 1.5em; margin: 7px 0 0; padding: 2px 7px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font: 11px/1.5 var(--home-font); color: var(--home-soft); border: 1px inset var(--home-line); }
+
+/* Stats, in place of the title block. */
+.home-view .home-stats { position: absolute; inset: 0; display: flex; flex-direction: column; gap: 9px; padding: 8px 0 2px; }
+.home-view .home-stats[hidden] { display: none; }
+.home-view .home-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2px; flex: none; padding: 2px; border: 1px outset var(--home-line); }
+.home-view .home-metric { min-width: 0; padding: 5px 8px; border: 1px inset var(--home-line); }
+.home-view .home-metric strong { display: block; font: bold 26px/1.05 var(--home-serif); color: var(--home-ink); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.home-view .home-metric small { display: block; margin-top: 2px; font: 10px var(--home-font); color: var(--home-soft); }
+.home-view .home-chart { display: flex; align-items: center; gap: 12px; flex: none; margin: 0; }
+.home-view .home-chart figcaption { flex: none; font: 10px var(--home-font); color: var(--home-soft); }
+.home-view .home-chart-plot { position: relative; flex: 1; height: 28px; }
+.home-view .home-chart-plot svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.home-view .home-chart-line { fill: none; stroke: var(--home-link); stroke-width: 1.25; stroke-linejoin: miter; vector-effect: non-scaling-stroke; }
+.home-view .home-chart-base { stroke: var(--home-line); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.home-view .home-chart-dot { position: absolute; right: -3px; width: 6px; height: 6px; margin-top: -3px; background: var(--home-hot); }
+.home-view .home-games { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.home-view .home-games-head { display: flex; align-items: center; justify-content: space-between; min-height: 26px; border-bottom: 2px groove var(--home-line); font: bold 11px var(--home-font); color: var(--home-ink); }
+.home-view .home-toggle { padding: 6px 0 6px 14px; font: 11px var(--home-font); color: var(--home-link); text-decoration: underline; border: 0; cursor: pointer; }
+.home-view .home-toggle:hover, .home-view .home-toggle[aria-pressed=true] { color: var(--home-hot); }
+.home-view .home-toggle:disabled { color: var(--home-soft); text-decoration: none; opacity: .6; cursor: default; }
+.home-view .home-manage { display: flex; flex-wrap: wrap; gap: 5px; padding: 6px 0; border-bottom: 1px dotted var(--home-line); }
+.home-view .home-manage[hidden] { display: none; }
+.home-view .home-chip, .home-view .home-clear-all { min-height: 30px; padding: 4px 10px; font: 11px var(--home-font); }
+.home-view .home-chip:hover, .home-view .home-clear-all:hover:not(:disabled) { color: var(--home-hot); background: var(--home-hot-bg); }
+.home-view .home-clear-all { margin-left: auto; font-weight: bold; color: var(--home-hot); }
+.home-view .home-clear-all:disabled { color: var(--home-soft); opacity: .6; cursor: default; }
+.home-view .home-game-list { flex: 1; min-height: 0; margin: 0; padding: 0; overflow: auto; list-style: none; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: var(--home-line) transparent; }
+.home-view .home-game { display: grid; grid-template-columns: minmax(0, 1fr) 52px 46px; align-items: center; gap: 10px; min-height: 26px; border-bottom: 1px dotted var(--home-line); font-size: 12px; }
+.home-view .home-stats.home-managing .home-game { grid-template-columns: minmax(0, 1fr) 52px 46px 30px; min-height: 32px; }
+.home-view .home-game-title { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; color: var(--home-ink); }
+.home-view .home-game-chars, .home-view .home-game-time { text-align: right; font-size: 11px; font-variant-numeric: tabular-nums; color: var(--home-soft); }
+.home-view .home-game-clear { display: none; width: 30px; height: 28px; padding: 0; font: bold 13px/1 var(--home-font); color: var(--home-hot); border: 0; cursor: pointer; }
+.home-view .home-stats.home-managing .home-game-clear { display: block; }
+.home-view .home-game-clear:hover { background: var(--home-hot-bg); }
+.home-view .home-empty { display: block; padding-top: 5px; color: var(--home-soft); }
+
+/* The way back from any system library. */
+#panel.console-library .home-return { order: -1; box-shadow: none; padding: 5px 10px; font: 500 10px Arial, sans-serif; letter-spacing: .2em; text-transform: uppercase;
+  color: inherit; background: transparent; border: 1px solid currentColor; border-radius: 0; opacity: .7; cursor: pointer; }
+#panel.console-library .home-return:hover, #panel.console-library .home-return:focus-visible { opacity: 1; }
+
+/* Phones and handhelds: the whole screen. */
+@media (max-width: 700px), (max-height: 540px) {
+  #panel.home-page { width: 100vw; height: 100dvh; aspect-ratio: auto; max-width: none; }
+}
+@container (max-width: 560px) {
+  #panel.home-page #panelBody { padding: 8px; }
+  .home-view { padding: 6px 10px 8px; }
+  .home-view .home-menu { flex-direction: column; gap: 4px; }
+  .home-view .home-item { flex: none; min-height: 42px; font-size: 15px; }
+  .home-view .home-metrics { grid-template-columns: repeat(2, 1fr); }
+  .home-view .home-metric strong { font-size: 21px; }
+}
+@container (max-height: 380px) {
+  #panel.home-page #panelBody { padding: 6px; }
+  .home-view { padding-top: 4px; padding-bottom: 6px; }
+  .home-view .home-item { min-height: 38px; }
+  .home-view .home-caption { margin-top: 4px; }
+  .home-view .home-chart { display: none; }
+  .home-view .home-stats { gap: 5px; padding-top: 4px; }
+  .home-view .home-metric { padding: 2px 8px; }
+  .home-view .home-metric strong { font-size: 19px; }
+}
+@media (max-height: 540px) { #panel.home-page:not(#_) .panel-head { top: 6px; right: 6px; } }
+@media (max-width: 700px) { #panel.home-page:not(#_) .panel-head { top: 8px; right: 8px; } }
+@media (prefers-reduced-motion: reduce) {
+  .home-view .home-marquee { text-align: center; text-overflow: ellipsis; }
+  .home-view .home-marquee span { display: inline; padding-left: 0; animation: none; }
+}

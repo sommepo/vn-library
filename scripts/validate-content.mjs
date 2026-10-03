@@ -10,6 +10,30 @@ try {
     const result=await validateDirectory(path.dirname(path.resolve(process.argv[2])));
     scriptValidation=result.scriptValidation;errors.push(...result.errors);
   }
+  if(content.runtime?.id==='gs2-gba'){
+    const {validateDirectory}=await import('./validate-gs2.mjs');
+    scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));
+    errors.push(...scriptValidation.errors);
+    errors.push(`Gyakuten Saiban 2 experimental runtime remains incomplete: ${scriptValidation.unsupported.length} fail-closed native sites in admitted scripts; graphics, animation and sound are not rendered. See its investigation guide.`);
+  }
+  if(content.runtime?.id==='gs2-gba-native'){
+    const {validateNativeDirectory}=await import('./validate-gs2.mjs');
+    scriptValidation=await validateNativeDirectory(path.dirname(path.resolve(process.argv[2])));
+    errors.push(...scriptValidation.errors);
+    errors.push('Gyakuten Saiban 2 native runtime remains experimental: emulated device timing and sound are not measured against hardware; see its runtime guide.');
+  }
+  if(content.runtime?.id==='gs1-gba-native'){
+    const {validateGyakutenNativeDirectory}=await import('./validate-gs2.mjs');
+    scriptValidation=await validateGyakutenNativeDirectory(path.dirname(path.resolve(process.argv[2])),{glyphs:1351});
+    errors.push(...scriptValidation.errors);
+    errors.push('Gyakuten Saiban native runtime remains experimental: emulated device timing and sound are not measured against hardware; see its runtime guide.');
+  }
+  if(content.runtime?.id==='gs3-gba-native'){
+    const {validateGyakutenNativeDirectory}=await import('./validate-gs2.mjs');
+    scriptValidation=await validateGyakutenNativeDirectory(path.dirname(path.resolve(process.argv[2])),{glyphs:1536});
+    errors.push(...scriptValidation.errors);
+    errors.push('Gyakuten Saiban 3 native runtime remains experimental: emulated device timing and sound are not measured against hardware; see its runtime guide.');
+  }
   if(content.runtime?.id==='memoriesoff-ps1'){
     const {validateDirectory}=await import('./validate-memoriesoff.mjs');
     scriptValidation=await validateDirectory(path.dirname(path.resolve(process.argv[2])));

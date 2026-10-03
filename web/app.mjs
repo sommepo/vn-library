@@ -2,6 +2,7 @@ import {soundWaitActive} from './media-wait.mjs';
 import { PLATFORMS, PLATFORM_KEY, storedPlatform, platformId, platformGames, platformNavigation } from './platforms.mjs';
 import { pspLibrary } from './psp-library.mjs';
 import { psoneLibrary } from './psone-library.mjs';
+import { gbaLibrary } from './gba-library.mjs';
 import { libraryAccordion } from './library-accordion.mjs';
 import { MenuMusic } from './menu-music.mjs';
 import { visibleLibrary } from './library.mjs';
@@ -10,7 +11,8 @@ import { importPanel } from './import-ui.mjs';
 import { LineHistory } from './rewind.mjs';
 import { GlobalPause } from './global-pause.mjs';
 import { isRead } from './read-status.mjs';
-import { Activity, validateActivity } from './statistics.mjs';
+import { Activity, validateActivity, summarizeActivity, addSummaries, hasStatistics, clearedActivity } from './statistics.mjs';
+import { homePage } from './home.mjs';
 import { Store } from './storage.mjs';
 import { SaveStore, SAVE_SLOTS } from './save-storage.mjs';
 import { createEngine } from './runtime.mjs';
@@ -19,14 +21,16 @@ import { decodeSceneImages } from './scene-images.mjs';
 import { CRTDisplay } from './crt.mjs';
 import { MiningMedia } from './mining.mjs';
 import { THEME_DEFAULTS, applyTheme } from './theme.mjs';
+import { renderSessionHud } from './session-hud.mjs';
 import { ReaderLayout } from './layout.mjs';
 import { SoundNovelPage, validateSoundPage } from './sound-novel.mjs';
+import { LiveHost } from './live-native.mjs';
 import { CRT_PRESETS, CRT_RANGES, crtPreset } from './crt-settings.mjs';
 import { applyLoop, releaseLoop } from './audio-loop.mjs';
 import { clearEffects, restoreEffects, snapshotEffects, startEffect, stopEffects } from './audio-effects.mjs';
 
 const $ = id => document.getElementById(id);
-const defaults = { ankiMedia: false, readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, ...THEME_DEFAULTS };
+const defaults = { ankiMedia: false, readColour: '#ff7979', speed: 0, autoDelay: 1600, fontSize: 26, lineHeight: 1.9, opacity: .68, music: .35, voice: .9, sound: .65, autoCopy: false, includeSpeaker: false, ruby: 'base', inactivity: 300, websocket: false, dimSurroundings: false, sessionHud: false, ...THEME_DEFAULTS };
 let settings;
 try { settings = { ...defaults, ...JSON.parse(localStorage.getItem('vnkit.settings') || '{}') }; } catch { settings = { ...defaults }; }
 const store = new SaveStore(new Store());
@@ -84,7 +88,7 @@ async function acquireGame(id) {
 const effects = new Set();
 const globalPause = new GlobalPause();
 const menuMusic = new MenuMusic(new Audio(),localStorage);
-let libraryMode=false;
+let libraryMode=false,settingsFromHome=false;
 const menuSuspended=new Set();
 function leaveLibrary(){libraryMode=false;if(game)setPlatform(platformId(game));for(const a of menuSuspended)if(!a.ended)play(a);menuSuspended.clear();syncMenuMusic();}
 function syncMenuMusic(){menuMusic.sync((!engine||libraryMode)&&!loadingGame&&currentDialog!=='sound-test'&&!globalPause.paused&&!document.hidden);}
@@ -232,6 +236,15 @@ function pauseWait() { if (waitDeadline !== null && engine?.current?.kind === 'w
   if ((engine?.current?.voiceUntilMs != null || engine?.current?.presentation?.voice || engine?.state.immediateVoice) && !voice.paused && !voice.ended) {voice.pause(); pausedVoiceCue = true;}
 }
 function clearTimers() { clearInterval(typeTimer); clearTimeout(autoTimer); clearTimeout(waitTimer); waitDeadline = null; typing = false; }
+// Engines that run original cartridge code: real-time frames, audio and GBA buttons.
+const live = new LiveHost({
+  // Only real pauses stop the machine; short reader work (autosave, presenting a page) must not.
+  ready: () => Boolean(engine?.live) && !libraryMode && !$('panel').open && !globalPause.paused && !loadingGame && !document.hidden && !choiceSeek,
+  busy: () => busy,
+  boundary: guard(async result => { await present(result, {navigation: 'advance'}); }),
+  choose: guard(async id => { if (!selected()) await advance('choice', id); }),
+  volume: () => Number(settings.music), onError: message => status(message, true), drawn: () => crt.frameReady(),
+});
 function advanceButton() { $('nextButton').disabled = globalPause.paused || busy || store.blocked(game?.id) || !engine?.current || ['choice', 'end', 'wait', 'setup', 'input', 'movie', 'sound'].includes(engine.current.kind); }
 function modeButtons() {
   $('previousButton').disabled=!lineHistory.length||!engine||busy||globalPause.paused||Boolean(choiceSeek)||store.blocked(game?.id);
@@ -316,7 +329,7 @@ function showText(p, restoring = false) {
   const count = [...plainText(visibleText)].length;
   const prefixCount = p.displayText == null ? 0 : Math.max(0, count - [...plainText(p.text)].length);
   if(p.sourceGlyphs){engine.renderSourceText($('sentence'),p);engine.renderSourceText($('speaker'),p,'speaker');}
-  else if (settings.speed > 0 && !skip && !restoring) {
+  else if (settings.speed > 0 && !skip && !restoring && !engine.live) {
     typing = true; typeStarted = performance.now();typePausedAt=globalPause.paused?typeStarted:null; drawDialogue(p, prefixCount);
     typeTimer = setInterval(() => {
       if (globalPause.paused || selected()) return;
@@ -411,9 +424,11 @@ async function present(result, { restoring = false, restoreMedia = false, naviga
     $('speaker').textContent = '';
     if(soundPage.enabled)soundPage.render(p);
     else {
-    $('sentence').textContent = '選択してください。';
+    // Adapters may repeat the already-counted source line the choice answers.
+    $('sentence').textContent = p.nativeOptions ? p.options.map(o => o.text).join('\n') : typeof p.prompt === 'string' && p.prompt ? p.prompt : '選択してください。';
+    if (typeof p.promptSpeaker === 'string') $('speaker').textContent = p.promptSpeaker;
     if(p.promptAsset){const img=new Image();img.src=mediaURL(p.promptAsset);img.className='choice-prompt';img.alt='';$('choices').append(img);}
-    for (const option of p.options) {
+    for (const option of p.nativeOptions ? [] : p.options) {
       const b = button('', async () => { if (selected()) return; await advance('choice', option.id); });
       if(option.asset){const img=new Image();img.src=mediaURL(option.asset);img.alt='';img.style.cssText='width:72px;max-height:100px;object-fit:contain;display:block;margin:auto';b.append(img);const label=document.createElement('span');renderText(label,option.text);b.append(label);}
       else if(option.sourceGlyphs)engine.renderSourceText(b,option);else renderText(b, option.text); $('choices').append(b);
@@ -584,6 +599,7 @@ async function loadGame(item, resume = true, entry = 'start') {
     if(!response.ok)throw new Error(`Cannot load content (${response.status})`);
     const content=await response.json(),base=new URL(item.url,location.href);
     const candidate=await createEngine(content,{baseURL:base.href});
+    if(candidate.live)candidate.host=live;
     nextLease=await acquireGame(content.id);
     await store.prepare(content.id,candidate.signature);
     const [saved,progress,history]=await Promise.all([resume?store.get(`${content.id}:autosave`):null,store.get(`${content.id}:progress`),store.get(`${content.id}:activity`)]);
@@ -613,8 +629,8 @@ async function loadGame(item, resume = true, entry = 'start') {
     $('panelBody').removeAttribute('aria-busy');$('loadNotice').hidden=true;advanceButton();modeButtons();schedule();
   }
 }
-function openPanel(title,id){mining.suspend(true);$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',['library','import'].includes(id));$('panel').classList.toggle('psp-library',selectedPlatform==='psp'&&id==='library');$('panel').classList.toggle('psone-library',selectedPlatform==='ps1'&&id==='library');$('panel').classList.toggle('console-import',id==='import');if(id!=='library'){cancelPlatformTransition();document.querySelectorAll('.platform-navigation').forEach(n=>n.dispose());}$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
-function closePanel(resume=true){if(changingSaveLocation)return;cancelPlatformTransition();panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();mining.suspend(false);activity?.interact();if(resume)schedule();}
+function openPanel(title,id){mining.suspend(true);$('panelBody').classList.remove('statistics-panel');panelCleanup?.();panelCleanup=null;clearTimeout(autoTimer);pauseWait();currentDialog=id;syncMenuMusic();$('panel').classList.toggle('console-library',['library','import'].includes(id));$('panel').classList.toggle('psp-library',selectedPlatform==='psp'&&id==='library');$('panel').classList.toggle('psone-library',selectedPlatform==='ps1'&&id==='library');$('panel').classList.toggle('gba-library',selectedPlatform==='gba'&&id==='library');$('panel').classList.toggle('console-import',id==='import');$('panel').classList.toggle('home-page',id==='home');if(id!=='library'){cancelPlatformTransition();document.querySelectorAll('.platform-navigation').forEach(n=>n.dispose());document.querySelectorAll('.home-return').forEach(n=>n.remove());}$('panelTitle').textContent=title;$('panelStatus').textContent='';$('panelBody').replaceChildren();if(!$('panel').open)$('panel').showModal();return $('panelBody');}
+function closePanel(resume=true){if(changingSaveLocation)return;settingsFromHome=false;cancelPlatformTransition();panelCleanup?.();panelCleanup=null;$('panel').close();currentDialog='';leaveLibrary();mining.suspend(false);activity?.interact();if(resume)schedule();}
 let platformTransitionRevision=0,platformFades=[],platformSurface=null;
 function cancelPlatformTransition(){
   ++platformTransitionRevision;
@@ -645,6 +661,71 @@ async function switchLibraryPlatform(id,keyboard=false){
   }
   if(revision===platformTransitionRevision)cancelPlatformTransition();
 }
+// Home: systems and device-wide reading statistics.
+async function statsEntries(){
+  const ids=new Set(library.map(item=>item.id));
+  for(const k of await store.local.keys())if(typeof k==='string'&&k.endsWith(':activity'))ids.add(k.slice(0,-':activity'.length));
+  const entries=[];
+  for(const id of ids){
+    const data=game?.id===id&&activity?activity.data:await store.local.get(`${id}:activity`);
+    const item=library.find(g=>g.id===id),summary=summarizeActivity(data);
+    const system=item?platformId(item):'unknown',platform=PLATFORMS.find(p=>p.id===system);
+    if(!item&&!hasStatistics(summary))continue;
+    entries.push({id,title:item?.title||id,system,systemLabel:platform?.label||'other',summary,hasStats:hasStatistics(summary)});
+  }
+  return entries;
+}
+function menuMusicToggle(){
+  const mute=document.createElement('button');mute.type='button';
+  const update=()=>{mute.textContent=menuMusic.muted?'♪̸':menuMusic.blocked?'▷':'♪';mute.setAttribute('aria-pressed',String(menuMusic.muted));mute.title=menuMusic.muted?'Unmute menu music':menuMusic.blocked?'Play menu music':'Mute menu music';mute.setAttribute('aria-label',mute.title);};
+  mute.onclick=()=>{if(menuMusic.blocked&&!menuMusic.muted)syncMenuMusic();else menuMusic.setMuted(!menuMusic.muted);update();};
+  menuMusic.onChange=update;update();return mute;
+}
+async function homePanel(view='menu',notice=''){
+  libraryMode=true;settingsFromHome=false;for(const a of [music,voice,scriptMedia,...effects])if(a&&!a.paused&&!a.ended){menuSuspended.add(a);a.pause();}
+  const body=openPanel('Home','home'),games=await statsEntries();
+  if(currentDialog!=='home')return;
+  const systems=PLATFORMS.map(p=>({...p,games:platformGames(library,p.id).length,summary:addSummaries(games.filter(g=>g.system===p.id).map(g=>g.summary))}));
+  const last=library.find(item=>item.id===(game?.id||localStorage.getItem('vnkit.lastGame')));
+  const backups=(await store.local.keys()).filter(k=>typeof k==='string'&&k.endsWith(':activity-before-clear'));
+  const resumable=last&&!['blocked','unsupported','extraction-only'].includes(last.compatibility?.status);
+  panelCleanup=homePage(body,{systems,games,total:addSummaries(games.map(g=>g.summary)),hasBackups:backups.length>0,view,notice,selected:resumable?'resume':selectedPlatform,
+    dark:settings.dimSurroundings===true,onTheme:()=>{settings.dimSurroundings=!settings.dimSurroundings;applySettings();return settings.dimSurroundings;},musicButton:menuMusicToggle(),
+    resume:resumable?{title:last.title,onClick:guard(()=>game?.id===last.id?closePanel():loadGame(last))}:null,
+    onSystem:guard(id=>libraryPanel(false,id)),onSettings:guard(()=>{settingsFromHome=true;return settingsPanel();}),
+    onClearGame:guard(async id=>{const g=games.find(x=>x.id===id);if(!confirm(`Clear stats for ${g.title}?\n\nSaves, progress and read history are kept.`))return;await clearStatistics([id]);}),
+    onClearSystem:guard(async id=>{const list=games.filter(g=>g.system===id&&g.hasStats),label=PLATFORMS.find(p=>p.id===id)?.label||id;if(!list.length)return;if(!confirm(`Clear stats for ${label} (${list.length} game${list.length===1?'':'s'})?\n\n${list.map(g=>`· ${g.title}`).join('\n')}\n\nSaves, progress and read history are kept.`))return;await clearStatistics(list.map(g=>g.id));}),
+    onClearAll:guard(async()=>{const list=games.filter(g=>g.hasStats);if(!list.length)return;if(!confirm(`Clear ALL stats (${list.length} game${list.length===1?'':'s'})?\n\nSaves, progress and read history are kept.`))return;await clearStatistics(list.map(g=>g.id));}),
+    onExportBackups:guard(async()=>{const out={};for(const k of (await store.local.keys()).filter(k=>typeof k==='string'&&k.endsWith(':activity-before-clear')))out[k]=await store.local.get(k);download('vnkit-activity-before-clear.json',out);}),
+  });
+}
+// Clear statistics per game. Reading history is kept; a backup of the cleared
+// record is stored first. A game open in another reader tab is left untouched,
+// because that tab would write its own copy back.
+async function clearStatistics(ids){
+  const cleared=[],skipped=[];
+  for(const id of ids){
+    if(game?.id===id&&activity){
+      if(busy||choiceSeek||!gameLease?.owned()){skipped.push(id);continue;}
+      const before=structuredClone(activity.data);
+      await store.local.put(`${id}:activity-before-clear`,before);
+      activity.clearStats();
+      try{await store.put(key('activity'),activity.data);}catch(error){activity.data=before;activity.session=before.sessions.at(-1);activity.ensureSession();throw error;}
+      cleared.push(id);continue;
+    }
+    let lease;try{lease=await acquireGame(id);}catch{skipped.push(id);continue;}
+    try{
+      const data=await store.local.get(`${id}:activity`);if(!data)continue;
+      const next=clearedActivity(data,id);
+      await store.local.put(`${id}:activity-before-clear`,data);
+      await store.local.put(`${id}:activity`,next);cleared.push(id);
+    }finally{lease.release();}
+  }
+  const name=id=>library.find(g=>g.id===id)?.title||id;
+  const message=`Cleared ${cleared.length} game${cleared.length===1?'':'s'}.`+(skipped.length?` Skipped (open in another tab): ${skipped.map(name).join(', ')}.`:'');
+  if(currentDialog==='home')await homePanel('stats',message);
+  else{status(message);if(currentDialog==='stats')await statsPanel();}
+}
 async function libraryPanel(ending = false, platform = null) {
   setPlatform(platform||(!libraryMode&&game?platformId(game):selectedPlatform));
   libraryMode=true;for(const a of [music,voice,scriptMedia,...effects])if(a&&!a.paused&&!a.ended){menuSuspended.add(a);a.pause();}
@@ -652,14 +733,20 @@ async function libraryPanel(ending = false, platform = null) {
   const nav=$('panel').querySelector('.platform-navigation')||platformNavigation(selectedPlatform,guard(switchLibraryPlatform));
   nav.update(selectedPlatform);
   const logo=document.createElement('img');logo.src='media/platform-logo-transparent.png';logo.alt='SOMY';logo.className='platform-logo';logo.width=114;logo.height=22;
-  $('panelTitle').replaceChildren(logo);
+  // advance draws its own 240×160 screen; no platform logo sits above it.
+  // Keep the ending wording visible beside the logo (it is the heading's text).
+  const endingNote=()=>{const s=document.createElement('span');s.className='panel-ending';s.textContent='Ending reached · Main menu';return s;};
+  if(selectedPlatform==='gba')$('panelTitle').replaceChildren(ending?'Ending reached · Main menu':'advance');else $('panelTitle').replaceChildren(logo,...(ending?[endingNote()]:[]));
   $('panelTitle').after(nav);
-  if(['ps1','psp'].includes(selectedPlatform)){
-    panelCleanup=(selectedPlatform==='ps1'?psoneLibrary:pspLibrary)(body,platformGames(library,selectedPlatform),{
-      launch:(item,resume=true)=>guard(()=>loadGame(item,resume))(),
+  const home=$('panel').querySelector('.home-return')||document.createElement('button');home.type='button';home.className='home-return';home.textContent='◂ Home';home.setAttribute('aria-label','Home: all systems and global stats');home.onclick=guard(()=>homePanel());$('panelTitle').before(home);
+  if(['ps1','psp','gba'].includes(selectedPlatform)){
+    panelCleanup=({ps1:psoneLibrary,psp:pspLibrary,gba:gbaLibrary})[selectedPlatform](body,platformGames(library,selectedPlatform),{
+      launch:(item,resume=true,entry='start')=>guard(()=>loadGame(item,resume,entry))(),
       soundTest:item=>guard(async()=>soundTestPanel(await libraryContext(item)))(),
       saveLocation:item=>guard(()=>saveLocationPanel(item))(),
       display:guard(crtPanel),settings:guard(settingsPanel),music:appendMenuMusic,
+      menuMusic,toggleMusic:()=>{if(menuMusic.blocked&&!menuMusic.muted)syncMenuMusic();else menuMusic.setMuted(!menuMusic.muted);},
+      credit:'Menu music: Nova Mistero by virabelo (Free Music Archive), CC BY 4.0.',
     });
     return;
   }
@@ -740,7 +827,10 @@ function applySettings() {
   $('dimButton').setAttribute('aria-pressed', String(settings.dimSurroundings));
   $('dimButton').innerHTML=settings.dimSurroundings?'☀ <span>Light</span>':'☾ <span>Dim</span>';
   $('dimButton').title=$('dimButton').ariaLabel=settings.dimSurroundings?'Light surroundings':'Dim surroundings';
-  localStorage.setItem('vnkit.settings', JSON.stringify(settings)); volumes();
+  localStorage.setItem('vnkit.settings', JSON.stringify(settings)); volumes(); updateSessionHud();
+}
+function updateSessionHud() {
+  renderSessionHud($('sessionHud'), activity?.session, settings.sessionHud === true && Boolean(engine) && !libraryMode && !choiceSeek && !$('panel').open);
 }
 async function libraryContext(item) {
   if(item.id===game?.id)return {engine,game,contentBase,active:true};
@@ -861,6 +951,7 @@ function crtPanel() {
 }
 async function settingsPanel() {
   const body = openPanel('Reading settings', 'settings');
+  if(settingsFromHome)body.append(row(button('Back to Home',()=>homePanel())));
   body.append(row(button('Anki media',ankiPanel)));
   body.append(row(button('Display / CRT',crtPanel)));
   const colour=document.createElement('input'),colourLabel=document.createElement('label');colour.type='color';colour.id='setting-readColour';colour.value=settings.readColour;colourLabel.htmlFor=colour.id;colourLabel.textContent='Previously read text colour';colour.oninput=()=>{settings.readColour=colour.value;applySettings();};body.append(row(colourLabel,colour));
@@ -882,6 +973,7 @@ async function settingsPanel() {
   range('Pause after inactivity', 'inactivity', 60, 1200, 30, v => `${v / 60} min`);
   const check = (label, name) => { const text = document.createElement('label'), input = document.createElement('input'); input.type = 'checkbox'; input.checked = settings[name]; input.onchange = () => { settings[name] = input.checked; applySettings(); if (name === 'websocket') guard(settingsPanel)(); }; text.append(input, document.createTextNode(` ${label}`)); body.append(row(text)); };
   check('Darken the area surrounding the game', 'dimSurroundings');
+  check('Show session stats in the upper right', 'sessionHud');
   check('Automatically copy new narrative text on this device', 'autoCopy');
   check('Include speaker name in copied and streamed text', 'includeSpeaker');
   check('Publish newly presented text to the local WebSocket relay', 'websocket');
@@ -898,7 +990,7 @@ async function settingsPanel() {
 function prepareMining(){
   if(!engine||libraryMode){mining.invalidate();return;}
   const p=engine.current?.kind==='choice'?engine.current:currentReadable();
-  void mining.present({game,p,art:$('art'),viewport:engine.presentationViewport||engine.content.viewport,visualKey:sceneVisualKey,skipping:skip});
+  void mining.present({game,p,art:$('art'),viewport:engine.presentationViewport||engine.content.viewport,visualKey:sceneVisualKey,frame:engine.captureFrame?.()||null,skipping:skip});
 }
 function ankiPanel(){
   const body=openPanel('Anki media','anki');
@@ -1151,6 +1243,7 @@ async function statsPanel() {
   body.append(paragraph(`${globalPause.paused?'Global pause is active. ':''}${activity.paused?'Timer manually paused.':'Timer pauses while this panel is open.'} An open session has no end time. Totals are reading-activity estimates on this device.`, 'muted activity-note'));
   const reset=button('Clear current session',async()=>{reset.disabled=true;try{await resetCurrentSession();}finally{reset.disabled=false;}});
   body.append(row(reset,paragraph('Resets this session’s counters and its contribution to totals. Earlier sessions and encountered text are kept.')));
+  body.append(row(button('Clear all statistics for this game',async()=>{if(!confirm(`Clear stats for ${game.title}?\n\nSaves, progress and read history are kept.`))return;await clearStatistics([game.id]);}),paragraph('Every session for this game. Global stats for all games are on Home.')));
   const breakdown=document.createElement('details'),breakdownTitle=document.createElement('summary');breakdownTitle.textContent='Today, unique text & rereading';
   breakdown.append(breakdownTitle,paragraph(`Today: ${daily.characters.toLocaleString()} characters · ${seconds(daily.activeMs)} active. Unique source characters: ${totals.uniqueCharacters.toLocaleString()}. Rereading: ${totals.rereadCharacters.toLocaleString()}. Selected-choice characters: ${totals.choiceCharacters.toLocaleString()} (separate). Skipped segments: ${totals.skippedSegments.toLocaleString()}.`));body.append(breakdown);
   body.append(row(button(activity.paused ? 'Resume activity timer' : 'Pause activity timer', () => { activity.paused = !activity.paused; activity.interact(); statsPanel(); }), button('Export activity JSON', () => download(`${game.id}-activity.json`, activity.data)), button('Export sessions CSV', () => download(`${game.id}-sessions.csv`, activity.exportCSV(), 'text/csv')), button('Restore activity backup…', () => $('activityFile').click())));
@@ -1170,7 +1263,7 @@ $('choiceButton').onclick = guard(nextChoice);
 $('dimButton').onclick = () => { settings.dimSurroundings = !settings.dimSurroundings; applySettings(); };
 let pointerStart;
 $('stage').addEventListener('pointerdown', e => { pointerStart = { x: e.clientX, y: e.clientY, hadSelection: selected() }; });
-$('stage').addEventListener('click', guard(e => { if (!pointerStart || pointerStart.hadSelection || e.target.closest('.textbox,.choices,button,a,input') || Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) > 6 || selected()) return; return advance(); }));
+$('stage').addEventListener('click', guard(e => { if (!pointerStart || pointerStart.hadSelection || e.target.closest('.textbox,.choices,.native-line,button,a,input') || Math.hypot(e.clientX - pointerStart.x, e.clientY - pointerStart.y) > 6 || selected()) return; return advance(); }));
 document.addEventListener('copy', event => {
   const selection = window.getSelection();
   const anchor = selection?.anchorNode?.nodeType === Node.ELEMENT_NODE ? selection.anchorNode : selection?.anchorNode?.parentElement;
@@ -1204,16 +1297,18 @@ $('activityFile').onchange = guard(async e => { const file = e.target.files[0]; 
 document.addEventListener('keydown', guard(async e => {
   if (choiceSeek) { if (e.code === 'Escape' || (e.altKey && e.code === 'KeyN')) { e.preventDefault(); choiceSeek.cancelled = true; } return; }
   if (e.target.closest('input,textarea,select,[contenteditable=true]') || $('panel').open) return;
+  if (live.key(e, true)) return;
   if (e.altKey && e.code === 'KeyN' && !e.repeat) { e.preventDefault(); await nextChoice(); return; }
   if (e.altKey && e.code === 'KeyC') { e.preventDefault(); const p=currentReadable(); if(p)await copyText(exportSentence(p)); return; }
   if(e.altKey&&e.code==='ArrowLeft'&&!e.repeat){e.preventDefault();await previousLine();return;}
   if (!e.ctrlKey && !e.altKey && !e.metaKey && !selected() && ['Space', 'Enter', 'ArrowRight'].includes(e.code) && !e.repeat && !e.target.closest('button,a')) { e.preventDefault(); await advance(); }
 }));
+document.addEventListener('keyup', e => { if (!e.target.closest('input,textarea,select,[contenteditable=true]')) live.key(e, false); });
 for (const event of ['pointerdown', 'keydown', 'wheel', 'touchstart']) document.addEventListener(event, () => activity?.interact(), { passive: true });
 document.addEventListener('selectionchange', () => { if (selected()) { clearTimeout(autoTimer); pauseWait(); } else schedule(); });
 document.addEventListener('visibilitychange', guard(async () => { if (document.hidden) { clearTimeout(autoTimer); pauseWait(); await persistCurrent(); } else { if (activity) { activity.lastTick = Date.now(); activity.interact(); } if (scriptMedia?.ended) await advance('media'); else schedule(); } }));
 window.addEventListener('pagehide', () => { persistCurrent().catch(() => {}); });
-setInterval(guard(async () => { if (!activity || !gameLease?.owned()) return; activity.tick({ visible: !document.hidden, reading: !globalPause.paused && !busy && !choiceSeek && !$('panel').open && Boolean(currentReadable()?.text) && !skip, inactivityMs: settings.inactivity * 1000 }); if (++heartbeat % 15 === 0) await persistCurrent(); }), 1000);
+setInterval(guard(async () => { updateSessionHud(); if (!activity || !gameLease?.owned()) return; activity.tick({ visible: !document.hidden, reading: !globalPause.paused && !busy && !choiceSeek && !$('panel').open && Boolean(currentReadable()?.text) && !skip, inactivityMs: settings.inactivity * 1000 }); if (++heartbeat % 15 === 0) await persistCurrent(); }), 1000);
 voice.addEventListener('ended', schedule);
 
 await guard(async () => {
@@ -1226,6 +1321,6 @@ await guard(async () => {
   const requested = new URLSearchParams(location.search).get('game');
   const item = requested && library.find(item => item.id === requested);
   if (item && !['blocked', 'unsupported', 'extraction-only'].includes(item.compatibility?.status)) await loadGame(item);
-  else await libraryPanel();
+  else await homePanel();
   // Library stays explicit: a synthetic fixture must never masquerade as a real import.
 })();

@@ -15,3 +15,5 @@ assert.equal(storedPlatform({getItem:()=> 'pc98'}),'ps2');
 assert.equal(storedPlatform({getItem:()=> 'psp'}),'psp');
 
 assert.equal(storedPlatform({getItem:()=> 'ps1'}),'ps1');
+assert.equal(storedPlatform({getItem:()=> 'gba'}),'gba');
+assert.deepEqual(platformGames([{id:'a',platform:{id:'gba'}},{id:'b',platform:{id:'psp'}}],'gba').map(g=>g.id),['a']);

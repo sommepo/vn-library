@@ -39,7 +39,10 @@ export class Shibuya428Progress {
       choice:(b>>>18)&15,extraBits:(b>>>16)&0xffc3,readPc:v.getUint32(p+8,true)};
   }
   complete(target){const p=this.id(target)*STRIDE;this.bytes[p+5]|=64;this.view.setUint32(p+8,0,true);}
+  beginCall(target){this.bytes[this.id(target)*STRIDE+5]&=191;}
   clearReplay(target){this.bytes[this.id(target)*STRIDE+5]&=127;}
+  beginChoice(target){this.bytes[this.id(target)*STRIDE+5]|=128;}
+  restartCheckpoint(target){this.bytes[this.id(target)*STRIDE+7]|=128;}
   // Native jump 0x0887c21c completes the previous label even in no-link mode.
   // Internal underscore labels never reach this operation.
   transition(from,target,{link=true,replay=false,previousScript}={}){

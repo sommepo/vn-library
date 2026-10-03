@@ -7,6 +7,7 @@ import {spawn} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import {createHash} from 'node:crypto';
 import {createReadStream} from 'node:fs';
+import {enterLibrary} from './browser-library.mjs';
 
 const root=path.resolve(import.meta.dirname,'..');
 if(process.argv.length!==4&&!(process.argv.length===5&&process.argv[4]==='--verify-finished'))throw Error('Usage: browser-never7-clean-import.mjs ISO NEW_PRIVATE_OUTPUT [--verify-finished]');
@@ -25,7 +26,7 @@ try{
  const {chromium}=await import(pathToFileURL(path.join(root,'private/tooling/playwright/package/index.mjs')));
  browser=await chromium.launch({headless:true});page=await browser.newPage({viewport:{width:1100,height:850}});
  page.on('pageerror',e=>report.errors.push(e.message));
- await page.goto(base);await page.getByRole('button',{name:'Add game / Import ISO',exact:true}).click();
+ await page.goto(base);await enterLibrary(page);await page.getByRole('button',{name:'Add game / Import media',exact:true}).click();
  await page.getByText('PS2 Never7 SLPS-25256 v1.01',{exact:true}).waitFor();
  if(!verifyFinished){
   await page.locator('#isoFile').setInputFiles(iso);
@@ -40,8 +41,8 @@ try{
   if(job?.status==='failed'||job?.status==='unsupported')throw Error(job.message);
   if(job?.status==='converting'&&!closed){
    pass('One Add game action uploads and identifies the exact edition');
-   await page.locator('#closePanel').click();await page.reload();
-   await page.getByRole('button',{name:'Add game / Import ISO',exact:true}).click();
+   await page.locator('#closePanel').click();await page.reload();await enterLibrary(page);
+   await page.getByRole('button',{name:'Add game / Import media',exact:true}).click();
    await page.locator(`article[data-job="${job.id}"]`).waitFor();
    pass('Preparation continues after closing the panel and reloading');closed=true;
   }

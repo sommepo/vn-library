@@ -25,16 +25,50 @@ Kamaitachi's 20 remaining auxiliary control sites stay fail-closed. Read the
 guide for media limitations and exact source fingerprints. All original bytes,
 annotated reviews, saves, recipes and reports stay private. Preserve existing readers.
 
-**428 is paused at the user's request on 2026-09-29. Do not resume without a new
-request.** Its [dedicated handoff](../../../docs/428-handoff-paused.md) and
-`private/428/HANDOFF.md` preserve the workspace and next steps. The following
-428 findings are retained history, not the active implementation target.
+**Gyakuten Saiban 2 GBA (AGB-A3GJ) runs natively (experimental).** Read
+[its runtime guide](../../../docs/gs2-gba-runtime.md). `--adapter gs2-gba` imports
+the verified cartridge plus ROM-bound text reviews (exit 3). The game runs on the
+original-code GBA machine; its text is DOM at native positions and the game
+screen is the touch controller. pwaa2 is unlicensed: reference only.
 
-428 PSP ULJS-00219 v1.01 currently has **static recovery only**, not a playable
+**Gyakuten Saiban 1 (AGB-ASBJ) and 3 (AGB-A3JJ) run on the same machine and series
+engine (experimental).** Read [the GS1 guide](../../../docs/gs1-gba-runtime.md) and
+[the GS3 guide](../../../docs/gs3-gba-runtime.md). One `Edition` record per cartridge
+in `vnkit/adapters/gyakuten_series.py`, one profile per edition in
+`web/adapters/`; add measured facts to a profile rather than forking the engine. Any
+change to the GBA machine must keep its state identical frame for frame, and touch
+must be checked in a browser with real touch events (`docs/testing.md`). pwaa1 and
+pwaa3demo are unlicensed: reference only.
+
+**The user resumed 428 after beta.5 on 2026-09-29.** Its
+[dedicated handoff](../../../docs/428-handoff-paused.md) (historical filename)
+and `private/428/HANDOFF.md` preserve the workspace and next steps. Read the
+investigation's latest opening-presentation section before coding.
+
+Current continuation: read the newest investigation section and
+`private/428/CONTINUE-20260929.md`; the component counts below are historical.
+The private browser passes 900 actual reading stops with earned timeline
+choices and reversals; the later 1,100-stop run is incomplete at 1,052 without a
+final report. Simulated execution reaches 1,350 stops and the first-hour trailer,
+save boundary and five offered next-hour characters. All five selections match
+native confirmation. Kano's next-hour continuation reaches1,606 simulated stops,
+then unsupported effect19 UV distortion. Browser-v4 was intentionally stopped at
+607 stops for handover, not a pass; no jobs remain active.
+An isolated Chromium test plays the full trailer with audio;
+this is not earned browser transition evidence. PMF private audio needs the new
+bounded parser: FFprobe-only detection missed it in 74 of 237 recovered movies.
+Nonempty unlock notifications remain closed. This is still not a playable
+library entry, complete route, full save format or shared-reader integration.
+Background unknown control/text stays closed; called checkpoints preserve caller
+context/page; ordinary recomputation still rejects non-empty stacks. Native CPU
+comparisons intercept graphics/backend objects and are not PSP-device evidence.
+Current usage task: `428-complete-reader`.
+
+428 PSP ULJS-00219 v1.01 has recovery and a private opening experiment, not a playable
 portable library entry. Read [its investigation](../../../docs/428-psp-investigation.md).
 Use `--adapter 428-psp` for local recovery; it exits 3 and emits no content.json.
 The 34 SNS 01.82 scripts structurally parse. A control VM draft, FLO parser,
-GIM decoder and bounded integer Allegrex probe now exist, but reader execution,
+GIM decoder and bounded Allegrex probe now exist, but reader execution,
 JUMP/KEEP OUT gates, cross-character state and saves are not integrated. Read
 the investigation’s runtime-foundations section before extending them. Native
 branch comparisons cover 4,734 controlled cases; flow lookup covers 1,199 nodes.
@@ -45,6 +79,25 @@ cases include six controlled choice reversals, not earned routes or PSP-device
 evidence. The draft VM's explicit resolveRecompute needs verified source context;
 ordinary advance and unsupported tutorials still stop. Opaque native transactions
 are temporary, not reader saves; non-empty source call stacks remain rejected.
+The new context module derives character/hour/restarts/clocks from verified
+private metadata; 10,939 checkpoint/record comparisons and 47 context/replay
+comparisons pass. Source context cannot be caller-overridden and rolls back
+with VM/records. The system selector matches 945 controlled native cases and
+ordinary system handling matches 546; presentation callbacks are intercepted,
+not implemented UI. Pending controller events cannot be skipped. Mark tutorial
+flags only on verified completion, never selection. Both real tutorial preview
+stops remain after their now-supported inert delimiter. Type1 codes1/2 and the
+full checkpoint/controller/thread paths remain unsupported. Opt-in numeric
+presentation reaches one short opening text boundary in Chromium, with original
+sound/image and per-glyph fades; original font/layout and shared reader features
+remain incomplete. Next stops at 0x91. Correct the old identification: 0x63 is
+picture-effect setup, not audio. All 51 synthetic cases pass. No earned route
+exists. Native comparisons cover 4,627 sound sites, 9,102 picture loads, 8,151
+effect setups and per-glyph alpha/cadence; media backends are intercepted.
+Only effect11 and independent low-ID sound voices have rendering support.
+Explicit finite float32 probe support is separate from integer-only PS1/progress
+defaults. Complete each media event separately from the next source batch so
+later unknown commands cannot replay audio or remove presented text.
 Never seed user progress from the diagnostic prefix histories. Private artwork-v2
 contains 6,123 decoded pictures; the dummy archive’s 87 opaque GIMs remain opaque.
 CPK extraction preserves numeric member IDs and never follows original ../
@@ -52,7 +105,8 @@ directory strings. Keep the exact dummy archive's 129 headerless compressed
 members as opaque stored bytes; do not repair signatures. Private outputs are
 under private/428, and no browser import/installer/public support is admitted.
 The external GPL pspdecrypt tool is for static research only, never bundled.
-Preserve Memories Off and all six installed PS2 readers and their save banks.
+Preserve all nine installed readers and their save banks. This continuation is
+local and unpublished; usage task `428-opening-presentation`.
 
 
 Memories Off original PS1 SLPS-02296 now has a local experimental CUE/BIN

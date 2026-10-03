@@ -733,3 +733,63 @@ Fourteen reader Node test files passed; the existing eight actual-game Chromium
 console checks passed in `platform-glass-ps2` with a temporary bank. No live save
 writes or new commercial-game support. One initial startup timeout was not
 reproduced in later runs; no product startup exception was recorded.
+
+## Live GBA speed and sound pacing (2026-10-01)
+
+After laggy play and choppy music in a mobile browser, the GBA machine, the live
+host's pacing and the save path were reworked; `docs/gs2-gba-runtime.md` ("Speed and
+sound pacing") records what changed and the measurements.
+
+```sh
+node --test tests/gba-machine.test.mjs tests/gyakuten-native.test.mjs      # 11 + 8
+# Emulated speed, drawn frames and audio underruns with the main thread slowed N times:
+sh scripts/browser-env.sh node tests/browser-live-performance.mjs private/library/gs2-live private/browser-tests/perf-vN 6 20
+```
+
+`tests/browser-live-performance.mjs` slows Chromium's main thread through DevTools,
+plays for the given seconds while tapping through pages, and reports the counters the
+live host keeps on its canvas (`liveStats`): frames run, frames drawn, underruns, the
+longest tick and the audio lead. A sixth argument makes it fail below a frame rate.
+Headless Chromium on this host never starts a real audio worklet (no sound device), so
+the test installs `tests/simulated-audio-output.js`: a stand-in AudioContext that runs
+the page's own output processor on a real-time clock and makes posted samples
+available only from the moment they were posted. `VNKIT_WEBAUDIO=real` uses the
+browser's own audio on a host that has a device.
+
+The other GBA browser tests still run without Web Audio, so they cover the
+display-clock pacing path; the performance test covers the audio-clock path.
+`tests/browser-gyakuten-native.mjs` has a tenth check: it opens the court record from a
+page of dialogue with the reader's tab, taps the game's own R prompt (its lower part,
+which the text box area overlaps) and the strip beside its ▶ arrow, and requires the
+list to change, the record to stay open and the page underneath to be the same page
+afterwards. Its "continue" tap goes to the first plate on an episode menu.
+An eleventh check switches the CRT display on for the live picture (software WebGL 2,
+`--enable-unsafe-swiftshader`), requires the filter canvas over an unseen live canvas,
+frames still being drawn, a tap on the picture still continuing the game, and the plain
+screen back when it is switched off. `tests/reader-crt.test.mjs` (4) covers the platform
+defaults; `tests/browser-crt.mjs` (CLANNAD, 11 checks) still passes with the changed
+screen shader. A host network change during a run (`net::ERR_NETWORK_CHANGED` in the
+report's errors) makes the reload step time out; such a run says nothing about the code
+and is repeated.
+
+### Touch on the native screens (2026-10-01)
+
+Until this day the game picture took no taps in the real page (`pointer-events:none`
+on the canvas), while every engine-level touch probe and playthrough passed. Touch is
+therefore checked in a browser with real touch events:
+
+```sh
+T=private/gs-series/touch/snapshots
+sh scripts/browser-env.sh node tests/browser-gyakuten-touch.mjs private/library/gs3-live private/browser-tests/touch-gs3-vN \
+  cross=$T/gs3-cross.snap.json investigation=$T/gs3-investigation.snap.json lock=$T/gs3-lock.snap.json \
+  choice=$T/gs3-choice.snap.json save=$T/gs3-saveprompt.snap.json detector=$T/gs3-detector.snap.json
+```
+
+Each `<screen>=<state>` resumes a saved machine state in a fresh profile (written into
+the reader's own autosave before the game is opened), finds its targets from the game's
+sprites through `liveEngine` on the canvas, taps them with `touchscreen.tap`, and reads
+the outcome from native state. Results: GS1 16 of 16 (cross-examination, investigation,
+save prompt), GS2 19 of 19 (plus psyche-lock), GS3 23 of 23 (plus a choice list and the
+metal detector). The states are private files; `private/gs-series/touch/README.md` lists
+them. The court record fix had one informal check on a phone; nothing else was tried
+on a physical device.

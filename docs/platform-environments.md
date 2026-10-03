@@ -15,7 +15,7 @@ after backend changes. Do not label arbitrary unknown titles as PS2.
 ## Active library environments
 
 `web/platforms.mjs` owns platform identities and filtering. The library header
-switches between **one** (PS1), **two** (PS2) and **portable** (PSP); left/right keys on that selector
+switches between **one** (PS1), **two** (PS2), **portable** (PSP) and **advance** (GBA); left/right keys on that selector
 switch platforms. Selection persists in `vnkit.platform.v1`. Direct game links
 use the game's platform. Closing the library returns to an active game's platform
 without changing its execution or saves. PC-98 presentation and research remain
@@ -69,13 +69,41 @@ The top-right selector uses translucent glass surfaces and a sliding selection
 indicator. Platform changes crossfade the environments; reduced-motion settings
 disable those transitions. The transparent logo is shared across all three.
 
+## advance: GBA-resolution frontend
+
+`web/gba-library.mjs` / `web/gba.css` draw the library as a native 240×160 frame
+on a canvas: Games / Settings / Add game tabs, a bordered list window, a cursor
+and a control hint. Text is rasterised 1:1 and thresholded to on/off pixels, and
+every colour is 15-bit (channels in steps of 8), as on GBA hardware. The frame is
+magnified by whole-number factors when 2× or more fits; smaller phone screens
+fit exactly (fractional, so pixel widths vary slightly). No console body, bezel,
+firmware art or platform logo is drawn; the header keeps only the platform
+selector and Close. Transparent real buttons lie over each drawn row, so
+keyboard, pointer and assistive technology use DOM controls while the canvas
+draws focus. Settings holds Display, Reading, menu music on/off, volume (steps of
+10%) and the music credit.
+
+GBA content is 240×160. `layout.mjs` scales it by whole-number factors (as for
+PC-98) and `gba.css` samples stage images nearest-neighbour. The per-platform
+display preference `vnkit.crt.gba.v1` defaults to CRT off; switched on, a live
+game screen gets one scanline per line of its picture, a light mask and flat
+geometry (see `docs/crt-display.md`).
+
+[Gyakuten Saiban](gs1-gba-runtime.md), [Gyakuten Saiban 2](gs2-gba-runtime.md) and
+[Gyakuten Saiban 3](gs3-gba-runtime.md) run natively under advance (local
+import): the game screen is the touch controller and its text is DOM. Add game says
+cartridge imports use the local importer and uploads nothing. Synthetic
+GBA-tagged reader tests establish UI behaviour only.
+
 ## Checks
 
 `tests/browser-platforms.mjs` uses original synthetic content in a temporary
 library, a separate save bank and a clean browser profile. It covers PS2 legacy
 metadata, the parked PC-98 preference, PSP filtering and persistence, keyboard
 navigation, synthetic reading continuity after switching platforms, settings,
-the unavailable PSP import boundary, reduced motion and mobile panel bounds.
+the unavailable PSP import boundary, reduced motion and mobile panel bounds. The
+advance section covers GBA filtering, persistence, keyboard categories, whole-number
+240×160 scaling, synthetic resume, the import notice and phone/landscape bounds.
 Set `VNKIT_BROWSER=firefox` for Firefox and `VNKIT_REPORT_DIR` for private output.
 `tests/reader-platforms.test.mjs` and `tests/test_platforms.py` cover metadata and
 invalid/missing platform input. Actual-game reader regressions are separate.
